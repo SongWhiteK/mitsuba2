@@ -221,7 +221,50 @@ protected:
     int m_rr_depth;
 };
 
+template <typename Float, typename Spectrum>
+class MTS_EXPORT_RENDER PathSampler : public Integrator<Float, Spectrum> {
+public:
+    MTS_IMPORT_BASE(Integrator)
+    MTS_IMPORT_TYPES(Scene, Sensor, Film, ImageBlock, Medium, Sampler)
+
+    virtual void sample(const Scene *scene,
+                        Sampler *sampler,
+                        const RayDifferential3f &ray,
+                        const Medium *medium = nullptr,
+                        Mask active = true) const;
+
+    virtual std::pair<RayDifferential3f, Mask> sample_path(Scene *scene, Sampler *sample) const;
+
+    bool render(Scene *scene, Sensor *sensor) override;
+    void cancel() override;
+
+    bool should_stop() const {
+        return m_stop || (m_timeout > 0.f &&
+                          m_render_timer.value() > 1000.f * m_timeout);
+    }
+
+    MTS_DECLARE_CLASS()
+protected:
+    PathSampler(const Properties &props);
+    virtual ~PathSampler();
+
+    uint32_t m_samples_per_pass;
+
+    bool m_stop;
+
+    float m_timeout;
+
+    Timer m_render_timer;
+
+    int m_max_depth;
+    int m_rr_depth;
+
+};
+
+
+
 MTS_EXTERN_CLASS_RENDER(Integrator)
 MTS_EXTERN_CLASS_RENDER(SamplingIntegrator)
 MTS_EXTERN_CLASS_RENDER(MonteCarloIntegrator)
+MTS_EXTERN_CLASS_RENDER(PathSampler)
 NAMESPACE_END(mitsuba)

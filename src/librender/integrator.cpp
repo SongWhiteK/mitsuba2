@@ -301,11 +301,125 @@ MTS_VARIANT MonteCarloIntegrator<Float, Spectrum>::MonteCarloIntegrator(const Pr
 
 MTS_VARIANT MonteCarloIntegrator<Float, Spectrum>::~MonteCarloIntegrator() { }
 
+// -----------------------------------------------------------------------------
+
+MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
+    : Base(props) {
+
+    m_timeout = props.float_("timeout", -1.f);
+    m_samples_per_pass = (uint32_t) props.size_("samples_per_pass", (size_t) -1);
+
+    m_rr_depth = props.int_("rr_depth", 5);
+    if (m_rr_depth <= 0)
+        Throw("\"rr_depth\" must be set to a value greater than zero!");
+
+    m_max_depth = props.int_("max_depth", -1);
+    if (m_max_depth < 0 && m_max_depth != -1)
+        Throw("\"max_depth\" must be set to -1 (infinite) or a value >= 0");
+
+}
+
+
+MTS_VARIANT PathSampler<Float, Spectrum>::~PathSampler() { }
+
+MTS_VARIANT void PathSampler<Float, Spectrum>::cancel() {
+    m_stop = true;
+}
+
+MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sensor) {
+    ScopedPhase sp(ProfilerPhase::Render);
+    m_stop = false;
+
+    size_t total_spp = sensor->sampler()->sample_count();
+    size_t samples_per_pass = (m_samples_per_pass == (size_t) -1)
+                            ? total_spp : std::min((size_t) m_samples_per_pass, total_spp);
+    if ((total_spp % samples_per_pass) != 0)
+        Throw("sample_count (%d) must be a multiple of samples_per_pass (%d).",
+              total_spp, samples_per_pass);
+
+    size_t n_passes = (total_spp + samples_per_pass - 1) / samples_per_pass;
+
+    m_render_timer.reset();
+
+    size_t n_threads = __global_thread_count;
+    Log(Info, "Starting path sampling job (%i samples, %s %i threads)",
+        total_spp,
+        n_passes > 1 ? tfm::format(" %d passes,", n_passes) : "",
+        n_threads);
+
+    if (m_timeout > 0.f)
+            Log(Info, "Timeout specified: %.2f seconds.", m_timeout);
+
+    ThreadEnvironment env;
+    ref<ProgressReporter> progress = new ProgressReporter("Rendering");
+    std::mutex mutex;
+
+    size_t total_it = total_spp * n_passes, it_done = 0;
+
+    // Generate initial ray for sampling
+    ref<Sampler> sampler_ray = sensor->sampler()->clone();
+    std::pair<RayDifferential3f, Mask> ray_sample = sample_path(scene, sampler_ray);
+    RayDifferential3f ray = ray_sample.first;
+    Mask active = ray_sample.second;
+    const Medium *medium = sensor->medium();
+
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, total_it, 1),
+        [&](const tbb::blocked_range<size_t> &range) {
+            ScopedSetThreadEnvironment set_env(env);
+            ref<Sampler> sampler = sensor->sampler()->clone();
+            scoped_flush_denormals flush_denormals(true);
+
+            // For each path
+            for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
+                Assert(hprod(size) != 0);
+
+                // Ensure that the sample generation is fully deterministic
+                sampler->seed(i);
+
+                Log(Info, "%i iterates", i);
+
+                sample(scene, sampler, ray, medium, active);
+
+                /* Critical section: update progress bar */ {
+                    std::lock_guard<std::mutex> lock(mutex);
+                    it_done++;
+                    progress->update(it_done / (ScalarFloat) total_it);
+                }
+            }
+        }
+    );
+
+    if (!m_stop)
+        Log(Info, "Rendering finished. (took %s)",
+            util::time_string(m_render_timer.value(), true));
+
+    return !m_stop;
+}
+
+MTS_VARIANT std::pair<typename PathSampler<Float, Spectrum>::RayDifferential3f, typename PathSampler<Float, Spectrum>::Mask>
+PathSampler<Float, Spectrum>::sample_path(Scene * /* scene */,
+                                          Sampler * /* sampler */) const {
+    NotImplementedError("sample_path");
+
+}
+
+MTS_VARIANT void
+PathSampler<Float, Spectrum>::sample(const Scene * /* scene */,
+                                    Sampler * /* sampler */,
+                                    const RayDifferential3f & /* ray */,
+                                    const Medium * /* medium */,
+                                    Mask /* active */) const {
+    NotImplementedError("sample");
+}
+
 MTS_IMPLEMENT_CLASS_VARIANT(Integrator, Object, "integrator")
 MTS_IMPLEMENT_CLASS_VARIANT(SamplingIntegrator, Integrator)
 MTS_IMPLEMENT_CLASS_VARIANT(MonteCarloIntegrator, SamplingIntegrator)
+MTS_IMPLEMENT_CLASS_VARIANT(PathSampler, Integrator)
 
 MTS_INSTANTIATE_CLASS(Integrator)
 MTS_INSTANTIATE_CLASS(SamplingIntegrator)
 MTS_INSTANTIATE_CLASS(MonteCarloIntegrator)
+MTS_INSTANTIATE_CLASS(PathSampler)
 NAMESPACE_END(mitsuba)
