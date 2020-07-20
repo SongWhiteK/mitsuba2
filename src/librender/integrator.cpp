@@ -317,6 +317,8 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
     if (m_max_depth < 0 && m_max_depth != -1)
         Throw("\"max_depth\" must be set to -1 (infinite) or a value >= 0");
 
+    m_output_dir = props.string("output_dir", ".\\");
+
 }
 
 
@@ -339,7 +341,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
     size_t n_passes = (total_spp + samples_per_pass - 1) / samples_per_pass;
 
-    m_render_timer.reset();
+    
 
     size_t n_threads = __global_thread_count;
     Log(Info, "Starting path sampling job (%i samples, %s %i threads)",
@@ -354,14 +356,19 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     ref<ProgressReporter> progress = new ProgressReporter("Rendering");
     std::mutex mutex;
 
-    size_t total_it = total_spp * n_passes, it_done = 0;
+    size_t total_it = n_threads, it_done = 0;
 
-    // Generate initial ray for sampling
+    // Generate initial ray for tracing
     ref<Sampler> sampler_ray = sensor->sampler()->clone();
     RayDifferential3f ray = sample_path(scene, sampler_ray);
     Mask active = true;
     const Medium *medium = sensor->medium();
 
+    m_render_timer.reset();
+
+    size_t n_sample_thread = total_spp / n_threads;
+
+    // tracing the same ray "spp" times
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, total_it, 1),
         [&](const tbb::blocked_range<size_t> &range) {
@@ -373,10 +380,10 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
             for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
                 Assert(hprod(size) != 0);
 
-                // Ensure that the sample generation is fully deterministic
+                // Ensure that the sample generation is deterministic?
                 sampler->seed(i);
 
-                sample(scene, sampler, ray, medium, active);
+                sample_thread(scene, sampler, ray, medium, n_sample_thread);
 
                 /* Critical section: update progress bar */ {
                     std::lock_guard<std::mutex> lock(mutex);
@@ -394,6 +401,17 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     return !m_stop;
 }
 
+MTS_VARIANT void PathSampler<Float, Spectrum>::sample_thread(const Scene *scene,
+                                    Sampler *sampler,
+                                    const RayDifferential3f &ray,
+                                    const Medium *medium,
+                                    size_t n_sample_thread) const {
+    for(size_t i = 0; i < n_sample_thread; i++){
+        sample(scene, sampler, ray, medium);
+    }
+
+}
+
 MTS_VARIANT typename PathSampler<Float, Spectrum>::RayDifferential3f
 PathSampler<Float, Spectrum>::sample_path(Scene * /* scene */,
                                           Sampler * /* sampler */) const {
@@ -405,8 +423,7 @@ MTS_VARIANT void
 PathSampler<Float, Spectrum>::sample(const Scene * /* scene */,
                                     Sampler * /* sampler */,
                                     const RayDifferential3f & /* ray */,
-                                    const Medium * /* medium */,
-                                    Mask /* active */) const {
+                                    const Medium * /* medium */) const {
     NotImplementedError("sample");
 }
 
