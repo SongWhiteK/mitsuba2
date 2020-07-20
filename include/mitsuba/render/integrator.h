@@ -233,7 +233,7 @@ public:
                         const Medium *medium = nullptr,
                         Mask active = true) const;
 
-    virtual std::pair<RayDifferential3f, Mask> sample_path(Scene *scene, Sampler *sample) const;
+    virtual RayDifferential3f sample_path(Scene *scene, Sampler *sample) const;
 
     bool render(Scene *scene, Sensor *sensor) override;
     void cancel() override;

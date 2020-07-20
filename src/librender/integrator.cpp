@@ -358,9 +358,8 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
     // Generate initial ray for sampling
     ref<Sampler> sampler_ray = sensor->sampler()->clone();
-    std::pair<RayDifferential3f, Mask> ray_sample = sample_path(scene, sampler_ray);
-    RayDifferential3f ray = ray_sample.first;
-    Mask active = ray_sample.second;
+    RayDifferential3f ray = sample_path(scene, sampler_ray);
+    Mask active = true;
     const Medium *medium = sensor->medium();
 
     tbb::parallel_for(
@@ -376,8 +375,6 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
                 // Ensure that the sample generation is fully deterministic
                 sampler->seed(i);
-
-                Log(Info, "%i iterates", i);
 
                 sample(scene, sampler, ray, medium, active);
 
@@ -397,7 +394,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     return !m_stop;
 }
 
-MTS_VARIANT std::pair<typename PathSampler<Float, Spectrum>::RayDifferential3f, typename PathSampler<Float, Spectrum>::Mask>
+MTS_VARIANT typename PathSampler<Float, Spectrum>::RayDifferential3f
 PathSampler<Float, Spectrum>::sample_path(Scene * /* scene */,
                                           Sampler * /* sampler */) const {
     NotImplementedError("sample_path");
