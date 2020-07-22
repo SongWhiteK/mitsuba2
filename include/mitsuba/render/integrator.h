@@ -230,12 +230,18 @@ public:
     virtual void sample(const Scene *scene,
                         Sampler *sampler,
                         const RayDifferential3f &ray,
-                        const Medium *medium = nullptr,
-                        Mask active = true) const;
+                        const Medium *medium = nullptr) const;
 
     virtual RayDifferential3f sample_path(Scene *scene, Sampler *sample) const;
 
     bool render(Scene *scene, Sensor *sensor) override;
+
+    void sample_thread(const Scene *scene,
+                        Sampler *sampler,
+                        const RayDifferential3f &ray,
+                        const Medium *medium = nullptr,
+                        size_t sample_thread = size_t(-1)) const;
+
     void cancel() override;
 
     bool should_stop() const {
@@ -258,6 +264,8 @@ protected:
 
     int m_max_depth;
     int m_rr_depth;
+
+    std::string m_output_dir;
 
 };
 
