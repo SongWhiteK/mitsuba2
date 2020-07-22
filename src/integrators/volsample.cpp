@@ -65,15 +65,17 @@ public:
         Vector3f o = Vector3f(pos_sample[0], pos_sample[1], bbox.max[2] + 1);
         ray_sample_xy.o = o;
         ray_sample_xy.d = Vector3f(0, 0, -1);
-        ray_sample_xy.mint = 0.f;
-        ray_sample_xy.maxt = 10.f;
+        ray_sample_xy.mint = math::RayEpsilon<Float>;
+        ray_sample_xy.maxt = math::Infinity<Float>;
+        ray_sample_xy.update();
+        
 
         SurfaceInteraction3f si_sample = scene->ray_intersect(ray_sample_xy);
 
         // Sample direction and convert to world coordinates
         Vector3f d_sample = warp:: square_to_uniform_hemisphere(sampler->next_2d());
         Vector3f d_sample_world = si_sample.to_world(d_sample);
-        Vector3f d_sample_world_small = d_sample_world / 100000;
+        Vector3f d_sample_world_small = d_sample_world / 1000;
 
         Log(Info, " sampled position x: %f, y: %f, z: %f",
                     si_sample.p[0], si_sample.p[1], si_sample.p[2]);
@@ -83,8 +85,9 @@ public:
         // Generate a ray for tracing
         ray.o = si_sample.p + d_sample_world_small;
         ray.d = -d_sample_world;
-        ray.mint = 0;
-        ray.maxt = 10;
+        ray.mint = math::RayEpsilon<Float>;
+        ray.maxt = math::Infinity<Float>;
+        ray.update();
 
         // Check the ray is valid
         // SurfaceInteraction3f si_test = scene->ray_intersect(ray);
@@ -103,10 +106,6 @@ public:
                 const Medium *initial_medium) const override {
         // Tracing input and output to csv file
 
-
-        // setup csv file stream
-        std::string filename_pos = m_output_dir + "\\output_path.csv";
-        std::ofstream ofs(filename_pos, std::ios::app);
         Ray3f ray = ray_;
 
         // Tracks radiance scaling due to index of refraction changes
@@ -291,7 +290,6 @@ public:
                     if(any_or<true>(record)){
                         if(any_or<true>(!record_pos)){
                             masked(record, !record_pos) = false;
-                            // ofs << wi << "," << in_pos << "," << out_pos << std::endl;
                         }
                     }
                     else if(any_or<true>(record_pos)){
