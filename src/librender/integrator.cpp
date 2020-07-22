@@ -319,6 +319,9 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
 
     m_output_dir = props.string("output_dir", ".\\");
 
+    m_spp_roop = props.bool_("spp_roop", true);
+    m_thread_roop = props.bool_("thread_roop", false);
+    if(m_thread_roop) m_spp_roop = false;
 }
 
 
@@ -356,7 +359,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     ref<ProgressReporter> progress = new ProgressReporter("Rendering");
     std::mutex mutex;
 
-    size_t total_it = n_threads, it_done = 0;
+    size_t it_done = 0;
 
     // Generate initial ray for tracing
     ref<Sampler> sampler_ray = sensor->sampler()->clone();
@@ -366,33 +369,62 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
     m_render_timer.reset();
 
-    size_t n_sample_thread = total_spp / n_threads;
+    size_t n_sample_thread = (total_spp >= n_threads) ? total_spp / n_threads : total_spp;
+    size_t total_it;
 
-    // tracing the same ray "spp" times
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, total_it, 1),
-        [&](const tbb::blocked_range<size_t> &range) {
-            ScopedSetThreadEnvironment set_env(env);
-            ref<Sampler> sampler = sensor->sampler()->clone();
-            scoped_flush_denormals flush_denormals(true);
+    if(m_spp_roop){
+        // tracing the same ray "spp" times with spp roops
+        total_it = total_spp;
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, total_it, 1),
+            [&](const tbb::blocked_range<size_t> &range) {
+                ScopedSetThreadEnvironment set_env(env);
+                ref<Sampler> sampler = sensor->sampler()->clone();
+                scoped_flush_denormals flush_denormals(true);
 
-            // For each path
-            for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
-                Assert(hprod(size) != 0);
+                // For each path
+                for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
+                    Assert(hprod(size) != 0);
 
-                // Ensure that the sample generation is deterministic?
-                sampler->seed(i);
+                    // Ensure that the sample generation is deterministic?
+                    sampler->seed(i);
+                    sample(scene, sampler, ray, medium);
 
-                sample_thread(scene, sampler, ray, medium, n_sample_thread);
-
-                /* Critical section: update progress bar */ {
-                    std::lock_guard<std::mutex> lock(mutex);
-                    it_done++;
-                    progress->update(it_done / (ScalarFloat) total_it);
+                    /* Critical section: update progress bar */ {
+                        std::lock_guard<std::mutex> lock(mutex);
+                        it_done++;
+                        progress->update(it_done / (ScalarFloat) total_it);
+                    }
                 }
             }
-        }
-    );
+        );
+    }else if(m_thread_roop){
+        total_it = (total_spp >= n_threads) ? n_threads : 1;
+        // tracing the same ray "spp" times with 8 roops
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, total_it, 1),
+            [&](const tbb::blocked_range<size_t> &range) {
+                ScopedSetThreadEnvironment set_env(env);
+                ref<Sampler> sampler = sensor->sampler()->clone();
+                scoped_flush_denormals flush_denormals(true);
+
+                // For each path
+                for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
+                    Assert(hprod(size) != 0);
+
+                    // Ensure that the sample generation is deterministic?
+                    sampler->seed(i);
+                    sample_thread(scene, sampler, ray, medium, n_sample_thread);
+
+                    /* Critical section: update progress bar */ {
+                        std::lock_guard<std::mutex> lock(mutex);
+                        it_done++;
+                        progress->update(it_done / (ScalarFloat) total_it);
+                    }
+                }
+            }
+        );
+    }
 
     if (!m_stop)
         Log(Info, "Rendering finished. (took %s)",

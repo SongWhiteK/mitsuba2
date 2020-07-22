@@ -267,6 +267,9 @@ protected:
 
     std::string m_output_dir;
 
+    bool m_spp_roop;
+    bool m_thread_roop;
+
 };
 
 
