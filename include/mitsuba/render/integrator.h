@@ -227,7 +227,22 @@ public:
     MTS_IMPORT_BASE(Integrator)
     MTS_IMPORT_TYPES(Scene, Sensor, Film, ImageBlock, Medium, Sampler)
 
-    virtual void sample(const Scene *scene,
+    struct PathSampleResult {
+        MTS_IMPORT_RENDER_BASIC_TYPES()
+        Vector3f p_out, p_in, d_in, d_out, n_in, n_out;
+        Spectrum throughput;
+        enum EStatus { EValid, EAbsorbed, EInvalid, EReflect };
+        EStatus status;
+    };
+
+    struct TrainingSample {
+        MTS_IMPORT_RENDER_BASIC_TYPES()
+        Vector3f p_in, p_out, d_in, d_out, n_in, n_out;
+        Float abs_prob;
+        Spectrum throughput;
+    };
+
+    virtual PathSampleResult sample(const Scene *scene,
                         Sampler *sampler,
                         const RayDifferential3f &ray,
                         const Medium *medium = nullptr) const;
@@ -249,8 +264,11 @@ public:
                           m_render_timer.value() > 1000.f * m_timeout);
     }
 
+    
+    
+
     MTS_DECLARE_CLASS()
-protected:
+protected:    
     PathSampler(const Properties &props);
     virtual ~PathSampler();
 
@@ -270,7 +288,10 @@ protected:
     bool m_spp_roop;
     bool m_thread_roop;
 
+    size_t m_size_train_data_batch;
+
 };
+
 
 
 

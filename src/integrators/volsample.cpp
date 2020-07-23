@@ -100,11 +100,13 @@ public:
     }
 
 
-    void sample(const Scene *scene,
+    PathSampleResult sample(const Scene *scene,
                 Sampler *sampler,
                 const RayDifferential3f &ray_,
                 const Medium *initial_medium) const override {
-        // Tracing input and output to csv file
+
+        PathSampleResult r;
+        r.status = PathSampleResult::EStatus::EInvalid;
 
         Ray3f ray = ray_;
 
@@ -130,9 +132,13 @@ public:
         Mask needs_intersection = true;
 
         Mask record = false;
-        Vector3f out_pos = zero<Vector3f>();
-        Vector3f in_pos = zero<Vector3f>();
+        Vector3f pos_out = zero<Vector3f>();
+        Vector3f pos_in = zero<Vector3f>();
         Vector3f wi = zero<Vector3f>();
+        Vector3f wo = zero<Vector3f>();
+        Vector3f n_in = zero<Vector3f>();
+        Vector3f n_out = zero<Vector3f>();
+        
 
         for (int bounce = 0;; ++bounce) {
             // ----------------- Handle termination of paths ------------------
@@ -149,6 +155,9 @@ public:
 
             Mask exceeded_max_depth = depth >= (uint32_t) m_max_depth;
             if (none(active) || all(exceeded_max_depth)){
+                if(record){
+                    r.status = PathSampleResult::EStatus::EAbsorbed;
+                }
                 break;
             }
 
@@ -235,7 +244,7 @@ public:
 
             // if escape from medium, record the position
             if(any_or<true>(escaped_medium)){
-                out_pos = si.p;
+                pos_out = si.p;
             }
 
             // --------------------- Surface Interactions ---------------------
@@ -285,17 +294,22 @@ public:
                 // If medium change (maybe when dive medium), record it's position
                 if(any_or<true>(has_medium_trans)){
                     Float cos_theta = dot(ray.d, si.n);
-                    Mask record_pos = has_medium_trans && (cos_theta < 0);
+                    Mask inner = has_medium_trans && (cos_theta < 0);
 
                     if(any_or<true>(record)){
-                        if(any_or<true>(!record_pos)){
-                            masked(record, !record_pos) = false;
+                        if(any_or<true>(!inner)){
+                            masked(record, !inner) = false;
+                            r.status = PathSampleResult::EStatus::EValid;
+                            wo = ray.d;
+                            n_out = si.n;
                         }
-                    }
-                    else if(any_or<true>(record_pos)){
+                    } else if(any_or<true>(inner)){
                         wi = si.to_world(si.wi);
-                        in_pos = si.p;
-                        masked(record, record_pos) = true;
+                        pos_in = si.p;
+                        masked(record, inner) = true;
+                        n_in = si.n;
+                    } else {
+                        r.status = PathSampleResult::EStatus::EReflect;
                     }
                 }
 
@@ -306,6 +320,16 @@ public:
             // When the ray escapes from medium once, tracing ends.
             active = select(!record, false, true);
         }
+        if(r.status == PathSampleResult::EStatus::EValid){
+            r.p_in = pos_in;
+            r.d_in = wi;
+            r.p_out = pos_out;
+            r.d_out = wo;
+            r.n_in = n_in;
+            r.n_out = n_out;
+            r.throughput = throughput;
+        }
+        return r;
     }
 
 
