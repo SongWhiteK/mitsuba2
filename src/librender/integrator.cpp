@@ -1,6 +1,8 @@
 #include <thread>
 #include <mutex>
 
+#include <iostream>
+#include <fstream>
 #include <enoki/morton.h>
 #include <mitsuba/core/profiler.h>
 #include <mitsuba/core/progress.h>
@@ -496,10 +498,39 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
         std::cout << "n in"  << TrainingSamples[0].n_in << std::endl;
         std::cout << "n out" << TrainingSamples[0].n_out << std::endl;
 
-        
+        result_to_csv(TrainingSamples);
     }
 
     return !m_stop;
+}
+
+MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples) const{
+    // Setup csv file stream
+    std:: string filename = m_output_dir + "\\train_path.csv";
+    Mask init = false;
+
+    // check a csv-file has already been generated
+    {
+        std::ifstream ifs;
+        ifs.open(filename, std::ios::in);
+
+        if(!ifs){
+            init = true;
+        }
+    }
+
+    std::ofstream ofs(filename, std::ios::app);
+    // set dics
+    if(init){
+        ofs << "p_in" << "," << "p_out" << "," << "d_in" << "," << "d_out" << "," 
+            << "n_in" << "," << "n_out" << "," << "throughput" << "," << "abs_prob" << std::endl;
+    }
+
+    for (int i = 0; i < TrainingSamples.size(); i++){
+        TrainingSample s = TrainingSamples[i];
+        ofs << s.p_in << "," << s.p_out << "," << s.d_in << "," << s.d_out << "," 
+            << s.n_in << "," << s.n_out << "," << s.throughput << "," << s.abs_prob << std::endl;
+    }
 }
 
 MTS_VARIANT void PathSampler<Float, Spectrum>::sample_thread(const Scene *scene,
