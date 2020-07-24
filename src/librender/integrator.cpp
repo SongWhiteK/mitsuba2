@@ -387,7 +387,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
     // Setup 
     size_t n_sample_thread = (total_spp >= n_threads) ? total_spp / n_threads : total_spp;
-    size_t size_it_batch = 32;
+    size_t size_it_batch = std::min((size_t)32, total_spp);
     size_t size_train_data_batch = m_size_train_data_batch;
     int seed_add = 0;
 
@@ -468,7 +468,12 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
             );
         }
 
+        // Calculate absorption probability and contain it
         s.abs_prob = (Float) n_absorbed / (Float) total_spp;
+        for(int i = 0; i < TrainingSamples.size(); i++){
+            TrainingSamples[i].abs_prob = s.abs_prob;
+        }
+
     }else if(m_thread_roop){
         size_t total_it = (total_spp >= n_threads) ? n_threads : 1;
         // tracing the same ray "spp" times with 8 roops
