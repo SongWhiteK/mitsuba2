@@ -1,6 +1,8 @@
 #include <thread>
 #include <mutex>
 
+#include <iostream>
+#include <fstream>
 #include <enoki/morton.h>
 #include <mitsuba/core/profiler.h>
 #include <mitsuba/core/progress.h>
@@ -313,11 +315,274 @@ MTS_VARIANT MonteCarloIntegrator<Float, Spectrum>::MonteCarloIntegrator(const Pr
 
 MTS_VARIANT MonteCarloIntegrator<Float, Spectrum>::~MonteCarloIntegrator() { }
 
+// -----------------------------------------------------------------------------
+
+MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
+    : Base(props) {
+
+    m_timeout = props.float_("timeout", -1.f);
+    m_samples_per_pass = (uint32_t) props.size_("samples_per_pass", (size_t) -1);
+
+    m_rr_depth = props.int_("rr_depth", 5);
+    if (m_rr_depth <= 0)
+        Throw("\"rr_depth\" must be set to a value greater than zero!");
+
+    m_max_depth = props.int_("max_depth", -1);
+    if (m_max_depth < 0 && m_max_depth != -1)
+        Throw("\"max_depth\" must be set to -1 (infinite) or a value >= 0");
+
+    m_output_dir = props.string("output_dir", ".\\");
+
+    m_spp_roop = props.bool_("spp_roop", true);
+    m_thread_roop = props.bool_("thread_roop", false);
+    if(m_thread_roop) m_spp_roop = false;
+
+    m_size_train_data_batch = props.int_("data_batch", 1);
+}
+
+
+MTS_VARIANT PathSampler<Float, Spectrum>::~PathSampler() { }
+
+MTS_VARIANT void PathSampler<Float, Spectrum>::cancel() {
+    m_stop = true;
+}
+
+MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sensor) {
+    ScopedPhase sp(ProfilerPhase::Render);
+    m_stop = false;
+
+    size_t total_spp = sensor->sampler()->sample_count();
+    size_t samples_per_pass = (m_samples_per_pass == (size_t) -1)
+                            ? total_spp : std::min((size_t) m_samples_per_pass, total_spp);
+    if ((total_spp % samples_per_pass) != 0)
+        Throw("sample_count (%d) must be a multiple of samples_per_pass (%d).",
+              total_spp, samples_per_pass);
+
+    size_t n_passes = (total_spp + samples_per_pass - 1) / samples_per_pass;
+
+    
+
+    size_t n_threads = __global_thread_count;
+    Log(Info, "Starting path sampling job (%i samples, %s %i threads)",
+        total_spp,
+        n_passes > 1 ? tfm::format(" %d passes,", n_passes) : "",
+        n_threads);
+
+    if (m_timeout > 0.f)
+            Log(Info, "Timeout specified: %.2f seconds.", m_timeout);
+
+    ThreadEnvironment env;
+    ref<ProgressReporter> progress = new ProgressReporter("Rendering");
+    std::mutex mutex;
+
+    size_t it_done = 0;
+
+    // Generate initial ray for tracing
+    ref<Sampler> sampler_ray = sensor->sampler()->clone();
+    RayDifferential3f ray = sample_path(scene, sampler_ray);
+    Mask active = true;
+    const Medium *medium = sensor->medium();
+
+    m_render_timer.reset();
+
+    // Setup 
+    size_t n_sample_thread = (total_spp >= n_threads) ? total_spp / n_threads : total_spp;
+    size_t size_it_batch = std::min((size_t)32, total_spp);
+    size_t size_train_data_batch = m_size_train_data_batch;
+    int seed_add = 0;
+
+    TrainingSample s;
+    std::vector<TrainingSample> TrainingSamples;
+
+    size_t n_valid = 0, n_absorbed = 0, n_invalid = 0, n_reflect = 0;
+
+    if(m_spp_roop){
+        // tracing the same ray "spp" times with spp roops
+        // continue to sample until getting enough data
+        while(TrainingSamples.size() < size_train_data_batch || n_valid < total_spp){
+            seed_add += size_it_batch;
+
+            // if too many samples are invalid, resample
+            if(n_invalid > 2 * total_spp){
+                Log(Info, "Too many invalid samples, Resampleing");
+                it_done = 0;
+                n_valid = 0;
+                n_absorbed = 0;
+                n_invalid = 0;
+                n_reflect = 0;
+                TrainingSamples.clear();
+            }
+            tbb::parallel_for(
+                tbb::blocked_range<size_t>(0, size_it_batch, 1),
+                [&](const tbb::blocked_range<size_t> &range) {
+                    ScopedSetThreadEnvironment set_env(env);
+                    ref<Sampler> sampler = sensor->sampler()->clone();
+                    scoped_flush_denormals flush_denormals(true);
+
+                    // For each path
+                    for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
+                        Assert(hprod(size) != 0);
+
+                        // Ensure that the sample generation is deterministic?
+                        sampler->seed(i + seed_add);
+                        PathSampleResult r = sample(scene, sampler, ray, medium); // sample path
+
+                        /* Critical section: update progress bar */ {
+                            std::lock_guard<std::mutex> lock(mutex);
+
+                            // Process result data
+                            if(n_valid < total_spp){
+                                switch (r.status)
+                                {
+                                case PathSampleResult::EStatus::EValid:
+                                    n_valid++;
+                                    if(TrainingSamples.size() < size_train_data_batch){
+                                        s.p_in  = r.p_in;
+                                        s.d_in  = r.d_in;
+                                        s.p_out = r.p_out;
+                                        s.d_out = r.d_out;
+                                        s.n_in  = r.n_in;
+                                        s.n_out = r.n_out;
+                                        s.throughput = r.throughput;
+                                        TrainingSamples.push_back(s);
+                                    }
+                                    break;
+                                case PathSampleResult::EStatus::EAbsorbed:
+                                    n_valid++;
+                                    if(it_done < total_spp) n_absorbed++;
+                                    break;
+                                case PathSampleResult::EStatus::EInvalid:
+                                    n_invalid++;
+                                    break;
+                                case PathSampleResult::EStatus::EReflect:
+                                    n_invalid++;
+                                    n_reflect++;
+                                    break;
+                                }
+                            }
+
+                            it_done++;
+                        }
+                    }
+                }
+            );
+        }
+
+        // Calculate absorption probability and contain it
+        s.abs_prob = (Float) n_absorbed / (Float) total_spp;
+        for(int i = 0; i < TrainingSamples.size(); i++){
+            TrainingSamples[i].abs_prob = s.abs_prob;
+        }
+
+    }else if(m_thread_roop){
+        size_t total_it = (total_spp >= n_threads) ? n_threads : 1;
+        // tracing the same ray "spp" times with 8 roops
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, total_it, 1),
+            [&](const tbb::blocked_range<size_t> &range) {
+                ScopedSetThreadEnvironment set_env(env);
+                ref<Sampler> sampler = sensor->sampler()->clone();
+                scoped_flush_denormals flush_denormals(true);
+
+                // For each path
+                for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
+                    Assert(hprod(size) != 0);
+
+                    // Ensure that the sample generation is deterministic?
+                    sampler->seed(i);
+                    sample_thread(scene, sampler, ray, medium, n_sample_thread);
+
+                    /* Critical section: update progress bar */ {
+                        std::lock_guard<std::mutex> lock(mutex);
+                        it_done++;
+                        progress->update(it_done / (ScalarFloat) total_it);
+                    }
+                }
+            }
+        );
+    }
+
+    if (!m_stop){
+        Log(Info, "Rendering finished. (took %s)",
+            util::time_string(m_render_timer.value(), true));
+        Log(Info, "Result----> valid: %i, absorbed %i, invalid: %i, reflect: %i",
+            n_valid, n_absorbed, n_invalid, n_reflect);
+        Log(Info, "Sample---->abs_prob: %f", s.abs_prob);
+        std::cout << "p in"  << TrainingSamples[0].p_in << std::endl;
+        std::cout << "p out" << TrainingSamples[0].p_out << std::endl;
+        std::cout << "d in"  << TrainingSamples[0].d_in << std::endl;
+        std::cout << "d out" << TrainingSamples[0].d_out << std::endl;
+        std::cout << "n in"  << TrainingSamples[0].n_in << std::endl;
+        std::cout << "n out" << TrainingSamples[0].n_out << std::endl;
+
+        result_to_csv(TrainingSamples);
+    }
+
+    return !m_stop;
+}
+
+MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples) const{
+    // Setup csv file stream
+    std:: string filename = m_output_dir + "\\train_path.csv";
+    Mask init = false;
+
+    // check a csv-file has already been generated
+    {
+        std::ifstream ifs;
+        ifs.open(filename, std::ios::in);
+
+        if(!ifs){
+            init = true;
+        }
+    }
+
+    std::ofstream ofs(filename, std::ios::app);
+    // set dics
+    if(init){
+        ofs << "p_in" << "," << "p_out" << "," << "d_in" << "," << "d_out" << "," 
+            << "n_in" << "," << "n_out" << "," << "throughput" << "," << "abs_prob" << std::endl;
+    }
+
+    for (int i = 0; i < TrainingSamples.size(); i++){
+        TrainingSample s = TrainingSamples[i];
+        ofs << s.p_in << "," << s.p_out << "," << s.d_in << "," << s.d_out << "," 
+            << s.n_in << "," << s.n_out << "," << s.throughput << "," << s.abs_prob << std::endl;
+    }
+}
+
+MTS_VARIANT void PathSampler<Float, Spectrum>::sample_thread(const Scene *scene,
+                                    Sampler *sampler,
+                                    const RayDifferential3f &ray,
+                                    const Medium *medium,
+                                    size_t n_sample_thread) const {
+    for(size_t i = 0; i < n_sample_thread; i++){
+        PathSampleResult r = sample(scene, sampler, ray, medium);
+    }
+
+}
+
+MTS_VARIANT typename PathSampler<Float, Spectrum>::RayDifferential3f
+PathSampler<Float, Spectrum>::sample_path(Scene * /* scene */,
+                                          Sampler * /* sampler */) const {
+    NotImplementedError("sample_path");
+
+}
+
+MTS_VARIANT typename PathSampler<Float, Spectrum>::PathSampleResult
+PathSampler<Float, Spectrum>::sample(const Scene * /* scene */,
+                                    Sampler * /* sampler */,
+                                    const RayDifferential3f & /* ray */,
+                                    const Medium * /* medium */) const {
+    NotImplementedError("sample");
+}
+
 MTS_IMPLEMENT_CLASS_VARIANT(Integrator, Object, "integrator")
 MTS_IMPLEMENT_CLASS_VARIANT(SamplingIntegrator, Integrator)
 MTS_IMPLEMENT_CLASS_VARIANT(MonteCarloIntegrator, SamplingIntegrator)
+MTS_IMPLEMENT_CLASS_VARIANT(PathSampler, Integrator)
 
 MTS_INSTANTIATE_CLASS(Integrator)
 MTS_INSTANTIATE_CLASS(SamplingIntegrator)
 MTS_INSTANTIATE_CLASS(MonteCarloIntegrator)
+MTS_INSTANTIATE_CLASS(PathSampler)
 NAMESPACE_END(mitsuba)

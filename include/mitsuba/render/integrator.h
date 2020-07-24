@@ -222,7 +222,84 @@ protected:
     int m_rr_depth;
 };
 
+template <typename Float, typename Spectrum>
+class MTS_EXPORT_RENDER PathSampler : public Integrator<Float, Spectrum> {
+public:
+    MTS_IMPORT_BASE(Integrator)
+    MTS_IMPORT_TYPES(Scene, Sensor, Film, ImageBlock, Medium, Sampler)
+
+    struct PathSampleResult {
+        MTS_IMPORT_RENDER_BASIC_TYPES()
+        Vector3f p_out, p_in, d_in, d_out, n_in, n_out;
+        Spectrum throughput;
+        enum EStatus { EValid, EAbsorbed, EInvalid, EReflect };
+        EStatus status;
+    };
+
+    struct TrainingSample {
+        MTS_IMPORT_RENDER_BASIC_TYPES()
+        Vector3f p_in, p_out, d_in, d_out, n_in, n_out;
+        Float abs_prob;
+        Spectrum throughput;
+    };
+
+    virtual PathSampleResult sample(const Scene *scene,
+                        Sampler *sampler,
+                        const RayDifferential3f &ray,
+                        const Medium *medium = nullptr) const;
+
+    virtual RayDifferential3f sample_path(Scene *scene, Sampler *sample) const;
+
+    bool render(Scene *scene, Sensor *sensor) override;
+
+    void sample_thread(const Scene *scene,
+                        Sampler *sampler,
+                        const RayDifferential3f &ray,
+                        const Medium *medium = nullptr,
+                        size_t sample_thread = size_t(-1)) const;
+
+    void result_to_csv(const std::vector<TrainingSample> TrainingSamples) const;
+
+    void cancel() override;
+
+    bool should_stop() const {
+        return m_stop || (m_timeout > 0.f &&
+                          m_render_timer.value() > 1000.f * m_timeout);
+    }
+
+    
+    
+
+    MTS_DECLARE_CLASS()
+protected:    
+    PathSampler(const Properties &props);
+    virtual ~PathSampler();
+
+    uint32_t m_samples_per_pass;
+
+    bool m_stop;
+
+    float m_timeout;
+
+    Timer m_render_timer;
+
+    int m_max_depth;
+    int m_rr_depth;
+
+    std::string m_output_dir;
+
+    bool m_spp_roop;
+    bool m_thread_roop;
+
+    size_t m_size_train_data_batch;
+
+};
+
+
+
+
 MTS_EXTERN_CLASS_RENDER(Integrator)
 MTS_EXTERN_CLASS_RENDER(SamplingIntegrator)
 MTS_EXTERN_CLASS_RENDER(MonteCarloIntegrator)
+MTS_EXTERN_CLASS_RENDER(PathSampler)
 NAMESPACE_END(mitsuba)
