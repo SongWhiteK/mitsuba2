@@ -379,6 +379,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
     // Generate initial ray for tracing
     ref<Sampler> sampler_ray = sensor->sampler()->clone();
+    sampler_ray->seed(0);
     RayDifferential3f ray = sample_path(scene, sampler_ray);
     Mask active = true;
     const Medium *medium = sensor->medium();
@@ -411,6 +412,8 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                 n_invalid = 0;
                 n_reflect = 0;
                 TrainingSamples.clear();
+
+                sampler_ray->advance();
             }
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, size_it_batch, 1),
@@ -421,7 +424,6 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
                     // For each path
                     for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
-                        Assert(hprod(size) != 0);
 
                         // Ensure that the sample generation is deterministic?
                         sampler->seed(i + seed_add);
@@ -486,7 +488,6 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
                 // For each path
                 for (auto i = range.begin(); i != range.end() && !should_stop(); ++i) {
-                    Assert(hprod(size) != 0);
 
                     // Ensure that the sample generation is deterministic?
                     sampler->seed(i);
