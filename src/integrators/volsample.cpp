@@ -58,39 +58,46 @@ public:
             sample_min[1], sample_min[1] + sample_range[1]);
 
 
-        // sample position and generate a ray for get intersection 
-        Vector2f pos_sample = sample_min + sample_range * sampler->next_2d();
+        // sample position and generate a ray for get intersection
+        while(true){
+            Vector2f pos_sample = sample_min + sample_range * sampler->next_2d();
 
-        Ray3f ray_sample_xy = zero<Ray3f>();
-        Vector3f o = Vector3f(pos_sample[0], pos_sample[1], bbox.max[2] + 1);
-        ray_sample_xy.o = o;
-        ray_sample_xy.d = Vector3f(0, 0, -1);
-        ray_sample_xy.mint = math::RayEpsilon<Float>;
-        ray_sample_xy.maxt = math::Infinity<Float>;
-        ray_sample_xy.update();
-        
+            Ray3f ray_sample_xy = zero<Ray3f>();
+            Vector3f o = Vector3f(pos_sample[0], pos_sample[1], bbox.max[2] + 1);
+            ray_sample_xy.o = o;
+            ray_sample_xy.d = Vector3f(0, 0, -1);
+            ray_sample_xy.mint = math::RayEpsilon<Float>;
+            ray_sample_xy.maxt = math::Infinity<Float>;
+            ray_sample_xy.update();
+            
 
-        SurfaceInteraction3f si_sample = scene->ray_intersect(ray_sample_xy);
+            SurfaceInteraction3f si_sample = scene->ray_intersect(ray_sample_xy);
 
-        // Sample direction and convert to world coordinates
-        Vector3f d_sample = warp:: square_to_uniform_hemisphere(sampler->next_2d());
-        Vector3f d_sample_world = si_sample.to_world(d_sample);
-        Vector3f d_sample_world_small = d_sample_world / 1000;
+            // Sample direction and convert to world coordinates
+            Vector3f d_sample = warp:: square_to_uniform_hemisphere(sampler->next_2d());
+            Vector3f d_sample_world = si_sample.to_world(d_sample);
+            Vector3f d_sample_world_small = d_sample_world / 1000;
 
-        Log(Info, " sampled position x: %f, y: %f, z: %f",
-                    si_sample.p[0], si_sample.p[1], si_sample.p[2]);
-        Log(Info, " sampled direction x: %f, y: %f, z: %f",
-                    d_sample_world[0], d_sample_world[1], d_sample_world[2]);
+            Log(Info, " sampled position x: %f, y: %f, z: %f",
+                        si_sample.p[0], si_sample.p[1], si_sample.p[2]);
+            Log(Info, " sampled direction x: %f, y: %f, z: %f",
+                        d_sample_world[0], d_sample_world[1], d_sample_world[2]);
 
-        // Generate a ray for tracing
-        ray.o = si_sample.p + d_sample_world_small;
-        ray.d = -d_sample_world;
-        ray.mint = math::RayEpsilon<Float>;
-        ray.maxt = math::Infinity<Float>;
-        ray.update();
+            // Generate a ray for tracing
+            ray.o = si_sample.p + d_sample_world_small;
+            ray.d = -d_sample_world;
+            ray.mint = math::RayEpsilon<Float>;
+            ray.maxt = math::Infinity<Float>;
+            ray.update();
 
-        // Check the ray is valid
-        // SurfaceInteraction3f si_test = scene->ray_intersect(ray);
+            // Check the ray is valid. If somehow the ray intersects from inside, resampling
+            SurfaceInteraction3f si_test = scene->ray_intersect(ray);
+            if(dot(si_test.n, si_test.wi) < 0){
+                Log(Info, "This sampled position and direction are invalid");
+            }else{
+                break;
+            }
+        }
         // std::cout << "is it valid?: " << si_test.is_valid() << std::endl;
         // std::cout << "test position: " << si_test.p << std::endl;
         // std::cout << "test direction: " << si_test.to_world(si_test.wi) << std::endl;

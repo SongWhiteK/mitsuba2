@@ -414,6 +414,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                 TrainingSamples.clear();
 
                 sampler_ray->advance();
+                ray = sample_path(scene, sampler_ray);
             }
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, size_it_batch, 1),
@@ -508,13 +509,6 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
             util::time_string(m_render_timer.value(), true));
         Log(Info, "Result----> valid: %i, absorbed %i, invalid: %i, reflect: %i",
             n_valid, n_absorbed, n_invalid, n_reflect);
-        Log(Info, "Sample---->abs_prob: %f", s.abs_prob);
-        std::cout << "p in"  << TrainingSamples[0].p_in << std::endl;
-        std::cout << "p out" << TrainingSamples[0].p_out << std::endl;
-        std::cout << "d in"  << TrainingSamples[0].d_in << std::endl;
-        std::cout << "d out" << TrainingSamples[0].d_out << std::endl;
-        std::cout << "n in"  << TrainingSamples[0].n_in << std::endl;
-        std::cout << "n out" << TrainingSamples[0].n_out << std::endl;
 
         result_to_csv(TrainingSamples);
     }
