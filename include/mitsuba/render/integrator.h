@@ -290,6 +290,7 @@ protected:
 
     bool m_spp_roop;
     bool m_thread_roop;
+    bool m_random_sample;
 
     size_t m_size_train_data_batch;
 
