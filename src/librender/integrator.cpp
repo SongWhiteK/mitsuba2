@@ -337,6 +337,8 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
     m_thread_roop = props.bool_("thread_roop", false);
     if(m_thread_roop) m_spp_roop = false;
 
+    m_random_sample = props.bool_("random_sample", true);
+
     m_size_train_data_batch = props.int_("data_batch", 1);
 }
 
