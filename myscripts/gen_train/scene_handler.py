@@ -2,6 +2,7 @@
 Generate scene format in python
 """
 import sys
+import numpy as np
 import utils
 import mitsuba
 
@@ -71,12 +72,16 @@ class SceneGenerator:
         return scene
 
 
-def generate_scene(xml_path, serialized_path, out_dir=None, visual=False, spp=1024):
+def generate_scene(config):
     """
     Sample medium parameters randomly, and
     generate scene object
     """
     scene = None
+    out_dir = config.OUT_DIR
+    xml_path = config.XML_PATH
+    serialized_path = config.SERIALIZED_PATH
+    spp = config.spp
 
     if (out_dir is None):
         out_dir = ".\\"
@@ -84,21 +89,41 @@ def generate_scene(xml_path, serialized_path, out_dir=None, visual=False, spp=10
     # Instanciate scene generator
     scene_gen = SceneGenerator(xml_path, out_dir, serialized_path, spp)
 
-    # Sample medium parameters and get medium dictionary
-    param_gen = utils.ParamGenerator(seed=10)
+    
+    if (not config.mfix):
+        # Sample medium parameters and get medium dictionary
+        param_gen = utils.ParamGenerator(seed=10)
+    else:
+        param_gen = utils.FixedParamGenerator()
+
     medium = param_gen.sample_params()
     print(medium)
     print("sigma_n of the medium: {}".format(utils.get_sigman(medium)))
 
     scene_gen.set_medium(medium)
 
-    scene = scene_gen.get_scene(visual)
+    scene = scene_gen.get_scene(config.visualize)
 
     return scene
 
 
 
+def render(scene, itr, visualize=False):
+    np.random.seed(seed=10)
 
+    for i in range(itr):
+        # Set sampler's seed
+        seed = np.random.randint(1000)
+        scene.sensors()[0].sampler().seed(seed)
+
+        # Render the scene
+        scene.integrator().render(scene, scene.sensors()[0])
+
+        # If visualize is True, develop the film
+        if (visualize):
+            film = scene.sensors()[0].film()
+            film.set_destination_file("visualize.exr")
+            film.develop()
 
     
 
