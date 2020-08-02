@@ -3,12 +3,13 @@
 	<integrator id="integrator" type="volsample">
 		<integer name="max_depth" value="128"/>
 		<string name="output_dir" value="$out_dir"/>
+		<bool name="random_sample" value="false"/>
 	</integrator>
 
 	<sensor id="Camera-camera" type="perspective">
 		<float name="fov" value="22.8952"/>
-		<float name="near_clip" value="0.01"/>
-		<float name="far_clip" value="100"/>
+		<float name="near_clip" value="0.1"/>
+		<float name="far_clip" value="10000"/>
 		
 		<sampler id="Camera-camera_sampler" type="independent">
 			<integer name="sample_count" value="$spp"/>
@@ -30,14 +31,14 @@
         <float name="int_ior" value="$eta"/>
     </bsdf>
 
-	<!-- Leather plate -->
-	<shape id="Plane_001-mesh_0" type="serialized">
-		<string name="filename" value="$serialized"/>
-		<integer name="shape_index" value="0"/>
+	<!-- box -->
+	<shape type="ply">
+		<string name="filename" value="meshes/box.unit.ply"/>
 		<transform name="to_world">
-			<matrix value="25 0 0 0 0 25 0 0 0 0 35.4764 0 0 0 0 1"/>
+			<translate x="0" y="0" z="0"/>
+			<scale value="100"/>
 		</transform>
-		
+
 		<ref id="part_medium" name="interior"/>
 		<ref id="medium_bsdf"/>
 	</shape>

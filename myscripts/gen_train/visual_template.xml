@@ -5,14 +5,13 @@
 	</integrator>
 
 	<sensor id="Camera-camera" type="perspective">
-		<float name="fov" value="22.8952"/>
+		<float name="fov" value="39.3077"/>
 		<float name="near_clip" value="0.01"/>
-		<float name="far_clip" value="100"/>
+		<float name="far_clip" value="1000"/>
 		<string name="fov_axis" value="smaller"/>
 
 		<transform name="to_world">
-			<matrix value="0.553695 -0.46082 -0.69359 0.113425 0.83272 0.30641 0.461184 -0.0720183 -8.26282e-08 0.832921 -0.553392 0.0930341 0 0 0 1"/>
-			<!-- <lookat origin="0, 0, 0.11" target="0, 0, 0" up="1, 0, 0"/> -->
+			<lookat origin="50, 50, 50" target="0, 0, 0" up="0, 0, 1"/>
 		</transform>
 
 		<sampler id="Camera-camera_sampler" type="independent">
@@ -64,7 +63,7 @@
 		<string name="filename" value="$serialized"/>
 		<integer name="shape_index" value="0"/>
 		<transform name="to_world">
-			<matrix value="0.025 0 0 0 0 0.025 0 0 0 0 0.0354764 0 0 0 0 1"/>
+			<matrix value="25 0 0 0 0 25 0 0 0 0 35.4764 0 0 0 0 1"/>
 		</transform>
 		
 		<ref id="part_medium" name="interior"/>
@@ -72,13 +71,11 @@
 	</shape>
 
 	<!-- Floor -->
-	<shape id="Plane_006-mesh_0" type="serialized">
-		<string name="filename" value="leather.serialized"/>
-		<integer name="shape_index" value="1"/>
-		<transform name="to_world">
-			<matrix value="0.15 0 0 0 0 0.15 0 0 0 0 0.101701 0 0 0 0 1"/>
-		</transform>
-		<ref name="bsdf" id="planemat"/>
-	</shape>
+	<shape type="rectangle">
+        <transform name="to_world">
+            <translate x="0" y="0" z="0"/>
+            <scale value="75"/>
+        </transform>
+    </shape>
 
 </scene>
