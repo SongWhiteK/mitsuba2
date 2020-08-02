@@ -43,6 +43,24 @@ class ParamGenerator:
 
         return medium
 
+class FixedParamGenerator(ParamGenerator):
+    """
+    Fixed medium parameters generator
+    """
+
+    def __init__(self, seed=4):
+        super().__init__(seed)
+
+    def get_albedo(self):
+        return 1.
+
+    def get_eta(self):
+        return 1.5
+
+    def get_g(self):
+        return 0.
+
+
 def get_reduced_albedo(albedo, g, sigmat):
     sigmas = albedo * sigmat
     sigmaa = sigmat - sigmas
