@@ -6,7 +6,7 @@
 
 	<sensor id="Camera-camera" type="perspective">
 		<float name="fov" value="39.3077"/>
-		<float name="near_clip" value="0.01"/>
+		<float name="near_clip" value="0.1"/>
 		<float name="far_clip" value="1000"/>
 		<string name="fov_axis" value="smaller"/>
 
