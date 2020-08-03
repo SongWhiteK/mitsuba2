@@ -8,7 +8,7 @@ import mitsuba
 
 mitsuba.set_variant("scalar_rgb")
 
-from mitsuba.core.xml import load_file
+from mitsuba.core.xml import load_file, load_string
 
 class SceneGenerator:
     def __init__(self, xml_path, out_dir, serialized_path, spp):
@@ -110,14 +110,15 @@ def generate_scene(config):
 
 def render(scene, itr, visualize=False):
     np.random.seed(seed=10)
+    spp = scene.sensors()[0].sampler().sample_count()
 
     for i in range(itr):
-        # Set sampler's seed
+        # Set sampler's seed and generate new sensor object
         seed = np.random.randint(1000)
-        scene.sensors()[0].sampler().seed(seed)
+        sensor = get_sensor(spp, 1)
 
-        # Render the scene
-        scene.integrator().render(scene, scene.sensors()[0])
+        # Render the scene with new sensor
+        scene.integrator().render(scene, sensor)
 
         # If visualize is True, develop the film
         if (visualize):
@@ -126,6 +127,29 @@ def render(scene, itr, visualize=False):
             film.develop()
 
     
+def get_sensor(spp, seed):
+    """
+    Generate new sensor object
+    
+    Args:
+        spp: Sample per pixel of sensor's sampler
+        seed: Seed of sensor's sampler
 
+    Returns:
+        sensor: Sensor object with a sampler including given spp and seed
+    """
+    sensor = load_string("""<sensor version='2.2.1' type='perspective'>
+                            <float name="fov" value="22.8952"/>
+                            <float name="near_clip" value="0.01"/>
+                            <float name="far_clip" value="100"/>
+
+                            <sampler type="independent">
+                                <integer name="sample_count" value="{}"/>
+                                <integer name="seed" value="{}"/>
+                            </sampler>
+                        </sensor >""".format(spp, seed)
+                        )
+                        
+    return sensor
 
 
