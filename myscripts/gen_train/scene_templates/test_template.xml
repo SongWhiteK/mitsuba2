@@ -3,13 +3,13 @@
 	<integrator id="integrator" type="volsample">
 		<integer name="max_depth" value="128"/>
 		<string name="output_dir" value="$out_dir"/>
-		<bool name="random_sample" value="false"/>
+		<boolean name="random_sample" value="false"/>
 	</integrator>
 
 	<sensor id="Camera-camera" type="perspective">
 		<float name="fov" value="22.8952"/>
 		<float name="near_clip" value="0.1"/>
-		<float name="far_clip" value="10000"/>
+		<float name="far_clip" value="1000"/>
 		
 		<sampler id="Camera-camera_sampler" type="independent">
 			<integer name="sample_count" value="$spp"/>
@@ -33,7 +33,7 @@
 
 	<!-- box -->
 	<shape type="ply">
-		<string name="filename" value="meshes/box.unit.ply"/>
+		<string name="filename" value="meshes/box_unit.ply"/>
 		<transform name="to_world">
 			<translate x="0" y="0" z="0"/>
 			<scale value="100"/>

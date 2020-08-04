@@ -5,15 +5,15 @@ Configuration of generating train data
 
 class TrainDataConfiguration:
     def __init__(self):
-        self.visualize = False
-        self.mfix = True
+        self.visualize = False # visualizing medium appearance
+        self.mfix = True # generating fixed medium parameters
 
         self.OUT_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\csv_files"
         if (self.visualize):
-            self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\visual_template.xml"
+            self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\visual_template.xml"
             self.spp = 64
         else:
-            self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\sample_template.xml"
+            self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\sample_template.xml"
             self.spp = 1024
         # TO DO
         # - glob multiple serialized path in a directory
