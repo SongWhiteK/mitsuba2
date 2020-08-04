@@ -52,13 +52,13 @@ class FixedParamGenerator(ParamGenerator):
         super().__init__(seed)
 
     def get_albedo(self):
-        return 1.
+        return 0.99
 
     def get_eta(self):
         return 1.5
 
     def get_g(self):
-        return 0.
+        return 0.5
 
 
 def get_reduced_albedo(albedo, g, sigmat):
@@ -88,7 +88,7 @@ def get_sigman(medium):
     
     reduced_albedo = get_reduced_albedo(albedo, g, sigmat)
     reduced_sigmat = get_reduced_sigmat(albedo, g, sigmat)
-    effective_albedo = reduced_albedo_to_effective_albedo(albedo)
+    effective_albedo = reduced_albedo_to_effective_albedo(reduced_albedo)
 
     MAD = 0.25 * (g + reduced_albedo) + effective_albedo
 

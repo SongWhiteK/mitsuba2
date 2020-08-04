@@ -30,7 +30,7 @@ class SceneGenerator:
         self.albedo = medium["albedo"]
         self.sigmat = medium["sigma_t"]
 
-    def seed(self, seed):
+    def set_seed(self, seed):
         self.seed = seed
         
     def set_serialized_path(self, serialized_path):
@@ -47,7 +47,7 @@ class SceneGenerator:
         Generate scene object from attributes  
         For now, 
             - medium parameters
-            - sampler seed
+            - sampler's seed
             - sample per pixel
             - output directory path
         can be changed
@@ -114,8 +114,8 @@ def render(scene, itr, visualize=False):
 
     for i in range(itr):
         # Set sampler's seed and generate new sensor object
-        seed = np.random.randint(1000)
-        sensor = get_sensor(spp, 1)
+        seed = np.random.randint(1000000)
+        sensor = get_sensor(spp, seed)
 
         # Render the scene with new sensor
         scene.integrator().render(scene, sensor)
