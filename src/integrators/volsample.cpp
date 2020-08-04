@@ -44,14 +44,14 @@ public:
     RayDifferential3f sample_path(Scene *scene, Sampler *sampler) const override {
         RayDifferential3f ray = zero<RayDifferential3f>();
 
+
+        BoundingBox3f bbox = zero<BoundingBox3f>();
+
+        // Get shapes from the scene and its bounding box
+        ref<Shape> target = scene->shapes()[0];
+        bbox              = target->bbox();
+
         if (m_random_sample) {
-
-            BoundingBox3f bbox = zero<BoundingBox3f>();
-
-            // Get shapes from the scene and its bounding box
-            ref<Shape> target = scene->shapes()[0];
-            bbox              = target->bbox();
-
             // Set range for position sampling
             Vector2f sample_min = Vector2f(bbox.min[0], bbox.min[1]);
             Vector2f sample_range =
@@ -101,8 +101,8 @@ public:
                 }
             }
         } else {
-            ray.o = Vector3f(0, 0, 5);
-            ray.d    = Vector3f(0, 0, -1);
+            ray.o = Vector3f(0, 0, bbox.max[2]+1);
+            ray.d    = Vector3f(0, 0, -1); 
             ray.mint = math::RayEpsilon<Float>;
             ray.maxt = math::Infinity<Float>;
             ray.update();
@@ -246,8 +246,6 @@ public:
 
                 // --------------------- Emitter sampling ---------------------
                 Mask sample_emitters = mi.medium->use_emitter_sampling();
-                specular_chain &= !act_medium_scatter;
-                specular_chain |= act_medium_scatter && !sample_emitters;
 
                 // ------------------ Phase function sampling -----------------
                 masked(phase, !act_medium_scatter) = nullptr;
@@ -280,7 +278,6 @@ public:
                                                    sampler->next_2d(active_surface), active_surface);
                 bsdf_val = si.to_world_mueller(bsdf_val, -bs.wo, si.wi);
 
-                masked(throughput, active_surface) *= bsdf_val;
                 masked(eta, active_surface) *= bs.eta;
 
                 Ray bsdf_ray                = si.spawn_ray(si.to_world(bs.wo));
@@ -290,12 +287,8 @@ public:
                 Mask non_null_bsdf = active_surface && !has_flag(bs.sampled_type, BSDFFlags::Null);
                 masked(depth, non_null_bsdf) += 1;
 
-                specular_chain |= non_null_bsdf && has_flag(bs.sampled_type, BSDFFlags::Delta);
-                specular_chain &= !(active_surface && has_flag(bs.sampled_type, BSDFFlags::Smooth));
-
                 Mask add_emitter = active_surface && !has_flag(bs.sampled_type, BSDFFlags::Delta) &&
                                    any(neq(depolarize(throughput), 0.f)) && (depth < (uint32_t) m_max_depth);
-                act_null_scatter |= active_surface && has_flag(bs.sampled_type, BSDFFlags::Null);
 
                 // Intersect the indirect ray against the scene
                 Mask intersect2 = active_surface && needs_intersection && add_emitter;

@@ -408,6 +408,10 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
             // if too many samples are invalid, resample
             if(n_invalid > 2 * total_spp){
                 Log(Info, "Too many invalid samples, Resampleing");
+                Log(Info,
+                    "Result----> valid: %i, absorbed %i, invalid: %i, reflect: "
+                    "%i",
+                    n_valid, n_absorbed, n_invalid, n_reflect);
                 it_done = 0;
                 n_valid = 0;
                 n_absorbed = 0;
@@ -536,14 +540,26 @@ MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<T
     std::ofstream ofs(filename, std::ios::app);
     // set dics
     if(init){
-        ofs << "p_in" << "," << "p_out" << "," << "d_in" << "," << "d_out" << "," 
-            << "n_in" << "," << "n_out" << "," << "throughput" << "," << "abs_prob" << std::endl;
+        ofs << "p_in_x" << "," << "p_in_y" << ","<< "p_in_z"<< ","
+            << "p_out_x"<< ","<< "p_out_y"<< ","<< "p_out_z"<< ","
+            << "d_in_x"<< ","<< "d_in_y"<< ","<< "d_in_z"<< ","
+            << "d_out_x"<< ","<< "d_out_y"<< ","<< "d_out_z"<< ","
+            << "n_in_x"<< ","<< "n_in_y"<< ","<< "n_in_z"<< ","
+            << "n_out_x"<< ","<< "n_out_y"<< ","<< "n_out_z"<< ","
+            << "throughput_r" << "," << "throughput_g" << "," << "throughput_b" << ","
+            << "abs_prob" << std::endl;
     }
 
     for (int i = 0; i < TrainingSamples.size(); i++){
         TrainingSample s = TrainingSamples[i];
-        ofs << s.p_in << "," << s.p_out << "," << s.d_in << "," << s.d_out << "," 
-            << s.n_in << "," << s.n_out << "," << s.throughput << "," << s.abs_prob << std::endl;
+        ofs << s.p_in[0] << "," << s.p_in[1] << "," << s.p_in[2] << ","
+            << s.p_out[0] << "," << s.p_out[1] << "," << s.p_out[2] << ","
+            << s.d_in[0] << "," << s.d_in[1] << "," << s.d_in[2] << ","
+            << s.d_out[0] << "," << s.d_out[1] << "," << s.d_out[2] << ","
+            << s.n_in[0] << "," << s.n_in[1] << "," << s.n_in[2] << ","
+            << s.n_out[0] << "," << s.n_out[1] << "," << s.n_out[2] << ","
+            << s.throughput[0] << "," << s.throughput[1] << "," << s.throughput[2] << ","
+            << s.abs_prob << std::endl;
     }
 }
 
