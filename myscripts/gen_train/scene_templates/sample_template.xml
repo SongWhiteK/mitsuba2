@@ -17,13 +17,16 @@
 	</sensor>
 
 
+	<phase type="hg" id="myphase">
+		<float name="g" value="$g"/>
+	</phase>
+
+
 	<medium type="homogeneous" name="interior" id="part_medium">
 	 	<float name="scale" value="$scale_m"/>
         <rgb name="sigma_t" value="$sigma_t"/>
         <rgb name="albedo" value="$albedo"/>
-        <phase type="hg">
-			<float name="g" value="$g"/>
-		</phase>
+        <ref id="myphase"/>
     </medium>
 
     <bsdf type="dielectric" id="medium_bsdf">

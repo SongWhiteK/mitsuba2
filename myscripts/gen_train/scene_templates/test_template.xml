@@ -18,13 +18,16 @@
 	</sensor>
 
 
+	<phase type="hg" id="myphase">
+		<float name="g" value="$g"/>
+	</phase>
+
+
 	<medium type="homogeneous" name="interior" id="part_medium">
 	 	<float name="scale" value="$scale_m"/>
         <rgb name="sigma_t" value="$sigma_t"/>
         <rgb name="albedo" value="$albedo"/>
-        <phase type="hg">
-			<float name="g" value="$g"/>
-		</phase>
+        <ref id="myphase"/>
     </medium>
 
     <bsdf type="dielectric" id="medium_bsdf">
@@ -33,7 +36,7 @@
 
 	<!-- box -->
 	<shape type="ply">
-		<string name="filename" value="meshes/box_unit.ply"/>
+		<string name="filename" value="scene_templates\meshes\box_unit.ply"/>
 		<transform name="to_world">
 			<translate x="0" y="0" z="0"/>
 			<scale value="100"/>

@@ -11,7 +11,7 @@
 		<string name="fov_axis" value="smaller"/>
 
 		<transform name="to_world">
-			<lookat origin="50, 50, 50" target="0, 0, 0" up="0, 0, 1"/>
+			<lookat origin="100, 60, 100" target="0, 0, 0" up="0, 0, 1"/>
 		</transform>
 
 		<sampler id="Camera-camera_sampler" type="independent">
@@ -26,23 +26,23 @@
 		</film>
 	</sensor>
 
-	<emitter type="envmap" id="Area_002-light">
+	<emitter type="envmap" id="my_envmap">
 		<string name="filename" value="envmap.exr"/>
 		<transform name="to_world">
-			<rotate y="1" angle="-180"/>
-			<matrix value="-0.224951 -0.000001 -0.974370 0.000000 -0.974370 0.000000 0.224951 0.000000 0.000000 1.000000 -0.000001 8.870000 0.000000 0.000000 0.000000 1.000000 "/>
+			<rotate x="1" angle="90"/>
 		</transform>
-		<float name="scale" value="1"/>
 	</emitter>
+
+	<phase type="hg" id="myphase">
+		<float name="g" value="$g"/>
+	</phase>
 
 
 	<medium type="homogeneous" name="interior" id="part_medium">
 	 	<float name="scale" value="$scale_m"/>
         <rgb name="sigma_t" value="$sigma_t"/>
         <rgb name="albedo" value="$albedo"/>
-        <phase type="hg">
-			<float name="g" value="$g"/>
-		</phase>
+        <ref id="myphase"/>
     </medium>
 
     <bsdf type="dielectric" id="medium_bsdf">
@@ -73,9 +73,26 @@
 	<!-- Floor -->
 	<shape type="rectangle">
         <transform name="to_world">
-            <translate x="0" y="0" z="0"/>
-            <scale value="75"/>
+            <scale value="150"/>
         </transform>
     </shape>
+
+	<!-- Left wall -->
+	<shape type="rectangle">
+		<transform name="to_world">
+			<scale value="150"/>
+			<translate value="-150, 0, -150"/>
+			<rotate y="1" angle="90"/>
+		</transform>
+	</shape>
+
+	<!-- Right wall -->
+	<shape type="rectangle">
+		<transform name="to_world">
+			<scale value="150"/>
+			<translate value="0, -150, -150"/>
+			<rotate x="1" angle="-90"/>
+		</transform>
+	</shape>
 
 </scene>
