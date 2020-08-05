@@ -8,7 +8,10 @@ import mitsuba
 
 mitsuba.set_variant("scalar_rgb")
 
+from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file, load_string
+from mitsuba.python.util import traverse
+
 
 class SceneGenerator:
     def __init__(self, xml_path, out_dir, serialized_path, spp):
@@ -31,17 +34,14 @@ class SceneGenerator:
 
     def set_seed(self, seed):
         self.seed = seed
-        
+
     def set_serialized_path(self, serialized_path):
         self.serialized = serialized_path
 
     def set_spp(self, spp):
         self.spp = spp
 
-
-
-
-    def get_scene(self, visual=False):
+    def get_scene(self, config):
         """
         Generate scene object from attributes  
         For now, 
@@ -55,18 +55,24 @@ class SceneGenerator:
             sys.exit("Please set serialized obj path before generating scene")
 
         # Generate scene object
-        if (not visual):
+        if (config.mode is "sample"):
             scene = load_file(self.xml_path,
-                            out_dir=self.out_dir, spp=self.spp, seed=self.seed,
-                            scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
-                            g=self.g, eta=self.eta,
-                            serialized=self.seriarized)
+                              out_dir=self.out_dir, spp=self.spp, seed=self.seed,
+                              scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
+                              g=self.g, eta=self.eta,
+                              serialized=self.seriarized)
 
-        elif (visual):
+        elif (config.mode is "visual"):
             scene = load_file(self.xml_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
                               serialized=self.seriarized)
+
+        elif (config.mode is "test"):
+            scene = load_file(self.xml_path,
+                              out_dir=self.out_dir, spp=self.spp, seed=self.seed,
+                              scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
+                              g=self.g, eta=self.eta)
 
         return scene
 
@@ -88,7 +94,6 @@ def generate_scene(config):
     # Instanciate scene generator
     scene_gen = SceneGenerator(xml_path, out_dir, serialized_path, spp)
 
-    
     if (not config.mfix):
         # Sample medium parameters and get medium dictionary
         param_gen = utils.ParamGenerator(seed=10)
@@ -101,35 +106,39 @@ def generate_scene(config):
 
     scene_gen.set_medium(medium)
 
-    scene = scene_gen.get_scene(config.visualize)
+    scene = scene_gen.get_scene(config)
 
     return scene
 
 
-
-def render(scene, itr, visualize=False):
+def render(scene, itr, config):
     np.random.seed(seed=10)
     spp = scene.sensors()[0].sampler().sample_count()
+    param_gen = utils.ParamGenerator()
 
     for i in range(itr):
-        # Set sampler's seed and generate new sensor object
-        seed = np.random.randint(1000000)
-        sensor = get_sensor(spp, seed)
+        if(config.mode is "visual"):
+            sensor = scene.sensors()[0]
+        else:
+            # Set sampler's seed and generate new sensor object
+            seed = np.random.randint(1000000)
+            sensor = get_sensor(spp, seed)
 
         # Render the scene with new sensor
         scene.integrator().render(scene, sensor)
 
         # If visualize is True, develop the film
-        if (visualize):
+        if (config.mode is "visual"):
             film = scene.sensors()[0].film()
-            film.set_destination_file("visualize.exr")
-            film.develop()
+            bmp = film.bitmap(raw=True)
+            bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8,
+                        srgb_gamma=True).write('visualize_{}.jpg'.format(i))
 
-    
+
 def get_sensor(spp, seed):
     """
     Generate new sensor object
-    
+
     Args:
         spp: Sample per pixel of sensor's sampler
         seed: Seed of sensor's sampler
@@ -147,8 +156,8 @@ def get_sensor(spp, seed):
                                 <integer name="seed" value="{}"/>
                             </sampler>
                         </sensor >""".format(spp, seed)
-                        )
-                        
+                         )
+
     return sensor
 
 

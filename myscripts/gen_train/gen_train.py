@@ -25,10 +25,11 @@ Thread.thread().file_resolver().append(os.path.dirname(config.XML_PATH))
 scene = scene_handler.generate_scene(config)
 
 # Number of iteration
-itr = 1
+itr = 3
 
 # render the scene
-scene_handler.render(scene, itr, config.visualize)
+scene_handler.render(scene, itr, config)
+
 
 
 
