@@ -17,12 +17,11 @@ class SceneGenerator:
         self.albedo = 1.
         self.sigmat = 10.
         self.spp = spp
-        self.seed = 4
+        self.seed = 10
         self.xml_path = xml_path
         self.out_dir = out_dir
-        self.scale_m = 1000  # In mitsuba, world unit distance is [m]
+        self.scale_m = 1  # In mitsuba, world unit distance is [mm]
         self.seriarized = serialized_path
-
 
     def set_medium(self, medium):
         self.eta = medium["eta"]
