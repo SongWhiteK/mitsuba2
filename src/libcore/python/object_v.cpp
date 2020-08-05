@@ -76,6 +76,7 @@ MTS_PY_EXPORT(Object) {
         SET_ATTR(DynamicBuffer<Float>);
         SET_ATTR(DynamicBuffer<Int32>);
         SET_ATTR(DynamicBuffer<UInt32>);
+        SET_ATTR(Float);
         SET_ATTR(Color1f);
         SET_ATTR(Color3f);
         SET_ATTR(Vector2i);

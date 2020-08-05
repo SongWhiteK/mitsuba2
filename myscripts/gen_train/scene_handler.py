@@ -124,6 +124,11 @@ def render(scene, itr, config):
             seed = np.random.randint(1000000)
             sensor = get_sensor(spp, seed)
 
+        # If medium parameters are not fixed, sample medium parameters again
+        if not config.mfix:
+            medium = param_gen.sample_params()
+            update_medium(scene, medium)
+
         # Render the scene with new sensor
         scene.integrator().render(scene, sensor)
 
@@ -160,4 +165,12 @@ def get_sensor(spp, seed):
 
     return sensor
 
+
+
+def update_medium(scene, medium):
+
+    params = traverse(scene)
+    params["Plane_001-mesh_0.interior_medium.albedo.color.value"] = medium["albedo"]
+    params["medium_bsdf.eta"] = medium["eta"]
+    params["myphase.g"] = medium["g"]
 
