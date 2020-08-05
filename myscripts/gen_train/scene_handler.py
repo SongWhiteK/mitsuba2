@@ -112,12 +112,12 @@ def render(scene, itr, config):
             seed = np.random.randint(1000000)
             sensor = get_sensor(spp, seed)
 
-        # If medium parameters are not fixed, sample medium parameters again
+        # If medium parameters are not fixed, sample medium parameters again and update
         if not config.mfix:
             medium = param_gen.sample_params()
             update_medium(scene, medium)
 
-        # Render the scene with new sensor
+        # Render the scene with new sensor and medium parameters
         scene.integrator().render(scene, sensor)
 
         # If visualize is True, develop the film
@@ -156,6 +156,17 @@ def get_sensor(spp, seed):
 
 
 def update_medium(scene, medium):
+    """
+    Update medium parameters in a scene object
+
+    Args:
+        scene: Scene object including medium
+        medium: List including medium parameters, i.e.,
+                - albedo
+                - eta (refractive index)
+                - g (anisotropic index)
+    """
+
 
     params = traverse(scene)
     params["Plane_001-mesh_0.interior_medium.albedo.color.value"] = medium["albedo"]
