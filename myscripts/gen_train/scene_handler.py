@@ -15,10 +15,6 @@ from mitsuba.python.util import traverse
 
 class SceneGenerator:
     def __init__(self, xml_path, out_dir, serialized_path, spp):
-        self.eta = 1.
-        self.g = 0.
-        self.albedo = 1.
-        self.sigmat = 10.
         self.spp = spp
         self.seed = 10
         self.xml_path = xml_path
@@ -32,14 +28,8 @@ class SceneGenerator:
         self.albedo = medium["albedo"]
         self.sigmat = medium["sigma_t"]
 
-    def set_seed(self, seed):
-        self.seed = seed
-
     def set_serialized_path(self, serialized_path):
         self.serialized = serialized_path
-
-    def set_spp(self, spp):
-        self.spp = spp
 
     def get_scene(self, config):
         """
@@ -101,8 +91,6 @@ def generate_scene(config):
         param_gen = utils.FixedParamGenerator()
 
     medium = param_gen.sample_params()
-    print(medium)
-    print("sigma_n of the medium: {}".format(utils.get_sigman(medium)))
 
     scene_gen.set_medium(medium)
 
