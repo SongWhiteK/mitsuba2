@@ -80,7 +80,7 @@ public:
                 si_sample = scene->ray_intersect(ray_sample_xy);
 
                 // Sample direction and convert to world coordinates
-                Vector3f d_sample = warp:: square_to_uniform_hemisphere(sampler->next_2d());
+                Vector3f d_sample = warp:: square_to_cosine_hemisphere(sampler->next_2d());
                 Vector3f d_sample_world = si_sample.to_world(d_sample);
                 Vector3f d_sample_world_small = d_sample_world / 1000;
 
