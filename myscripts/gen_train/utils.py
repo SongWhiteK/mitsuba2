@@ -43,6 +43,24 @@ class ParamGenerator:
 
         return medium
 
+class FixedParamGenerator(ParamGenerator):
+    """
+    Fixed medium parameters generator
+    """
+
+    def __init__(self, seed=4):
+        super().__init__(seed)
+
+    def get_albedo(self):
+        return 0.99
+
+    def get_eta(self):
+        return 1.5
+
+    def get_g(self):
+        return 0.5
+
+
 def get_reduced_albedo(albedo, g, sigmat):
     sigmas = albedo * sigmat
     sigmaa = sigmat - sigmas
@@ -61,7 +79,7 @@ def reduced_albedo_to_effective_albedo(reduced_albedo):
 
 def get_sigman(medium):
     """
-    Compute standard deviation of medium
+    Compute standard deviation of scattering in a medium
     Cite from D. Vicini [2019]
     """
     albedo = medium["albedo"]
@@ -70,7 +88,7 @@ def get_sigman(medium):
     
     reduced_albedo = get_reduced_albedo(albedo, g, sigmat)
     reduced_sigmat = get_reduced_sigmat(albedo, g, sigmat)
-    effective_albedo = reduced_albedo_to_effective_albedo(albedo)
+    effective_albedo = reduced_albedo_to_effective_albedo(reduced_albedo)
 
     MAD = 0.25 * (g + reduced_albedo) + effective_albedo
 

@@ -1,9 +1,9 @@
 #include <thread>
 #include <mutex>
 
-#include <iostream>
-#include <fstream>
 #include <enoki/morton.h>
+#include <fstream>
+#include <iostream>
 #include <mitsuba/core/profiler.h>
 #include <mitsuba/core/progress.h>
 #include <mitsuba/core/spectrum.h>
@@ -12,12 +12,13 @@
 #include <mitsuba/core/warp.h>
 #include <mitsuba/render/film.h>
 #include <mitsuba/render/integrator.h>
+#include <mitsuba/render/phase.h>
 #include <mitsuba/render/sampler.h>
 #include <mitsuba/render/sensor.h>
 #include <mitsuba/render/spiral.h>
+#include <mutex>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
-#include <mutex>
 
 NAMESPACE_BEGIN(mitsuba)
 
@@ -337,6 +338,8 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
     m_thread_roop = props.bool_("thread_roop", false);
     if(m_thread_roop) m_spp_roop = false;
 
+    m_random_sample = props.bool_("random_sample", true);
+
     m_size_train_data_batch = props.int_("data_batch", 1);
 }
 
@@ -380,7 +383,10 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     // Generate initial ray for tracing
     ref<Sampler> sampler_ray = sensor->sampler()->clone();
     sampler_ray->seed(0);
-    RayDifferential3f ray = sample_path(scene, sampler_ray);
+    std::pair<RayDifferential3f, MediumPtr> sample_result = sample_path(scene, sampler_ray);
+    RayDifferential3f ray = sample_result.first;
+    MediumPtr medium_sample = sample_result.second;
+
     Mask active = true;
     const Medium *medium = sensor->medium();
 
@@ -406,6 +412,10 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
             // if too many samples are invalid, resample
             if(n_invalid > 2 * total_spp){
                 Log(Info, "Too many invalid samples, Resampleing");
+                Log(Info,
+                    "Result----> valid: %i, absorbed %i, invalid: %i, reflect: "
+                    "%i",
+                    n_valid, n_absorbed, n_invalid, n_reflect);
                 it_done = 0;
                 n_valid = 0;
                 n_absorbed = 0;
@@ -414,7 +424,9 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                 TrainingSamples.clear();
 
                 sampler_ray->advance();
-                ray = sample_path(scene, sampler_ray);
+                sample_result = sample_path(scene, sampler_ray);
+                ray = sample_result.first;
+                medium_sample = sample_result.second;
             }
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, size_it_batch, 1),
@@ -446,6 +458,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                                         s.d_out = r.d_out;
                                         s.n_in  = r.n_in;
                                         s.n_out = r.n_out;
+                                        s.eta   = r.eta;
                                         s.throughput = r.throughput;
                                         TrainingSamples.push_back(s);
                                     }
@@ -510,16 +523,29 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
         Log(Info, "Result----> valid: %i, absorbed %i, invalid: %i, reflect: %i",
             n_valid, n_absorbed, n_invalid, n_reflect);
 
-        result_to_csv(TrainingSamples);
+        result_to_csv(TrainingSamples, medium_sample);
     }
 
     return !m_stop;
 }
 
-MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples) const{
+MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples, const Medium *medium) const{
     // Setup csv file stream
     std:: string filename = m_output_dir + "\\train_path.csv";
     Mask init = false;
+
+    // get medium parameters
+    MediumInteraction3f mi = zero<MediumInteraction3f>();
+    std::tuple<Spectrum, Spectrum, Spectrum> m_coef = medium->get_scattering_coefficients(mi);
+    Spectrum& sigmas = std::get<0>(m_coef);
+    Spectrum& sigmat = std::get<2>(m_coef);
+    Spectrum albedo = sigmas / sigmat;
+
+    auto phase = medium->phase_function();
+    Float g = phase->get_param();
+    
+    
+
 
     // check a csv-file has already been generated
     {
@@ -534,14 +560,26 @@ MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<T
     std::ofstream ofs(filename, std::ios::app);
     // set dics
     if(init){
-        ofs << "p_in" << "," << "p_out" << "," << "d_in" << "," << "d_out" << "," 
-            << "n_in" << "," << "n_out" << "," << "throughput" << "," << "abs_prob" << std::endl;
+        ofs << "sigma_t" << "," << "albedo" << "," << "g" << "," << "eta" << ","
+            << "p_in_x" << "," << "p_in_y" << ","<< "p_in_z"<< ","
+            << "p_out_x"<< ","<< "p_out_y"<< ","<< "p_out_z"<< ","
+            << "d_in_x"<< ","<< "d_in_y"<< ","<< "d_in_z"<< ","
+            << "d_out_x"<< ","<< "d_out_y"<< ","<< "d_out_z"<< ","
+            << "n_in_x"<< ","<< "n_in_y"<< ","<< "n_in_z"<< ","
+            << "n_out_x"<< ","<< "n_out_y"<< ","<< "n_out_z"<< ","
+            << "throughput" << "," << "abs_prob" << std::endl;
     }
 
     for (int i = 0; i < TrainingSamples.size(); i++){
         TrainingSample s = TrainingSamples[i];
-        ofs << s.p_in << "," << s.p_out << "," << s.d_in << "," << s.d_out << "," 
-            << s.n_in << "," << s.n_out << "," << s.throughput << "," << s.abs_prob << std::endl;
+        ofs << sigmat[0] << "," << albedo[0] << "," << g << "," << s.eta << ","
+            << s.p_in[0] << "," << s.p_in[1] << "," << s.p_in[2] << ","
+            << s.p_out[0] << "," << s.p_out[1] << "," << s.p_out[2] << ","
+            << s.d_in[0] << "," << s.d_in[1] << "," << s.d_in[2] << ","
+            << s.d_out[0] << "," << s.d_out[1] << "," << s.d_out[2] << ","
+            << s.n_in[0] << "," << s.n_in[1] << "," << s.n_in[2] << ","
+            << s.n_out[0] << "," << s.n_out[1] << "," << s.n_out[2] << ","
+            << s.throughput[0] << "," << s.abs_prob << std::endl;
     }
 }
 
@@ -556,11 +594,10 @@ MTS_VARIANT void PathSampler<Float, Spectrum>::sample_thread(const Scene *scene,
 
 }
 
-MTS_VARIANT typename PathSampler<Float, Spectrum>::RayDifferential3f
+MTS_VARIANT std::pair <typename PathSampler<Float, Spectrum>::RayDifferential3f,typename PathSampler<Float, Spectrum>::MediumPtr>
 PathSampler<Float, Spectrum>::sample_path(Scene * /* scene */,
                                           Sampler * /* sampler */) const {
     NotImplementedError("sample_path");
-
 }
 
 MTS_VARIANT typename PathSampler<Float, Spectrum>::PathSampleResult

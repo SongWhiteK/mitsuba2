@@ -19,7 +19,7 @@ template <typename Float, typename Spectrum>
 class VolumetricPathSampler : public PathSampler<Float, Spectrum> {
 
 public:
-    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_output_dir)
+    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_random_sample)
     MTS_IMPORT_TYPES(Scene, Sampler, Emitter, EmitterPtr, BSDF, BSDFPtr,
                      Medium, MediumPtr, PhaseFunctionContext, Shape)
 
@@ -41,69 +41,84 @@ public:
     // Sample position and direction on a object in the input scene
     // Generate a ray which through the sampled position and direction
 
-    RayDifferential3f sample_path(Scene *scene, Sampler *sampler) const override {
+    std::pair<RayDifferential3f, MediumPtr> sample_path(Scene *scene, Sampler *sampler) const override {
         RayDifferential3f ray = zero<RayDifferential3f>();
-        Mask active = true;
+
+
         BoundingBox3f bbox = zero<BoundingBox3f>();
-        
+
+        MediumPtr medium = nullptr;
+
         // Get shapes from the scene and its bounding box
         ref<Shape> target = scene->shapes()[0];
-        bbox = target->bbox();
+        bbox              = target->bbox();
 
-        // Set range for position sampling
-        Vector2f sample_min = Vector2f(bbox.min[0], bbox.min[1]);
-        Vector2f sample_range = Vector2f(bbox.max[0] - bbox.min[0], bbox.max[1] - bbox.min[1]);
-        Log(Info, "sample from x: %f to %f, y: %f to %f",
-            sample_min[0], sample_min[0] + sample_range[0],
-            sample_min[1], sample_min[1] + sample_range[1]);
+        if (m_random_sample) {
+            // Set range for position sampling
+            Vector2f sample_min = Vector2f(bbox.min[0], bbox.min[1]);
+            Vector2f sample_range =
+                Vector2f(bbox.max[0] - bbox.min[0], bbox.max[1] - bbox.min[1]);
+            Log(Info, "sample from x: %f to %f, y: %f to %f", sample_min[0],
+                sample_min[0] + sample_range[0], sample_min[1],
+                sample_min[1] + sample_range[1]);
 
-
-        // sample position and generate a ray for get intersection
-        while(true){
-            Vector2f pos_sample = sample_min + sample_range * sampler->next_2d();
-
+            SurfaceInteraction3f si_sample;
             Ray3f ray_sample_xy = zero<Ray3f>();
-            Vector3f o = Vector3f(pos_sample[0], pos_sample[1], bbox.max[2] + 1);
-            ray_sample_xy.o = o;
-            ray_sample_xy.d = Vector3f(0, 0, -1);
-            ray_sample_xy.mint = math::RayEpsilon<Float>;
-            ray_sample_xy.maxt = math::Infinity<Float>;
-            ray_sample_xy.update();
-            
 
-            SurfaceInteraction3f si_sample = scene->ray_intersect(ray_sample_xy);
+            // sample position and generate a ray for get intersection
+            while (true) {
+                Vector2f pos_sample = sample_min + sample_range * sampler->next_2d();
 
-            // Sample direction and convert to world coordinates
-            Vector3f d_sample = warp:: square_to_uniform_hemisphere(sampler->next_2d());
-            Vector3f d_sample_world = si_sample.to_world(d_sample);
-            Vector3f d_sample_world_small = d_sample_world / 1000;
+                Vector3f o = Vector3f(pos_sample[0], pos_sample[1], bbox.max[2] + 1);
+                ray_sample_xy.o = o;
+                ray_sample_xy.d = Vector3f(0, 0, -1);
+                ray_sample_xy.mint = math::RayEpsilon<Float>;
+                ray_sample_xy.maxt = math::Infinity<Float>;
+                ray_sample_xy.update();
+                
 
-            Log(Info, " sampled position x: %f, y: %f, z: %f",
-                        si_sample.p[0], si_sample.p[1], si_sample.p[2]);
-            Log(Info, " sampled direction x: %f, y: %f, z: %f",
-                        d_sample_world[0], d_sample_world[1], d_sample_world[2]);
+                si_sample = scene->ray_intersect(ray_sample_xy);
 
-            // Generate a ray for tracing
-            ray.o = si_sample.p + d_sample_world_small;
-            ray.d = -d_sample_world;
+                // Sample direction and convert to world coordinates
+                Vector3f d_sample = warp:: square_to_cosine_hemisphere(sampler->next_2d());
+                Vector3f d_sample_world = si_sample.to_world(d_sample);
+                Vector3f d_sample_world_small = d_sample_world / 1000;
+
+                Log(Info, " sampled position x: %f, y: %f, z: %f",
+                            si_sample.p[0], si_sample.p[1], si_sample.p[2]);
+                Log(Info, " sampled direction x: %f, y: %f, z: %f",
+                            d_sample_world[0], d_sample_world[1], d_sample_world[2]);
+
+                // Generate a ray for tracing
+                ray.o = si_sample.p + d_sample_world_small;
+                ray.d = -d_sample_world;
+                ray.mint = math::RayEpsilon<Float>;
+                ray.maxt = math::Infinity<Float>;
+                ray.update();
+
+                // Check the ray is valid. If somehow the ray intersects from inside, resampling
+                SurfaceInteraction3f si_test = scene->ray_intersect(ray);
+                if(dot(si_test.n, si_test.wi) < 0){
+                    Log(Info, "This sampled position and direction are invalid");
+                }else{
+                    break;
+                }
+            }
+
+            // record the target medium
+            medium = si_sample.target_medium(ray_sample_xy.d);
+        } else {
+            ray.o = Vector3f(0, 0, bbox.max[2]+1);
+            ray.d    = Vector3f(0, 0, -1); 
             ray.mint = math::RayEpsilon<Float>;
             ray.maxt = math::Infinity<Float>;
             ray.update();
 
-            // Check the ray is valid. If somehow the ray intersects from inside, resampling
-            SurfaceInteraction3f si_test = scene->ray_intersect(ray);
-            if(dot(si_test.n, si_test.wi) < 0){
-                Log(Info, "This sampled position and direction are invalid");
-            }else{
-                break;
-            }
+            SurfaceInteraction3f si = scene->ray_intersect(ray);
+            medium = si.target_medium(ray.d);
         }
-        // std::cout << "is it valid?: " << si_test.is_valid() << std::endl;
-        // std::cout << "test position: " << si_test.p << std::endl;
-        // std::cout << "test direction: " << si_test.to_world(si_test.wi) << std::endl;
-        
 
-        return { ray };
+        return { ray, medium };
     }
 
 
@@ -237,8 +252,6 @@ public:
 
                 // --------------------- Emitter sampling ---------------------
                 Mask sample_emitters = mi.medium->use_emitter_sampling();
-                specular_chain &= !act_medium_scatter;
-                specular_chain |= act_medium_scatter && !sample_emitters;
 
                 // ------------------ Phase function sampling -----------------
                 masked(phase, !act_medium_scatter) = nullptr;
@@ -271,7 +284,6 @@ public:
                                                    sampler->next_2d(active_surface), active_surface);
                 bsdf_val = si.to_world_mueller(bsdf_val, -bs.wo, si.wi);
 
-                masked(throughput, active_surface) *= bsdf_val;
                 masked(eta, active_surface) *= bs.eta;
 
                 Ray bsdf_ray                = si.spawn_ray(si.to_world(bs.wo));
@@ -281,12 +293,8 @@ public:
                 Mask non_null_bsdf = active_surface && !has_flag(bs.sampled_type, BSDFFlags::Null);
                 masked(depth, non_null_bsdf) += 1;
 
-                specular_chain |= non_null_bsdf && has_flag(bs.sampled_type, BSDFFlags::Delta);
-                specular_chain &= !(active_surface && has_flag(bs.sampled_type, BSDFFlags::Smooth));
-
                 Mask add_emitter = active_surface && !has_flag(bs.sampled_type, BSDFFlags::Delta) &&
                                    any(neq(depolarize(throughput), 0.f)) && (depth < (uint32_t) m_max_depth);
-                act_null_scatter |= active_surface && has_flag(bs.sampled_type, BSDFFlags::Null);
 
                 // Intersect the indirect ray against the scene
                 Mask intersect2 = active_surface && needs_intersection && add_emitter;
@@ -315,6 +323,7 @@ public:
                         pos_in = si.p;
                         masked(record, inner) = true;
                         n_in = si.n;
+                        r.eta = eta;
                     } else {
                         r.status = PathSampleResult::EStatus::EReflect;
                     }

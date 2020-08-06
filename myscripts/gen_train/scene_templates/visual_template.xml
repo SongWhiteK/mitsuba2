@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene version="2.0.0">
+	<integrator id="integrator" type="volpath">
+		<integer name="max_depth" value="128"/>
+	</integrator>
+
+	<sensor id="Camera-camera" type="perspective">
+		<float name="fov" value="39.3077"/>
+		<float name="near_clip" value="0.1"/>
+		<float name="far_clip" value="1000"/>
+		<string name="fov_axis" value="smaller"/>
+
+		<transform name="to_world">
+			<lookat origin="100, 60, 100" target="0, 0, 0" up="0, 0, 1"/>
+		</transform>
+
+		<sampler id="Camera-camera_sampler" type="independent">
+			<integer name="sample_count" value="$spp"/>
+			<integer name="seed" value="$seed"/>
+		</sampler>
+
+		<film id="Camera-camera_film" type="hdrfilm">
+			<integer name="width" value="256"/>
+			<integer name="height" value="256"/>
+			<rfilter type="gaussian"/>
+		</film>
+	</sensor>
+
+	<emitter type="envmap" id="my_envmap">
+		<string name="filename" value="envmap.exr"/>
+		<transform name="to_world">
+			<rotate x="1" angle="90"/>
+		</transform>
+	</emitter>
+
+	<phase type="hg" id="myphase">
+		<float name="g" value="$g"/>
+	</phase>
+
+
+	<medium type="homogeneous" name="interior" id="part_medium">
+	 	<float name="scale" value="$scale_m"/>
+        <rgb name="sigma_t" value="$sigma_t"/>
+        <rgb name="albedo" value="$albedo"/>
+        <ref id="myphase"/>
+    </medium>
+
+    <bsdf type="dielectric" id="medium_bsdf">
+        <float name="int_ior" value="$eta"/>
+    </bsdf>
+
+	<texture type="checkerboard" id="planetex">
+		<rgb name="color0" value="0.4"/>
+		<rgb name="color1" value="0.2"/>
+	</texture>
+
+	<bsdf type="diffuse" id="planemat">
+		<ref name="reflectance" id="planetex"/>
+	</bsdf>
+
+	<!-- Leather plate -->
+	<shape id="Plane_001-mesh_0" type="serialized">
+		<string name="filename" value="$serialized"/>
+		<integer name="shape_index" value="0"/>
+		<transform name="to_world">
+			<matrix value="25 0 0 0 0 25 0 0 0 0 35.4764 0 0 0 0 1"/>
+		</transform>
+		
+		<ref id="part_medium" name="interior"/>
+		<ref id="medium_bsdf"/>
+	</shape>
+
+	<!-- Floor -->
+	<shape type="rectangle">
+        <transform name="to_world">
+            <scale value="150"/>
+        </transform>
+    </shape>
+
+	<!-- Left wall -->
+	<shape type="rectangle">
+		<transform name="to_world">
+			<scale value="150"/>
+			<translate value="-150, 0, -150"/>
+			<rotate y="1" angle="90"/>
+		</transform>
+	</shape>
+
+	<!-- Right wall -->
+	<shape type="rectangle">
+		<transform name="to_world">
+			<scale value="150"/>
+			<translate value="0, -150, -150"/>
+			<rotate x="1" angle="-90"/>
+		</transform>
+	</shape>
+
+</scene>

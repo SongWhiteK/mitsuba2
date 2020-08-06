@@ -132,6 +132,10 @@ public:
     virtual Float eval(const PhaseFunctionContext &ctx, const MediumInteraction3f &mi,
                        const Vector3f &wo, Mask active = true) const = 0;
 
+    virtual Float get_param() const {
+        return 0.;
+    }
+
     /**
      * \brief Returns the microflake projected area
      *

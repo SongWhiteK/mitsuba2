@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene version="2.0.0">
+	<integrator id="integrator" type="volsample">
+		<integer name="max_depth" value="128"/>
+		<string name="output_dir" value="$out_dir"/>
+		<boolean name="random_sample" value="false"/>
+	</integrator>
+
+	<sensor id="Camera-camera" type="perspective">
+		<float name="fov" value="22.8952"/>
+		<float name="near_clip" value="0.1"/>
+		<float name="far_clip" value="1000"/>
+		
+		<sampler id="Camera-camera_sampler" type="independent">
+			<integer name="sample_count" value="$spp"/>
+			<integer name="seed" value="$seed"/>
+		</sampler>
+	</sensor>
+
+
+	<phase type="hg" id="myphase">
+		<float name="g" value="$g"/>
+	</phase>
+
+
+	<medium type="homogeneous" name="interior" id="part_medium">
+	 	<float name="scale" value="$scale_m"/>
+        <rgb name="sigma_t" value="$sigma_t"/>
+        <rgb name="albedo" value="$albedo"/>
+        <ref id="myphase"/>
+    </medium>
+
+    <bsdf type="dielectric" id="medium_bsdf">
+        <float name="int_ior" value="$eta"/>
+    </bsdf>
+
+	<!-- box -->
+	<shape type="ply">
+		<string name="filename" value="\meshes\box_unit.ply"/>
+		<transform name="to_world">
+			<translate x="0" y="0" z="0"/>
+			<scale value="100"/>
+		</transform>
+
+		<ref id="part_medium" name="interior"/>
+		<ref id="medium_bsdf"/>
+	</shape>
+
+
+</scene>
