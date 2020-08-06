@@ -172,4 +172,5 @@ def update_medium(scene, medium):
     params["Plane_001-mesh_0.interior_medium.albedo.color.value"] = medium["albedo"]
     params["medium_bsdf.eta"] = medium["eta"]
     params["myphase.g"] = medium["g"]
+    params.update()
 
