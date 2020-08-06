@@ -14,6 +14,7 @@
 #include <mitsuba/render/scene.h>
 #include <mitsuba/render/shape.h>
 #include <mitsuba/render/medium.h>
+#include <mitsuba/render/phase.h>
 
 NAMESPACE_BEGIN(mitsuba)
 
@@ -226,11 +227,12 @@ template <typename Float, typename Spectrum>
 class MTS_EXPORT_RENDER PathSampler : public Integrator<Float, Spectrum> {
 public:
     MTS_IMPORT_BASE(Integrator)
-    MTS_IMPORT_TYPES(Scene, Sensor, Film, ImageBlock, Medium, Sampler)
+    MTS_IMPORT_TYPES(Scene, Sensor, Film, ImageBlock, Medium, MediumPtr, Sampler)
 
     struct PathSampleResult {
         MTS_IMPORT_RENDER_BASIC_TYPES()
         Vector3f p_out, p_in, d_in, d_out, n_in, n_out;
+        Float eta;
         Spectrum throughput;
         enum EStatus { EValid, EAbsorbed, EInvalid, EReflect };
         EStatus status;
@@ -239,7 +241,7 @@ public:
     struct TrainingSample {
         MTS_IMPORT_RENDER_BASIC_TYPES()
         Vector3f p_in, p_out, d_in, d_out, n_in, n_out;
-        Float abs_prob;
+        Float abs_prob, eta;
         Spectrum throughput;
     };
 
@@ -248,7 +250,7 @@ public:
                         const RayDifferential3f &ray,
                         const Medium *medium = nullptr) const;
 
-    virtual RayDifferential3f sample_path(Scene *scene, Sampler *sample) const;
+    virtual std::pair<RayDifferential3f, MediumPtr> sample_path(Scene *scene, Sampler *sample) const;
 
     bool render(Scene *scene, Sensor *sensor) override;
 

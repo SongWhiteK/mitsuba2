@@ -41,11 +41,13 @@ public:
     // Sample position and direction on a object in the input scene
     // Generate a ray which through the sampled position and direction
 
-    RayDifferential3f sample_path(Scene *scene, Sampler *sampler) const override {
+    std::pair<RayDifferential3f, MediumPtr> sample_path(Scene *scene, Sampler *sampler) const override {
         RayDifferential3f ray = zero<RayDifferential3f>();
 
 
         BoundingBox3f bbox = zero<BoundingBox3f>();
+
+        MediumPtr medium = nullptr;
 
         // Get shapes from the scene and its bounding box
         ref<Shape> target = scene->shapes()[0];
@@ -60,11 +62,13 @@ public:
                 sample_min[0] + sample_range[0], sample_min[1],
                 sample_min[1] + sample_range[1]);
 
+            SurfaceInteraction3f si_sample;
+            Ray3f ray_sample_xy = zero<Ray3f>();
+
             // sample position and generate a ray for get intersection
-            while(true){
+            while (true) {
                 Vector2f pos_sample = sample_min + sample_range * sampler->next_2d();
 
-                Ray3f ray_sample_xy = zero<Ray3f>();
                 Vector3f o = Vector3f(pos_sample[0], pos_sample[1], bbox.max[2] + 1);
                 ray_sample_xy.o = o;
                 ray_sample_xy.d = Vector3f(0, 0, -1);
@@ -73,7 +77,7 @@ public:
                 ray_sample_xy.update();
                 
 
-                SurfaceInteraction3f si_sample = scene->ray_intersect(ray_sample_xy);
+                si_sample = scene->ray_intersect(ray_sample_xy);
 
                 // Sample direction and convert to world coordinates
                 Vector3f d_sample = warp:: square_to_uniform_hemisphere(sampler->next_2d());
@@ -100,19 +104,21 @@ public:
                     break;
                 }
             }
+
+            // record the target medium
+            medium = si_sample.target_medium(ray_sample_xy.d);
         } else {
             ray.o = Vector3f(0, 0, bbox.max[2]+1);
             ray.d    = Vector3f(0, 0, -1); 
             ray.mint = math::RayEpsilon<Float>;
             ray.maxt = math::Infinity<Float>;
             ray.update();
-        }
-        // std::cout << "is it valid?: " << si_test.is_valid() << std::endl;
-        // std::cout << "test position: " << si_test.p << std::endl;
-        // std::cout << "test direction: " << si_test.to_world(si_test.wi) << std::endl;
-        
 
-        return { ray };
+            SurfaceInteraction3f si = scene->ray_intersect(ray);
+            medium = si.target_medium(ray.d);
+        }
+
+        return { ray, medium };
     }
 
 
@@ -317,6 +323,7 @@ public:
                         pos_in = si.p;
                         masked(record, inner) = true;
                         n_in = si.n;
+                        r.eta = eta;
                     } else {
                         r.status = PathSampleResult::EStatus::EReflect;
                     }

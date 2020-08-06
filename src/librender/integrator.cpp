@@ -382,7 +382,10 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     // Generate initial ray for tracing
     ref<Sampler> sampler_ray = sensor->sampler()->clone();
     sampler_ray->seed(0);
-    RayDifferential3f ray = sample_path(scene, sampler_ray);
+    std::pair<RayDifferential3f, MediumPtr> sample_result = sample_path(scene, sampler_ray);
+    RayDifferential3f ray = sample_result.first;
+    MediumPtr medium_sample = sample_result.second;
+
     Mask active = true;
     const Medium *medium = sensor->medium();
 
@@ -420,7 +423,9 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                 TrainingSamples.clear();
 
                 sampler_ray->advance();
-                ray = sample_path(scene, sampler_ray);
+                sample_result = sample_path(scene, sampler_ray);
+                ray = sample_result.first;
+                medium_sample = sample_result.second;
             }
             tbb::parallel_for(
                 tbb::blocked_range<size_t>(0, size_it_batch, 1),
@@ -452,6 +457,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                                         s.d_out = r.d_out;
                                         s.n_in  = r.n_in;
                                         s.n_out = r.n_out;
+                                        s.eta   = r.eta;
                                         s.throughput = r.throughput;
                                         TrainingSamples.push_back(s);
                                     }
