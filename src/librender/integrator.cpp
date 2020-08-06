@@ -1,9 +1,9 @@
 #include <thread>
 #include <mutex>
 
-#include <iostream>
-#include <fstream>
 #include <enoki/morton.h>
+#include <fstream>
+#include <iostream>
 #include <mitsuba/core/profiler.h>
 #include <mitsuba/core/progress.h>
 #include <mitsuba/core/spectrum.h>
@@ -12,12 +12,13 @@
 #include <mitsuba/core/warp.h>
 #include <mitsuba/render/film.h>
 #include <mitsuba/render/integrator.h>
+#include <mitsuba/render/phase.h>
 #include <mitsuba/render/sampler.h>
 #include <mitsuba/render/sensor.h>
 #include <mitsuba/render/spiral.h>
+#include <mutex>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
-#include <mutex>
 
 NAMESPACE_BEGIN(mitsuba)
 
@@ -522,16 +523,29 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
         Log(Info, "Result----> valid: %i, absorbed %i, invalid: %i, reflect: %i",
             n_valid, n_absorbed, n_invalid, n_reflect);
 
-        result_to_csv(TrainingSamples);
+        result_to_csv(TrainingSamples, medium_sample);
     }
 
     return !m_stop;
 }
 
-MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples) const{
+MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples, const Medium *medium) const{
     // Setup csv file stream
     std:: string filename = m_output_dir + "\\train_path.csv";
     Mask init = false;
+
+    // get medium parameters
+    MediumInteraction3f mi = zero<MediumInteraction3f>();
+    std::tuple<Spectrum, Spectrum, Spectrum> m_coef = medium->get_scattering_coefficients(mi);
+    Spectrum& sigmas = std::get<0>(m_coef);
+    Spectrum& sigmat = std::get<2>(m_coef);
+    Spectrum albedo = sigmas / sigmat;
+
+    auto phase = medium->phase_function();
+    Float g = phase->get_param();
+    
+    
+
 
     // check a csv-file has already been generated
     {
@@ -546,26 +560,26 @@ MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<T
     std::ofstream ofs(filename, std::ios::app);
     // set dics
     if(init){
-        ofs << "p_in_x" << "," << "p_in_y" << ","<< "p_in_z"<< ","
+        ofs << "sigma_t" << "," << "albedo" << "," << "g" << "," << "eta" << ","
+            << "p_in_x" << "," << "p_in_y" << ","<< "p_in_z"<< ","
             << "p_out_x"<< ","<< "p_out_y"<< ","<< "p_out_z"<< ","
             << "d_in_x"<< ","<< "d_in_y"<< ","<< "d_in_z"<< ","
             << "d_out_x"<< ","<< "d_out_y"<< ","<< "d_out_z"<< ","
             << "n_in_x"<< ","<< "n_in_y"<< ","<< "n_in_z"<< ","
             << "n_out_x"<< ","<< "n_out_y"<< ","<< "n_out_z"<< ","
-            << "throughput_r" << "," << "throughput_g" << "," << "throughput_b" << ","
-            << "abs_prob" << std::endl;
+            << "throughput" << "," << "abs_prob" << std::endl;
     }
 
     for (int i = 0; i < TrainingSamples.size(); i++){
         TrainingSample s = TrainingSamples[i];
-        ofs << s.p_in[0] << "," << s.p_in[1] << "," << s.p_in[2] << ","
+        ofs << sigmat[0] << "," << albedo[0] << "," << g << "," << s.eta << ","
+            << s.p_in[0] << "," << s.p_in[1] << "," << s.p_in[2] << ","
             << s.p_out[0] << "," << s.p_out[1] << "," << s.p_out[2] << ","
             << s.d_in[0] << "," << s.d_in[1] << "," << s.d_in[2] << ","
             << s.d_out[0] << "," << s.d_out[1] << "," << s.d_out[2] << ","
             << s.n_in[0] << "," << s.n_in[1] << "," << s.n_in[2] << ","
             << s.n_out[0] << "," << s.n_out[1] << "," << s.n_out[2] << ","
-            << s.throughput[0] << "," << s.throughput[1] << "," << s.throughput[2] << ","
-            << s.abs_prob << std::endl;
+            << s.throughput[0] << "," << s.abs_prob << std::endl;
     }
 }
 
@@ -580,11 +594,10 @@ MTS_VARIANT void PathSampler<Float, Spectrum>::sample_thread(const Scene *scene,
 
 }
 
-MTS_VARIANT typename PathSampler<Float, Spectrum>::RayDifferential3f
+MTS_VARIANT std::pair <typename PathSampler<Float, Spectrum>::RayDifferential3f,typename PathSampler<Float, Spectrum>::MediumPtr>
 PathSampler<Float, Spectrum>::sample_path(Scene * /* scene */,
                                           Sampler * /* sampler */) const {
     NotImplementedError("sample_path");
-
 }
 
 MTS_VARIANT typename PathSampler<Float, Spectrum>::PathSampleResult
