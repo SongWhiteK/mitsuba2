@@ -53,6 +53,10 @@ public:
         return math::InvFourPi<ScalarFloat> * (1 - m_g * m_g) / (temp * enoki::sqrt(temp));
     }
 
+    Float get_param() const override {
+        return m_g;
+    }
+
     std::pair<Vector3f, Float> sample(const PhaseFunctionContext & /* ctx */,
                                       const MediumInteraction3f &mi, const Point2f &sample,
                                       Mask active) const override {
