@@ -79,7 +79,7 @@ def reduced_albedo_to_effective_albedo(reduced_albedo):
 
 def get_sigman(medium):
     """
-    Compute standard deviation of medium
+    Compute standard deviation of scattering in a medium
     Cite from D. Vicini [2019]
     """
     albedo = medium["albedo"]

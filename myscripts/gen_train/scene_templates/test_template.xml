@@ -36,7 +36,7 @@
 
 	<!-- box -->
 	<shape type="ply">
-		<string name="filename" value="scene_templates\meshes\box_unit.ply"/>
+		<string name="filename" value="\meshes\box_unit.ply"/>
 		<transform name="to_world">
 			<translate x="0" y="0" z="0"/>
 			<scale value="100"/>
