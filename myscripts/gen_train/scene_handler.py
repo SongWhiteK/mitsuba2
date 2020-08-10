@@ -34,7 +34,7 @@ class SceneGenerator:
         self.set_medium(medium_ini)
 
         # set initial transform matrix
-        self.mat = scale_mat_2_str(np.eye(4))
+        self.mat = utils.scale_mat_2_str(np.eye(4))
 
     def set_medium(self, medium):
         self.eta = medium["eta"]
@@ -46,7 +46,7 @@ class SceneGenerator:
         self.serialized = serialized_path
 
     def set_transform_matrix(self, mat):
-        self.mat = scale_mat_2_str(mat)
+        self.mat = utils.scale_mat_2_str(mat)
 
     def random_set_transform_matrix(self, config):
         scale_factor = np.ones(3) * 0.25 + np.random.rand(3) * 2.75
@@ -177,8 +177,5 @@ def update_medium(scene, medium):
     params["myphase.g"] = medium["g"]
     params.update()
 
-def scale_mat_2_str(mat):
-    mat_str = "{x} 0 0 0 0 {y} 0 0 0 0 {z} 0 0 0 0 1".format(x=mat[0,0], y=mat[1,1], z=mat[2,2])
 
-    return mat_str
 

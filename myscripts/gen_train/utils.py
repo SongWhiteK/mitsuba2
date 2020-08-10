@@ -95,6 +95,11 @@ def get_sigman(medium):
     return 2*MAD / reduced_sigmat
 
 
+def scale_mat_2_str(mat):
+    mat_str = "{x} 0 0 0 0 {y} 0 0 0 0 {z} 0 0 0 0 1".format(
+        x=mat[0, 0], y=mat[1, 1], z=mat[2, 2])
+
+    return mat_str
 
 
 
