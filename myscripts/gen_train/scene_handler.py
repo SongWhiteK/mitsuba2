@@ -8,6 +8,7 @@ import mitsuba
 
 mitsuba.set_variant("scalar_rgb")
 
+from mitsuba.core import Transform4f
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file, load_string
 from mitsuba.python.util import traverse
@@ -84,7 +85,7 @@ def generate_scene(config):
     # Instanciate scene generator
     scene_gen = SceneGenerator(xml_path, out_dir, serialized_path, spp)
 
-    if (not config.mfix):
+    if (not config.medium_fix):
         # Sample medium parameters and get medium dictionary
         param_gen = utils.ParamGenerator(seed=10)
     else:
@@ -113,9 +114,13 @@ def render(scene, itr, config):
             sensor = get_sensor(spp, seed)
 
         # If medium parameters are not fixed, sample medium parameters again and update
-        if not config.mfix:
+        if not config.medium_fix:
             medium = param_gen.sample_params()
             update_medium(scene, medium)
+
+        if config.DEBUG:
+            params = traverse(scene)
+            print(params["Plane_001-mesh_0.to_world"])
 
         # Render the scene with new sensor and medium parameters
         scene.integrator().render(scene, sensor)

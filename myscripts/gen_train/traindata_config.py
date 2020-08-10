@@ -5,8 +5,10 @@ Configuration of generating train data
 
 class TrainDataConfiguration:
     def __init__(self):
+        self.DEBUG = True
         self.mode = "visual" # visualizing medium appearance
-        self.mfix = False # generating fixed medium parameters
+        self.medium_fix = True # generating fixed medium parameters
+        self.scale_fix = True # do not scale shape objects
 
         self.OUT_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\csv_files"
         if (self.mode is "visual"):
@@ -22,3 +24,8 @@ class TrainDataConfiguration:
         # TO DO
         # - glob multiple serialized path in a directory
         self.SERIALIZED_PATH = "myscripts\\gen_train\\scene_templates\meshes\leather2.serialized"
+
+
+config = TrainDataConfiguration()
+if(config.DEBUG):
+    print("\033[31m" + "This execution is in DEBUG mode" + "\033[0m")

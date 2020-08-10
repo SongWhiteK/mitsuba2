@@ -1,5 +1,7 @@
 import numpy as np
 
+from traindata_config import TrainDataConfiguration
+
 
 
 class ParamGenerator:
@@ -41,6 +43,9 @@ class ParamGenerator:
         medium["albedo"] = self.get_albedo()
         medium["sigma_t"] = self.get_sigmat()
 
+        if TrainDataConfiguration().DEBUG:
+            print(medium)
+
         return medium
 
 class FixedParamGenerator(ParamGenerator):
@@ -58,7 +63,7 @@ class FixedParamGenerator(ParamGenerator):
         return 1.5
 
     def get_g(self):
-        return 0.5
+        return 0.99
 
 
 def get_reduced_albedo(albedo, g, sigmat):
