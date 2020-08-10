@@ -11,7 +11,8 @@
 		<string name="fov_axis" value="smaller"/>
 
 		<transform name="to_world">
-			<lookat origin="100, 60, 100" target="0, 0, 0" up="0, 0, 1"/>
+			<!-- <lookat origin="54, 18, 72" target="0, 0, 10" up="0, 0, 1"/> -->
+			<lookat origin="162, 54, 216" target="0, 0, 10" up="0, 0, 1"/>
 		</transform>
 
 		<sampler id="Camera-camera_sampler" type="independent">
@@ -62,7 +63,9 @@
 	<shape id="Plane_001-mesh_0" type="serialized">
 		<string name="filename" value="$serialized"/>
 		<integer name="shape_index" value="0"/>
-		
+		<transform name="to_world">
+			<matrix value="$mat"/>
+		</transform>
 		<ref id="part_medium" name="interior"/>
 		<ref id="medium_bsdf"/>
 	</shape>

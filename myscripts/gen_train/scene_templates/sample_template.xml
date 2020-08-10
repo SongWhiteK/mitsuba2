@@ -37,7 +37,9 @@
 	<shape id="Plane_001-mesh_0" type="serialized">
 		<string name="filename" value="$serialized"/>
 		<integer name="shape_index" value="0"/>
-		
+		<transform name="to_world">
+			<matrix value="$mat"/>
+		</transform>
 		<ref id="part_medium" name="interior"/>
 		<ref id="medium_bsdf"/>
 	</shape>

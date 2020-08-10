@@ -15,20 +15,20 @@ mitsuba.set_variant("scalar_rgb")
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file
 
+
 # Configuration
 config = TrainDataConfiguration()
+
+np.random.seed(seed=config.seed)
 
 # Add the scene directory to the FileResolver's search path
 Thread.thread().file_resolver().append(os.path.dirname(config.XML_PATH))
 
-# Generate scene object from scene generator
-scene = scene_handler.generate_scene(config)
-
 # Number of iteration
-itr = 3
+itr = 1
 
 # render the scene
-scene_handler.render(scene, itr, config)
+scene_handler.render(itr, config)
 
 
 

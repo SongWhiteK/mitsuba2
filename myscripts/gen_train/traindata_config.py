@@ -1,3 +1,5 @@
+import sys
+
 """
 Configuration of generating train data
 """
@@ -20,10 +22,19 @@ class TrainDataConfiguration:
         elif(self.mode is "test") :
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\test_template.xml"
             self.spp = 1024
+        else:
+            sys.exit("Specify the execution mode")
 
         # TO DO
         # - glob multiple serialized path in a directory
-        self.SERIALIZED_PATH = "myscripts\\gen_train\\scene_templates\meshes\leather2.serialized"
+        self.SERIALIZED_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\meshes\\leather2.serialized"
+
+        if(self.scale_fix or self.mode is "visual"):
+            self.scene_batch_size = 1
+        else:
+            self.scene_batch_size = 1
+
+        self.seed = 12
 
 
 config = TrainDataConfiguration()
