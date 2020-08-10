@@ -21,4 +21,4 @@ class TrainDataConfiguration:
 
         # TO DO
         # - glob multiple serialized path in a directory
-        self.SERIALIZED_PATH = "myscripts\\gen_train\\scene_templates\meshes\leather_m.serialized"
+        self.SERIALIZED_PATH = "myscripts\\gen_train\\scene_templates\meshes\leather2.serialized"

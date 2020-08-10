@@ -62,22 +62,17 @@
 	<shape id="Plane_001-mesh_0" type="serialized">
 		<string name="filename" value="$serialized"/>
 		<integer name="shape_index" value="0"/>
-		<transform name="to_world">
-			<matrix value="25 0 0 0 0 25 0 0 0 0 35.4764 0 0 0 0 1"/>
-		</transform>
 		
 		<ref id="part_medium" name="interior"/>
 		<ref id="medium_bsdf"/>
 	</shape>
 
-	<!-- Floor -->
 	<shape type="rectangle">
         <transform name="to_world">
             <scale value="150"/>
         </transform>
     </shape>
 
-	<!-- Left wall -->
 	<shape type="rectangle">
 		<transform name="to_world">
 			<scale value="150"/>
@@ -86,7 +81,6 @@
 		</transform>
 	</shape>
 
-	<!-- Right wall -->
 	<shape type="rectangle">
 		<transform name="to_world">
 			<scale value="150"/>
