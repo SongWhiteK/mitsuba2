@@ -29,7 +29,8 @@ class TrainDataConfiguration:
         # - glob multiple serialized path in a directory
         self.SERIALIZED_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\meshes\\leather2.serialized"
 
-        if(self.scale_fix or self.mode is "visual"):
+        self.itr = 1
+        if(self.scale_fix):
             self.scene_batch_size = 1
         else:
             self.scene_batch_size = 1

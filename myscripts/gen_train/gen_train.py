@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import random as rand
+import time
 import mitsuba
 import enoki as ek
 import utils
@@ -25,10 +26,16 @@ np.random.seed(seed=config.seed)
 Thread.thread().file_resolver().append(os.path.dirname(config.XML_PATH))
 
 # Number of iteration
-itr = 1
+itr = config.itr
+
+start = time.time()
+print("Sampling start")
 
 # render the scene
 scene_handler.render(itr, config)
+
+process_time = time.time() - start
+print("Sampling end (took {} s)".format(process_time))
 
 
 

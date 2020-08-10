@@ -93,6 +93,7 @@ def render(itr, config):
     # Generate scene and parameter generator
     param_gen = utils.ParamGenerator()
     scene_gen = SceneGenerator(config.XML_PATH, config.OUT_DIR, config.SERIALIZED_PATH, spp)
+    cnt = 0
 
     # Render with given params and scene generator
     for i in range(itr // config.scene_batch_size):
@@ -126,6 +127,8 @@ def render(itr, config):
                 bmp = film.bitmap(raw=True)
                 bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8,
                             srgb_gamma=True).write('visualize_{}.jpg'.format(i))
+
+            cnt += 1
 
             
 
