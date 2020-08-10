@@ -8,6 +8,7 @@ import mitsuba
 
 mitsuba.set_variant("scalar_rgb")
 
+from mitsuba.core import Transform4f
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file, load_string
 from mitsuba.python.util import traverse
@@ -21,6 +22,19 @@ class SceneGenerator:
         self.out_dir = out_dir
         self.scale_m = 1  # In mitsuba, world unit distance is [mm]
         self.seriarized = serialized_path
+        if(out_dir is None):
+            print("\033[31m" + "Please set out put directory" + "\033[0m")
+            self.out_dir = ".\\"
+        else:
+            self.out_dir = out_dir
+
+
+        # set initial fixed medium
+        medium_ini = utils.FixedParamGenerator().sample_params()
+        self.set_medium(medium_ini)
+
+        # set initial transform matrix
+        self.mat = scale_mat_2_str(np.eye(4))
 
     def set_medium(self, medium):
         self.eta = medium["eta"]
@@ -31,18 +45,24 @@ class SceneGenerator:
     def set_serialized_path(self, serialized_path):
         self.serialized = serialized_path
 
+    def set_transform_matrix(self, mat):
+        self.mat = scale_mat_2_str(mat)
+
+    def random_set_transform_matrix(self, config):
+        scale_factor = np.ones(3) * 0.25 + np.random.rand(3) * 2.75
+        scale_mat = np.diag(scale_factor)
+        self.set_transform_matrix(scale_mat)
+
+        if(config.DEBUG):
+            print(scale_mat)
+
     def get_scene(self, config):
         """
-        Generate scene object from attributes  
-        For now, 
-            - medium parameters
-            - sampler's seed
-            - sample per pixel
-            - output directory path
-        can be changed
+        Generate scene object from attributes
         """
         if (self.seriarized is None):
-            sys.exit("Please set serialized obj path before generating scene")
+            sys.exit("Please set serialized file path before generating scene")
+
 
         # Generate scene object
         if (config.mode is "sample"):
@@ -50,13 +70,13 @@ class SceneGenerator:
                               out_dir=self.out_dir, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
-                              serialized=self.seriarized)
+                              serialized=self.seriarized, mat=self.mat)
 
         elif (config.mode is "visual"):
             scene = load_file(self.xml_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
-                              serialized=self.seriarized)
+                              serialized=self.seriarized, mat=self.mat)
 
         elif (config.mode is "test"):
             scene = load_file(self.xml_path,
@@ -67,65 +87,48 @@ class SceneGenerator:
         return scene
 
 
-def generate_scene(config):
-    """
-    Sample medium parameters randomly, and
-    generate scene object
-    """
-    scene = None
-    out_dir = config.OUT_DIR
-    xml_path = config.XML_PATH
-    serialized_path = config.SERIALIZED_PATH
+def render(itr, config):
     spp = config.spp
 
-    if (out_dir is None):
-        out_dir = ".\\"
-
-    # Instanciate scene generator
-    scene_gen = SceneGenerator(xml_path, out_dir, serialized_path, spp)
-
-    if (not config.mfix):
-        # Sample medium parameters and get medium dictionary
-        param_gen = utils.ParamGenerator(seed=10)
-    else:
-        param_gen = utils.FixedParamGenerator()
-
-    medium = param_gen.sample_params()
-
-    scene_gen.set_medium(medium)
-
-    scene = scene_gen.get_scene(config)
-
-    return scene
-
-
-def render(scene, itr, config):
-    np.random.seed(seed=10)
-    spp = scene.sensors()[0].sampler().sample_count()
+    # Generate scene and parameter generator
     param_gen = utils.ParamGenerator()
+    scene_gen = SceneGenerator(config.XML_PATH, config.OUT_DIR, config.SERIALIZED_PATH, spp)
 
-    for i in range(itr):
-        if(config.mode is "visual"):
-            sensor = scene.sensors()[0]
-        else:
-            # Set sampler's seed and generate new sensor object
-            seed = np.random.randint(1000000)
-            sensor = get_sensor(spp, seed)
+    # Render with given params and scene generator
+    for i in range(itr // config.scene_batch_size):
+        if (not config.scale_fix):
+            # Sample scaling matrix and set
+            scene_gen.random_set_transform_matrix(config)
+        
+        # Generate scene object
+        scene = scene_gen.get_scene(config)
 
-        # If medium parameters are not fixed, sample medium parameters again and update
-        if not config.mfix:
-            medium = param_gen.sample_params()
-            update_medium(scene, medium)
+        # Render the scene with scene_batch_size iteration
+        for j in range(config.scene_batch_size):
+            if(config.mode is "visual"):
+                sensor = scene.sensors()[0]
+            else:
+                # Set sampler's seed and generate new sensor object
+                seed = np.random.randint(1000000)
+                sensor = get_sensor(spp, seed)
 
-        # Render the scene with new sensor and medium parameters
-        scene.integrator().render(scene, sensor)
+            # If medium parameters are not fixed, sample medium parameters again and update
+            if not config.medium_fix:
+                medium = param_gen.sample_params()
+                update_medium(scene, medium)
 
-        # If visualize is True, develop the film
-        if (config.mode is "visual"):
-            film = scene.sensors()[0].film()
-            bmp = film.bitmap(raw=True)
-            bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8,
-                        srgb_gamma=True).write('visualize_{}.jpg'.format(i))
+            # Render the scene with new sensor and medium parameters
+            scene.integrator().render(scene, sensor)
+
+            # If visualize is True, develop the film
+            if (config.mode is "visual"):
+                film = scene.sensors()[0].film()
+                bmp = film.bitmap(raw=True)
+                bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8,
+                            srgb_gamma=True).write('visualize_{}.jpg'.format(i))
+
+            
+
 
 
 def get_sensor(spp, seed):
@@ -173,4 +176,9 @@ def update_medium(scene, medium):
     params["medium_bsdf.eta"] = medium["eta"]
     params["myphase.g"] = medium["g"]
     params.update()
+
+def scale_mat_2_str(mat):
+    mat_str = "{x} 0 0 0 0 {y} 0 0 0 0 {z} 0 0 0 0 1".format(x=mat[0,0], y=mat[1,1], z=mat[2,2])
+
+    return mat_str
 

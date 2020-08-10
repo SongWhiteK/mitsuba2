@@ -1,5 +1,7 @@
 import numpy as np
 
+from traindata_config import TrainDataConfiguration
+
 
 
 class ParamGenerator:
@@ -15,8 +17,6 @@ class ParamGenerator:
     #   sigma_t, 0.264
     #   albedo, 1
     #   isotropy
-    def __init__(self, seed=4):
-        np.random.seed(seed)
 
     def get_eta(self):
         return 1 + np.random.rand()*0.5
@@ -41,15 +41,15 @@ class ParamGenerator:
         medium["albedo"] = self.get_albedo()
         medium["sigma_t"] = self.get_sigmat()
 
+        if TrainDataConfiguration().DEBUG:
+            print(medium)
+
         return medium
 
 class FixedParamGenerator(ParamGenerator):
     """
     Fixed medium parameters generator
     """
-
-    def __init__(self, seed=4):
-        super().__init__(seed)
 
     def get_albedo(self):
         return 0.99
