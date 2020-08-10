@@ -92,7 +92,7 @@ def render(itr, config):
 
     # Generate scene and parameter generator
     param_gen = utils.ParamGenerator()
-    scene_gen = SceneGenerator(config.XML_PATH, config.OUT_DIR, config.SERIALIZED_PATH, spp)
+    scene_gen = SceneGenerator(config.XML_PATH, config.SAMPLE_DIR, config.SERIALIZED_PATH, spp)
     cnt = 0
 
     # Render with given params and scene generator
