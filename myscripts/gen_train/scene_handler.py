@@ -3,6 +3,7 @@ Generate scene format in python
 """
 import sys
 import numpy as np
+import pandas as pd
 import utils
 import mitsuba
 
@@ -12,7 +13,7 @@ from mitsuba.core import Transform4f
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file, load_string
 from mitsuba.python.util import traverse
-
+from data_handler import join_scale_factor
 
 class SceneGenerator:
     def __init__(self, config):
@@ -53,6 +54,8 @@ class SceneGenerator:
 
         if(config.DEBUG):
             print(scale_mat)
+
+        return scale_factor
 
     def get_scene(self, config):
         """
@@ -95,11 +98,17 @@ def render(itr, config):
     scene_gen = SceneGenerator(config)
     cnt = 0
 
+    # Ready for recording scale factor
+    if(not config.scale_fix):
+        scale_rec = np.ones([itr, 3])
+
     # Render with given params and scene generator
     for i in range(itr // config.scene_batch_size):
         if (not config.scale_fix):
             # Sample scaling matrix and set
-            scene_gen.random_set_transform_matrix(config)
+            scale_rec_v = scene_gen.random_set_transform_matrix(config)
+            scale_rec[config.scene_batch_size * i:config.scene_batch_size * i + config.scene_batch_size] *= scale_rec_v
+
         
         # Generate scene object
         scene = scene_gen.get_scene(config)
@@ -129,6 +138,12 @@ def render(itr, config):
                             srgb_gamma=True).write('visualize_{}.jpg'.format(i))
 
             cnt += 1
+
+    # Join scale factors to the sampled data
+    scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
+    join_scale_factor(scene_gen.out_path, scale_rec)
+
+
 
             
 

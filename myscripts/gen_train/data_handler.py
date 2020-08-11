@@ -50,3 +50,18 @@ class DataHandler:
                 cv2.imwrite(f"{self.image_dir_path}\\train_image{row.id:06}.png", image)
                 id_data += 1
 
+
+def join_scale_factor(path, scale):
+    """
+    Add scale factor of shape objects to the sampled data from given path
+
+    Args:
+    path: Path of a file which contains sampled data
+    scale: Scale factor of shape objects
+    """
+    data = pd.read_csv(path)
+    data["scale_x"] = scale["scale_x"]
+    data["scale_y"] = scale["scale_y"]
+    data["scale_z"] = scale["scale_z"]
+
+    data.to_csv(path, index=False)
