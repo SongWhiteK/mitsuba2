@@ -86,3 +86,5 @@ myscripts/dist_test/
 myscripts/Untitled.ipynb
 
 myscripts/.ipynb_checkpoints/
+
+.env
