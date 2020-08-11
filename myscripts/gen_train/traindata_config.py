@@ -24,16 +24,17 @@ class TrainDataConfiguration:
         else:
             sys.exit("Specify the execution mode")
 
-        # TO DO
-        # - glob multiple serialized path in a directory
+        # TODO: glob multiple serialized path in a directory
         self.SERIALIZED_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\meshes\\leather1.serialized"
 
         self.SAMPLE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\sample_files"
+        # TODO: specify a file name dynamically
+        self.SAMPLE_OUT_NAME = "sample01.csv"
         self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_paths"
         self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\height_map"
         self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_images"
 
-        self.itr = 10
+        self.itr = 5
         if(self.scale_fix):
             self.scene_batch_size = 1
         else:

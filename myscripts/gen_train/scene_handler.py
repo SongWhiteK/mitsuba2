@@ -15,18 +15,16 @@ from mitsuba.python.util import traverse
 
 
 class SceneGenerator:
-    def __init__(self, xml_path, out_dir, serialized_path, spp):
-        self.spp = spp
+    def __init__(self, config):
+        self.spp = config.spp
         self.seed = 10
-        self.xml_path = xml_path
-        self.out_dir = out_dir
+        self.xml_path = config.XML_PATH
+        self.out_path = config.SAMPLE_DIR + "\\" + config.SAMPLE_OUT_NAME
         self.scale_m = 1  # In mitsuba, world unit distance is [mm]
-        self.seriarized = serialized_path
-        if(out_dir is None):
+        self.seriarized = config.SERIALIZED_PATH
+        if(self.out_path is None):
             print("\033[31m" + "Please set out put directory" + "\033[0m")
-            self.out_dir = ".\\"
-        else:
-            self.out_dir = out_dir
+            self.out_path = ".\\"
 
 
         # set initial fixed medium
@@ -63,11 +61,13 @@ class SceneGenerator:
         if (self.seriarized is None):
             sys.exit("Please set serialized file path before generating scene")
 
+        print(self.out_path)
+
 
         # Generate scene object
         if (config.mode is "sample"):
             scene = load_file(self.xml_path,
-                              out_dir=self.out_dir, spp=self.spp, seed=self.seed,
+                              out_path=self.out_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
                               serialized=self.seriarized, mat=self.mat)
@@ -80,7 +80,7 @@ class SceneGenerator:
 
         elif (config.mode is "test"):
             scene = load_file(self.xml_path,
-                              out_dir=self.out_dir, spp=self.spp, seed=self.seed,
+                              out_path=self.out_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta)
 
@@ -92,7 +92,7 @@ def render(itr, config):
 
     # Generate scene and parameter generator
     param_gen = utils.ParamGenerator()
-    scene_gen = SceneGenerator(config.XML_PATH, config.SAMPLE_DIR, config.SERIALIZED_PATH, spp)
+    scene_gen = SceneGenerator(config)
     cnt = 0
 
     # Render with given params and scene generator
