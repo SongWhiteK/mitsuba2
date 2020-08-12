@@ -155,17 +155,18 @@ def gen_train_image(data, height_map, debug):
         # Draw clipping area as rectangle
         u_c_scaled = int((y_max - y_in) * height_scaled / y_range)
         v_c_scaled = int((x_in - x_min) * width_scaled / x_range)
-        print(f"x:{scale_x}, y:{scale_y} ")
+        print(f"id:{data.id}")
+        print(f"scaling---x:{scale_x:.6f}, y:{scale_y:.6f} ")
 
         print("left up")
         left_up = (int(np.max([0, v_c_scaled - n_px_range / 2])),
                    int(np.max([0, u_c_scaled - n_px_range / 2])))
-        print(f"{left_up[0]}, {left_up[1]}")
+        print(f"{left_up}")
 
         print("right down")
         right_down = (int(np.min([width_scaled, v_c_scaled + n_px_range / 2])),
                       int(np.min([height_scaled, u_c_scaled + n_px_range / 2])))
-        print(f"{right_down[0]}, {right_down[1]}")
+        print(f"{right_down}")
 
         cv2.rectangle(map_scaled, left_up, right_down, 0, 5)
 
