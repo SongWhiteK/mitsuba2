@@ -288,7 +288,7 @@ protected:
     int m_max_depth;
     int m_rr_depth;
 
-    std::string m_output_dir;
+    std::string m_output_path;
 
     bool m_spp_roop;
     bool m_thread_roop;

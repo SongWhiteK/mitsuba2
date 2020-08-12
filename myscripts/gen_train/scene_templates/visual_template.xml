@@ -11,8 +11,8 @@
 		<string name="fov_axis" value="smaller"/>
 
 		<transform name="to_world">
-			<lookat origin="52, 34, 70" target="0, 0, 10" up="0, 0, 1"/>
-			<!-- <lookat origin="162, 54, 216" target="0, 0, 10" up="0, 0, 1"/> -->
+			<!-- <lookat origin="52, 34, 70" target="0, 0, 10" up="0, 0, 1"/> -->
+			<lookat origin="162, 54, 216" target="0, 0, 10" up="0, 0, 1"/>
 		</transform>
 
 		<sampler id="Camera-camera_sampler" type="independent">

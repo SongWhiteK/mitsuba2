@@ -2,7 +2,7 @@
 <scene version="2.0.0">
 	<integrator id="integrator" type="volsample">
 		<integer name="max_depth" value="128"/>
-		<string name="output_dir" value="$out_dir"/>
+		<string name="output_path" value="$out_path"/>
 		<boolean name="random_sample" value="false"/>
 	</integrator>
 

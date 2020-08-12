@@ -332,7 +332,7 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
     if (m_max_depth < 0 && m_max_depth != -1)
         Throw("\"max_depth\" must be set to -1 (infinite) or a value >= 0");
 
-    m_output_dir = props.string("output_dir", ".\\");
+    m_output_path = props.string("output_path", ".\\");
 
     m_spp_roop = props.bool_("spp_roop", true);
     m_thread_roop = props.bool_("thread_roop", false);
@@ -531,7 +531,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
 
 MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples, const Medium *medium) const{
     // Setup csv file stream
-    std:: string filename = m_output_dir + "\\train_path.csv";
+    std:: string filename = m_output_path;
     Mask init = false;
 
     // get medium parameters

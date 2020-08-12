@@ -7,15 +7,16 @@ Configuration of generating train data
 
 class TrainDataConfiguration:
     def __init__(self):
+        ############## EXECUTION MODES ##############
         self.DEBUG = True
-        self.mode = "visual" # visualizing medium appearance
-        self.medium_fix = True # generating fixed medium parameters
-        self.scale_fix = True # do not scale shape objects
+        self.mode = "sample" # visualizing medium appearance
+        self.medium_fix = False # generating fixed medium parameters
+        self.scale_fix = False # do not scale shape objects
 
-        self.OUT_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\csv_files"
+        ############## FILE PATHS ##############
         if (self.mode is "visual"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\visual_template.xml"
-            self.spp = 256
+            self.spp = 64
         elif(self.mode is "sample"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\sample_template.xml"
             self.spp = 1024
@@ -25,16 +26,24 @@ class TrainDataConfiguration:
         else:
             sys.exit("Specify the execution mode")
 
-        # TO DO
-        # - glob multiple serialized path in a directory
-        self.SERIALIZED_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\meshes\\leather2.serialized"
+        # TODO: glob multiple serialized path in a directory
+        self.SERIALIZED_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\meshes\\leather1.serialized"
 
-        self.itr = 1
+        self.SAMPLE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\sample_files"
+        # TODO: specify a file name dynamically
+        self.SAMPLE_OUT_NAME = "sample00.csv"
+        self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_paths"
+        self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\height_map"
+        self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_images"
+
+        ############## ITERATION NUMBERS ##############
+        self.itr = 10
         if(self.scale_fix):
             self.scene_batch_size = 1
         else:
             self.scene_batch_size = 1
 
+        ############## RANDOM NUMBER SEED ##############
         self.seed = 12
 
 

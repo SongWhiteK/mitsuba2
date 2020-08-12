@@ -3,6 +3,7 @@ Generate scene format in python
 """
 import sys
 import numpy as np
+import pandas as pd
 import utils
 import mitsuba
 
@@ -12,21 +13,19 @@ from mitsuba.core import Transform4f
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file, load_string
 from mitsuba.python.util import traverse
-
+from data_handler import join_scale_factor
 
 class SceneGenerator:
-    def __init__(self, xml_path, out_dir, serialized_path, spp):
-        self.spp = spp
+    def __init__(self, config):
+        self.spp = config.spp
         self.seed = 10
-        self.xml_path = xml_path
-        self.out_dir = out_dir
+        self.xml_path = config.XML_PATH
+        self.out_path = config.SAMPLE_DIR + "\\" + config.SAMPLE_OUT_NAME
         self.scale_m = 1  # In mitsuba, world unit distance is [mm]
-        self.seriarized = serialized_path
-        if(out_dir is None):
+        self.seriarized = config.SERIALIZED_PATH
+        if(self.out_path is None):
             print("\033[31m" + "Please set out put directory" + "\033[0m")
-            self.out_dir = ".\\"
-        else:
-            self.out_dir = out_dir
+            self.out_path = ".\\"
 
 
         # set initial fixed medium
@@ -56,6 +55,8 @@ class SceneGenerator:
         if(config.DEBUG):
             print(scale_mat)
 
+        return scale_factor
+
     def get_scene(self, config):
         """
         Generate scene object from attributes
@@ -63,11 +64,13 @@ class SceneGenerator:
         if (self.seriarized is None):
             sys.exit("Please set serialized file path before generating scene")
 
+        print(self.out_path)
+
 
         # Generate scene object
         if (config.mode is "sample"):
             scene = load_file(self.xml_path,
-                              out_dir=self.out_dir, spp=self.spp, seed=self.seed,
+                              out_path=self.out_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
                               serialized=self.seriarized, mat=self.mat)
@@ -80,7 +83,7 @@ class SceneGenerator:
 
         elif (config.mode is "test"):
             scene = load_file(self.xml_path,
-                              out_dir=self.out_dir, spp=self.spp, seed=self.seed,
+                              out_path=self.out_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta)
 
@@ -92,14 +95,20 @@ def render(itr, config):
 
     # Generate scene and parameter generator
     param_gen = utils.ParamGenerator()
-    scene_gen = SceneGenerator(config.XML_PATH, config.OUT_DIR, config.SERIALIZED_PATH, spp)
+    scene_gen = SceneGenerator(config)
     cnt = 0
+
+    # Ready for recording scale factor
+    if(not config.scale_fix):
+        scale_rec = np.ones([itr, 3])
 
     # Render with given params and scene generator
     for i in range(itr // config.scene_batch_size):
         if (not config.scale_fix):
             # Sample scaling matrix and set
-            scene_gen.random_set_transform_matrix(config)
+            scale_rec_v = scene_gen.random_set_transform_matrix(config)
+            scale_rec[config.scene_batch_size * i:config.scene_batch_size * i + config.scene_batch_size] *= scale_rec_v
+
         
         # Generate scene object
         scene = scene_gen.get_scene(config)
@@ -129,6 +138,12 @@ def render(itr, config):
                             srgb_gamma=True).write('visualize_{}.jpg'.format(i))
 
             cnt += 1
+
+    # Join scale factors to the sampled data
+    scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
+    join_scale_factor(scene_gen.out_path, scale_rec)
+
+
 
             
 
