@@ -86,3 +86,15 @@ myscripts/dist_test/
 myscripts/Untitled.ipynb
 
 myscripts/.ipynb_checkpoints/
+
+.env
+
+myscripts/sample_files/
+
+myscripts/train_images/
+
+*.ipynb
+
+myscripts/train_paths/.ipynb_checkpoints/
+
+myscripts/train_paths/
