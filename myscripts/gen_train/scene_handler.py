@@ -61,10 +61,8 @@ class SceneGenerator:
         """
         Generate scene object from attributes
         """
-        if (self.seriarized is None):
+        if (self.serialized is None):
             sys.exit("Please set serialized file path before generating scene")
-
-        print(self.out_path)
 
 
         # Generate scene object
@@ -73,13 +71,13 @@ class SceneGenerator:
                               out_path=self.out_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
-                              serialized=self.seriarized, mat=self.mat)
+                              serialized=self.serialized, mat=self.mat)
 
         elif (config.mode is "visual"):
             scene = load_file(self.xml_path, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
-                              serialized=self.seriarized, mat=self.mat)
+                              serialized=self.serialized, mat=self.mat)
 
         elif (config.mode is "test"):
             scene = load_file(self.xml_path,
@@ -160,7 +158,8 @@ def get_sensor(spp, seed):
     Returns:
         sensor: Sensor object with a sampler including given spp and seed
     """
-    sensor = load_string("""<sensor version='2.2.1' type='perspective'>
+    sensor = load_string(
+                        """<sensor version='2.2.1' type='perspective'>
                             <float name="fov" value="22.8952"/>
                             <float name="near_clip" value="0.01"/>
                             <float name="far_clip" value="100"/>
