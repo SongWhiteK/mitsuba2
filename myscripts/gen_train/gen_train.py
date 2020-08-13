@@ -26,7 +26,7 @@ np.random.seed(seed=config.seed)
 Thread.thread().file_resolver().append(os.path.dirname(config.XML_PATH))
 
 # Number of iteration
-itr = config.itr
+itr = config.itr_per_shape
 
 start = time.time()
 print("Sampling start")

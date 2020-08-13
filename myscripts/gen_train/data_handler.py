@@ -69,6 +69,19 @@ def join_scale_factor(path, scale):
 
     data.to_csv(path, index=False)
 
+def join_model_id(path, model_id):
+    """
+    Add scale modelid to the sampled data from given path
+
+    Args:
+    path: Path of a file which contains sampled data
+    id: Model id number of shape objects
+    """
+    data = pd.read_csv(path)
+    data["model_id"] = model_id["model_id"]
+
+    data.to_csv(path, index=False)
+
 
 def gen_train_image(data, height_map, debug):
     """

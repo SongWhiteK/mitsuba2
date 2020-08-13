@@ -2,6 +2,7 @@
 Generate scene format in python
 """
 import sys
+import glob
 import numpy as np
 import pandas as pd
 import utils
@@ -13,19 +14,19 @@ from mitsuba.core import Transform4f
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file, load_string
 from mitsuba.python.util import traverse
-from data_handler import join_scale_factor
+from data_handler import join_scale_factor, join_model_id
 
 class SceneGenerator:
     def __init__(self, config):
         self.spp = config.spp
         self.seed = 10
         self.xml_path = config.XML_PATH
-        self.out_path = config.SAMPLE_DIR + "\\" + config.SAMPLE_OUT_NAME
+        self.out_dir = config.SAMPLE_DIR
         self.scale_m = 1  # In mitsuba, world unit distance is [mm]
-        self.seriarized = config.SERIALIZED_PATH
-        if(self.out_path is None):
+        self.serialized = None
+        if(self.out_dir is None):
             print("\033[31m" + "Please set out put directory" + "\033[0m")
-            self.out_path = ".\\"
+            self.out_dir = "."
 
 
         # set initial fixed medium
@@ -43,6 +44,9 @@ class SceneGenerator:
 
     def set_serialized_path(self, serialized_path):
         self.serialized = serialized_path
+
+    def set_out_path(self, model_id):
+        self.out_path = f"{self.out_dir}\\sample{model_id:02}.csv"
 
     def set_transform_matrix(self, mat):
         self.mat = utils.scale_mat_2_str(mat)
@@ -97,49 +101,66 @@ def render(itr, config):
     cnt = 0
 
     # Ready for recording scale factor
-    if(not config.scale_fix):
-        scale_rec = np.ones([itr, 3])
+    scale_rec = np.ones([itr, 3])
 
-    # Render with given params and scene generator
-    for i in range(itr // config.scene_batch_size):
-        if (not config.scale_fix):
-            # Sample scaling matrix and set
-            scale_rec_v = scene_gen.random_set_transform_matrix(config)
-            scale_rec[config.scene_batch_size * i:config.scene_batch_size * i + config.scene_batch_size] *= scale_rec_v
+    # Get serialized file name list from serialized file directory
+    serialized_list = glob.glob(f"{config.SERIALIZED_DIR}\\*.serialized")
+    if(config.DEBUG):
+        print(serialized_list)
 
-        
-        # Generate scene object
-        scene = scene_gen.get_scene(config)
+    if(itr % config.scene_batch_size != 0):
+        sys.exit("Please set ite_per_shape to be a multiple of scene_batch_size")
 
-        # Render the scene with scene_batch_size iteration
-        for j in range(config.scene_batch_size):
-            if(config.mode is "visual"):
-                sensor = scene.sensors()[0]
-            else:
-                # Set sampler's seed and generate new sensor object
-                seed = np.random.randint(1000000)
-                sensor = get_sensor(spp, seed)
+    # Render with given params generator and scene generator
+    for model_id, serialized in enumerate(serialized_list):
+        # Set serialized model path and output csv file path to scene generator
+        scene_gen.set_serialized_path(serialized)
+        scene_gen.set_out_path(model_id)
 
-            # If medium parameters are not fixed, sample medium parameters again and update
-            if not config.medium_fix:
-                medium = param_gen.sample_params()
-                update_medium(scene, medium)
+    
+        for i in range(itr // config.scene_batch_size):
+            if (not config.scale_fix):
+                # Sample scaling matrix and set
+                scale_rec_v = scene_gen.random_set_transform_matrix(config)
+                scale_rec[config.scene_batch_size * i:config.scene_batch_size * i + config.scene_batch_size] *= scale_rec_v
 
-            # Render the scene with new sensor and medium parameters
-            scene.integrator().render(scene, sensor)
+            
+            # Generate scene object
+            scene = scene_gen.get_scene(config)
 
-            # If visualize is True, develop the film
-            if (config.mode is "visual"):
-                film = scene.sensors()[0].film()
-                bmp = film.bitmap(raw=True)
-                bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8,
-                            srgb_gamma=True).write('visualize_{}.jpg'.format(i))
+            # Render the scene with scene_batch_size iteration
+            for j in range(config.scene_batch_size):
+                if(config.mode is "visual"):
+                    sensor = scene.sensors()[0]
+                else:
+                    # Set sampler's seed and generate new sensor object
+                    seed = np.random.randint(1000000)
+                    sensor = get_sensor(spp, seed)
 
-            cnt += 1
+                # If medium parameters are not fixed, sample medium parameters again and update
+                if not config.medium_fix:
+                    medium = param_gen.sample_params()
+                    update_medium(scene, medium)
 
-    # Join scale factors to the sampled data
-    scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
-    join_scale_factor(scene_gen.out_path, scale_rec)
+                # Render the scene with new sensor and medium parameters
+                scene.integrator().render(scene, sensor)
+
+                # If visualize is True, develop the film
+                if (config.mode is "visual"):
+                    film = scene.sensors()[0].film()
+                    bmp = film.bitmap(raw=True)
+                    bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8,
+                                srgb_gamma=True).write('visualize_{}.jpg'.format(i))
+
+                cnt += 1
+
+        # Join scale factors and model id to the sampled data
+        df_scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
+        join_scale_factor(scene_gen.out_path, df_scale_rec)
+        df_model_id = pd.DataFrame(np.ones([itr,1], dtype="uint8") * model_id, columns=["model_id"])
+        join_model_id(scene_gen.out_path, df_model_id)
+
+
 
 
 
