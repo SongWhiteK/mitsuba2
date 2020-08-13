@@ -325,7 +325,7 @@ MTS_VARIANT void Mesh<Float, Spectrum>::build_parameterization() {
                  props, false, false);
     mesh->m_faces_buf = m_faces_buf;
 
-    ScalarFloat *pos_out = mesh->m_vertex_positions_buf.data();
+    ScalarFloat *pos_out = (ScalarFloat *) mesh->m_vertex_positions_buf.data();
     for (size_t i = 0; i < m_vertex_count; ++i) {
         ScalarPoint2f uv_i = vertex_texcoord(i);
         pos_out[i*3 + 0] = uv_i.x();
@@ -801,7 +801,7 @@ MTS_VARIANT RTCGeometry Mesh<Float, Spectrum>::embree_geometry(RTCDevice device)
 #endif
 
 #if defined(MTS_ENABLE_OPTIX)
-static const uint32_t triangle_input_flags =  OPTIX_GEOMETRY_FLAG_NONE;
+static const uint32_t triangle_input_flags =  OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT;
 
 MTS_VARIANT void Mesh<Float, Spectrum>::optix_prepare_geometry() {
     if constexpr (is_cuda_array_v<Float>) {
