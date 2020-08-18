@@ -28,10 +28,10 @@ class TrainDataConfiguration:
 
         self.SERIALIZED_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\serialized"
 
-        self.SAMPLE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\sample_files"
-        self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_paths"
-        self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\height_map"
-        self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_images"
+        self.SAMPLE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\sample_files"
+        self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths"
+        self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\height_map"
+        self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
 
         ############## ITERATION NUMBERS ##############
         self.itr_per_shape = 5
