@@ -11,7 +11,7 @@ class TrainDataConfiguration:
         self.DEBUG = True
         self.mode = "sample" # visualizing medium appearance
         self.medium_fix = False # generating fixed medium parameters
-        self.scale_fix = False # do not scale shape objects
+        self.scale_fix = False # no scale shape objects
 
         ############## FILE PATHS ##############
         if (self.mode is "visual"):

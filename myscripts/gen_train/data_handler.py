@@ -17,7 +17,7 @@ class DataHandler:
     """
 
     def __init__(self, config):
-        self.file_list = glob.glob(f"{config.SAMPLE_DIR}\\*")
+        self.sample_list = glob.glob(f"{config.SAMPLE_DIR}\\*")
         self.train_image_dir_path = f"{config.IMAGE_DIR}"
         self.map_dir_path = f"{config.MAP_DIR}"
         self.train_sample_dir_path = f"{config.TRAIN_DIR}"
@@ -31,9 +31,10 @@ class DataHandler:
         """
         height_map = None
         id_data = 0
+        height_map_list = glob.glob(f"{self.map_dir_path}\\height_map*.png")
 
         # Process with given csv files
-        for i, file_name in enumerate(self.file_list):
+        for i, file_name in enumerate(self.sample_list):
             # get id number and map number
             data = pd.read_csv(file_name)
             data["id"] = data.index + id_data + offset
@@ -42,8 +43,8 @@ class DataHandler:
             data.to_csv(f"{self.train_sample_dir_path}\\train_path{i:02}.csv", index=False)
 
             # Get entire height map for a training data
-            height_map_path = glob.glob(f"{self.map_dir_path}\\height_map{i:02}.png")
-            height_map = cv2.imread(height_map_path[0], cv2.IMREAD_GRAYSCALE)
+            
+            height_map = cv2.imread(height_map_list[i], cv2.IMREAD_GRAYSCALE)
         
             # Process with each training data 
             for row in data.itertuples():
@@ -71,7 +72,7 @@ def join_scale_factor(path, scale):
 
 def join_model_id(path, model_id):
     """
-    Add scale modelid to the sampled data from given path
+    Add scale model id to the sampled data from given path
 
     Args:
     path: Path of a file which contains sampled data
