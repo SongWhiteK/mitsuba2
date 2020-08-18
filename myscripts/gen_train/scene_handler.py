@@ -117,6 +117,7 @@ def render(itr, config):
         scene_gen.set_serialized_path(serialized)
         scene_gen.set_out_path(model_id)
 
+        scale_rec = np.ones([itr, 3])
     
         for i in range(itr // config.scene_batch_size):
             if (not config.scale_fix):
