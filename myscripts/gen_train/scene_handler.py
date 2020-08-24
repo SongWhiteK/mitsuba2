@@ -158,8 +158,7 @@ def render(itr, config):
         # Join scale factors and model id to the sampled data
         df_scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
         join_scale_factor(scene_gen.out_path, df_scale_rec)
-        df_model_id = pd.DataFrame(np.ones([itr,1], dtype="uint8") * model_id, columns=["model_id"])
-        join_model_id(scene_gen.out_path, df_model_id)
+
 
 
 
