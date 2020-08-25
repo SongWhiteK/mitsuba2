@@ -45,7 +45,7 @@ class TrainDataConfiguration:
 
 
         ############## TAIN DATA TAG ##############
-        self.tag = ["albedo", "g", "eta", "p_out_x",
+        self.tag = ["eff_albedo", "g", "eta", "p_out_x",
                     "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z", "abs_prob"]
 
 

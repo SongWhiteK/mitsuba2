@@ -57,6 +57,7 @@ class DataHandler:
                 id_data += 1
 
         # refine and output sampled path data
+        df_all["eff_albedo"] = utils.reduced_albedo_to_effective_albedo(utils.get_reduced_albedo(df_all["albedo"], df_all["g"], df_all["sigma_t"]))
         df_all = df_all[self.tag]
         df_all.to_csv(f"{self.train_sample_dir_path}\\train_path.csv", index=False, float_format="%.6g")
 

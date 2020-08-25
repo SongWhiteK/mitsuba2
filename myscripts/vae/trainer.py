@@ -25,7 +25,7 @@ class VAEDatasets(Dataset):
         # Get csv data
         data = self.data.iloc[index]
 
-        idx_material = ["albedo", "g", "eta"]
+        idx_material = ["eff_albedo", "g", "eta"]
         material = pd.Series(data=data, index=idx_material).values
         material = torch.tensor(material)
         idx_pos = ["p_out_x", "p_out_y", "p_out_z",
@@ -35,12 +35,12 @@ class VAEDatasets(Dataset):
 
         abs_prob = torch.tensor(data["abs_prob"])
 
-        sample = {}
-        sample["material"] = material
-        sample["pos"] = pos
-        sample["abs"] = abs_prob
+        props = {}
+        props["material"] = material
+        props["pos"] = pos
+        props["abs"] = abs_prob
 
-        return im, sample
+        return im, props
 
     def __len__(self):
         return len(self.data)
@@ -57,11 +57,11 @@ if __name__ == "__main__":
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
     i = 0
 
-    for im_batch, sample_batch in dataloader:
+    for im_batch, props_batch in dataloader:
         if (i % 5 == 0):
-            material_batch = sample_batch["material"]
-            pos_batch = sample_batch["pos"]
-            abs_batch = sample_batch["abs"]
+            material_batch = props_batch["material"]
+            pos_batch = props_batch["pos"]
+            abs_batch = props_batch["abs"]
             print(im_batch.shape, material_batch.shape, pos_batch.shape, abs_batch.shape)
             print(material_batch)
             print(pos_batch)
