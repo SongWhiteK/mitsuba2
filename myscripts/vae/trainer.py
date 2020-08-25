@@ -25,22 +25,26 @@ class VAEDatasets(Dataset):
         # Get csv data
         data = self.data.iloc[index]
 
-        idx_material = ["eff_albedo", "g", "eta"]
-        material = pd.Series(data=data, index=idx_material).values
-        material = torch.tensor(material)
-        idx_pos = ["p_out_x", "p_out_y", "p_out_z",
-                   "d_in_x", "d_in_y", "d_in_z"]
-        pos = pd.Series(data=data, index=idx_pos).values
-        pos = torch.tensor(pos)
+        idx_props = ["eff_albedo", "g", "eta",
+                     "d_in_x", "d_in_y", "d_in_z"]
+        props = pd.Series(data=data, index=idx_props).values
+        props = torch.tensor(props)
+        idx_in_pos = ["p_in_x", "p_in_y", "p_in_z"]
+        idx_out_pos = ["p_out_x", "p_out_y", "p_out_z"]
+        in_pos = pd.Series(data=data, index=idx_in_pos).values
+        in_pos = torch.tensor(in_pos)
+        out_pos = pd.Series(data=data, index=idx_out_pos).values
+        out_pos = torch.tensor(out_pos)
 
         abs_prob = torch.tensor(data["abs_prob"])
 
-        props = {}
-        props["material"] = material
-        props["pos"] = pos
-        props["abs"] = abs_prob
+        sample = {}
+        sample["props"] = props
+        sample["in_pos"] = in_pos
+        sample["out_pos"] = out_pos
+        sample["abs"] = abs_prob
 
-        return im, props
+        return im, sample
 
     def __len__(self):
         return len(self.data)
