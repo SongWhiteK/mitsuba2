@@ -22,6 +22,7 @@ class DataHandler:
         self.map_dir_path = f"{config.MAP_DIR}"
         self.train_sample_dir_path = f"{config.TRAIN_DIR}"
         self.debug = config.DEBUG
+        self.tag = config.tag
 
     def generate_train_data(self, offset=0):
         """
@@ -32,6 +33,7 @@ class DataHandler:
         height_map = None
         id_data = 0
         height_map_list = glob.glob(f"{self.map_dir_path}\\height_map*.png")
+        df_all = pd.DataFrame()
 
         # Process with given csv files
         for i, file_name in enumerate(self.sample_list):
@@ -39,8 +41,8 @@ class DataHandler:
             data = pd.read_csv(file_name)
             data["id"] = data.index + id_data + offset
 
-            # Generate training data with id
-            data.to_csv(f"{self.train_sample_dir_path}\\train_path{i:02}.csv", index=False)
+            # join train data into one file
+            df_all = df_all.append(data)
 
             # Get entire height map for a training data
             
@@ -53,6 +55,10 @@ class DataHandler:
                 # Save height map image with id
                 cv2.imwrite(f"{self.train_image_dir_path}\\train_image{row.id:06}.png", image)
                 id_data += 1
+
+        # refine and output sampled path data
+        df_all = df_all[self.tag]
+        df_all.to_csv(f"{self.train_sample_dir_path}\\train_path.csv", index=False, float_format="%.6g")
 
 
 def join_scale_factor(path, scale):

@@ -44,6 +44,11 @@ class TrainDataConfiguration:
         self.seed = 12
 
 
+        ############## TAIN DATA TAG ##############
+        self.tag = ["albedo", "g", "eta", "p_out_x",
+                    "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z", "abs_prob"]
+
+
 config = TrainDataConfiguration()
 if(config.DEBUG):
     print("\033[31m" + "This execution is in DEBUG mode" + "\033[0m")
