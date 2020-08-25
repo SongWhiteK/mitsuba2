@@ -4,6 +4,8 @@ import pandas as pd
 import torch
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
+from torch.optim import optim
+from torch.optim.lr_scheduler import ExponentialLR
 from torchvision.transforms import ToTensor
 from vae_config import VAEConfiguration
 from PIL import Image
@@ -48,6 +50,26 @@ class VAEDatasets(Dataset):
 
     def __len__(self):
         return len(self.data)
+
+
+def train(config, model, device, dataset):
+    torch.manual_seed(config.seed)
+
+    train_loader = DataLoader(dataset, **config.loader_args)
+
+    init_lr = config.lr
+    min_lr = init_lr / 8.0
+    decay_rate = 0.8
+    optimizer = optim.Adam(model.parameters(), lr=init_lr)
+
+    scheduler = ExponentialLR(optimizer, gamma=decay_rate)
+
+    for epoch in range(1, config.epoch + 1):
+        train_epoch(epoch, config, model, device, train_loader, optimizer)
+
+    
+
+
         
         
         

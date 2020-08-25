@@ -27,6 +27,11 @@ class VAEConfiguration:
         self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
         self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
 
+        self.seed = 1
+        self.epoch = 10
+        self.loader_args = {"batch_size": 32, "shuffle": False}
+        self.lr = 2*1e-4
+
         
 
 
