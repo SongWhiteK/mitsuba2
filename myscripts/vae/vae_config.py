@@ -4,9 +4,9 @@ Configuration class for VAE
 
 class VAEConfiguration:
     def __init__(self):
+        ##### Network #####
         self.use_dropout = True
 
-        ##### CONV #####
         self.ch1 = 32
         self.ch2 = 64
         self.ch3 = 128
@@ -22,6 +22,10 @@ class VAEConfiguration:
 
         self.loss_weight_pos = 100
         self.loss_weight_abs = 5000
+
+        ##### Trainer #####
+        self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
+        self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
 
         
 
