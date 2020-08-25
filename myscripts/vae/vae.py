@@ -2,10 +2,12 @@
 NN module for VAE
 """
 import sys
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from vae_config import VAEConfiguration
 
 
 def conv5x5(in_ch, out_ch, stride=1):
@@ -24,10 +26,11 @@ class VAE(nn.Module):
         ###### CONV #####
         # Input: 256x256 image
         # Output: 512x1 vector
-        self.conv1 = conv5x5(1, config.ch1, self.stirde)
+        self.conv1 = conv5x5(1, config.ch1, config.stride)
         self.conv2 = conv5x5(config.ch1, config.ch2)
         self.conv3 = conv5x5(config.ch2, config.ch3)
         self.drop = nn.Dropout2d()
+        self.pool = config.pool
 
         ##### Feature Network #####
         # Input: 6 properties
@@ -44,18 +47,19 @@ class VAE(nn.Module):
         self.enc22 = nn.Linear(config.n_enc, 4)
 
         ##### Scatter Network #####
-        # Input: 1172x1 (1168 + 4) feature vector and random numbers from normal distribution
+        # Input: 532x1 (528 + 4) feature vector and random numbers from normal distribution
         # Output: outgoing position (xyz vector)
-        self.sn1 = nn.Linear(1172, config.n_dec1)
+        self.sn1 = nn.Linear(532, config.n_dec1)
         self.sn2 = nn.Linear(config.n_dec1, config.n_dec1)
         self.sn3 = nn.Linear(config.n_dec1, config.n_dec2)
         self.sn4 = nn.Linear(config.n_dec2, 3)
 
         ##### Absorption Network #####
-        # Input: 1168x1 feature vector
+        # Input: 528x1 feature vector
         # Output: scalar absorption
-        self.abs1 = nn.Linear(1168, config.n_dec1)
+        self.abs1 = nn.Linear(528, config.n_dec1)
         self.abs2 = nn.Linear(config.n_dec1, 1)
+        self.sigmoid = nn.Sigmoid()
 
     def encode(self, x):
         """Encoding from outgoing position to average and standard deviation of normal distribution"""
@@ -82,6 +86,7 @@ class VAE(nn.Module):
         """
         ##### Scatter Network #####
         feature_sc = torch.cat([feature, z], dim=1)
+        print(feature_sc.shape)
 
         scatter = F.relu(self.sn1(feature_sc))
         scatter = F.relu(self.sn2(scatter))
@@ -90,32 +95,34 @@ class VAE(nn.Module):
 
         ##### Absorption Network #####
         absorption = F.relu(self.abs1(feature))
-        absorption = F.sigmoid(self.abs2(feature)) # this outputs absorption probability
+        absorption = self.sigmoid(self.abs2(absorption)) # this outputs absorption probability
 
         return scatter, absorption
 
 
+    def forward(self, props, im, in_pos, out_pos):
+        diff_pos = out_pos - in_pos
 
-    def forward(self, x, im, config, out_pos=None):
         ##### Height map conversion #####
-        im_feature = F.relu(F.max_pool2d(self.conv1(im), config.pool))
-        im_feature = F.relu(F.max_pool2d(self.conv2(im_feature), config.pool))
-        im_feature = F.relu(F.max_pool2d(self.drop(self.conv3(im_feature), config.pool)))
+        im_feature = F.relu(F.max_pool2d(self.conv1(im), self.pool))
+        im_feature = F.relu(F.max_pool2d(self.conv2(im_feature), self.pool))
+        im_feature = F.relu(F.max_pool2d(self.drop(self.conv3(im_feature)), self.pool))
         im_feature = im_feature.view(1, -1)
 
         ##### Feature conversion #####
-        feature = F.relu(self.fn1(x))
+        feature = F.relu(self.fn1(props))
         feature = F.relu(self.fn2(feature))
-        feature = F.relu(self.fn3(feature))
+        # feature = F.relu(self.fn3(feature))
 
         feature = torch.cat([feature, im_feature], dim=1)
 
         ##### Encoder #####
-        mu, logvar = self.encode(out_pos)
+        mu, logvar = self.encode(diff_pos)
         z = self.reparameterize(mu, logvar)
 
         ##### Decoder #####
         recon_pos, recon_abs = self.decode(feature, z)
+        recon_pos += in_pos
 
         return recon_pos, recon_abs, mu, logvar
 
@@ -131,6 +138,25 @@ def loss_function(recon_pos, ref_pos, recon_abs, ref_abs, mu, logvar, config):
 
     return loss_latent + loss_position + loss_absorption
 
+
+
+if __name__ == "__main__":
+    config = VAEConfiguration()
+    device = torch.device("cuda")
+    model = VAE(config).to(device)
+
+    im = np.random.randint(0,255,[1,1,255,255]).astype(np.float32)
+    im = torch.tensor(im).to(device)
+
+    props = torch.randn([1,6]).to(device)
+    in_pos = torch.randn([1,3]).to(device)
+    out_pos = torch.randn([1,3]).to(device)
+
+    model.eval()
+
+    recon_pos, recon_abs, mu, logvar = model(props, im, in_pos, out_pos)
+    print(recon_pos)
+    print(recon_abs)
 
 
 
