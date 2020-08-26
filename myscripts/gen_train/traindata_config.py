@@ -34,14 +34,19 @@ class TrainDataConfiguration:
         self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
 
         ############## ITERATION NUMBERS ##############
-        self.itr_per_shape = 5
+        self.itr_per_shape = 10000
         if(self.scale_fix):
             self.scene_batch_size = 1
         else:
-            self.scene_batch_size = 1
+            self.scene_batch_size = 10
 
         ############## RANDOM NUMBER SEED ##############
         self.seed = 12
+
+
+        ############## TAIN DATA TAG ##############
+        self.tag = ["eff_albedo", "g", "eta", "p_in_x", "p_in_y", "p_in_z",
+                    "p_out_x", "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z", "abs_prob", "height_max"]
 
 
 config = TrainDataConfiguration()
