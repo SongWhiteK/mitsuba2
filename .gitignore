@@ -100,3 +100,9 @@ myscripts/train_paths/.ipynb_checkpoints/
 myscripts/train_paths/
 
 myscripts/height_map/
+
+myscripts/train_data/train_images/
+
+myscripts/train_data/sample_files/
+
+myscripts/train_data/train_paths/

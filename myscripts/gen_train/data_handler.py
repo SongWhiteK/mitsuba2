@@ -115,7 +115,6 @@ def gen_train_image(data, height_map, debug):
     x_in = data.p_in_x
     y_in = data.p_in_y
     z_in = data.p_in_z
-
     scale_x = data.scale_x
     scale_y = data.scale_y
     scale_z = data.scale_z
@@ -137,35 +136,48 @@ def gen_train_image(data, height_map, debug):
     # Length of a pixel edge
     px_len = x_range / width_scaled
     # The number of pixels in 6 sigma_n
-    n_px_range = 6 * sigma_n / px_len
+    r_px_range = np.ceil(3 * sigma_n / px_len).astype(np.uint32)
 
-    # Scale height map to match 255 px with 6 sigma_n
-    scale_fac = 255 / n_px_range
-    map_full_scaled = cv2.resize(map_scaled, None, fx=scale_fac, fy=scale_fac, interpolation=cv2.INTER_AREA)
+    u_c = int((y_max - y_in) * height_scaled / y_range)
+    v_c = int((x_in - x_min) * width_scaled / x_range)
 
-    # Calculate the incident position in uv coordinates
-    height, width = map_full_scaled.shape
-    u_c = int((y_max - y_in) * height / y_range)
-    v_c = int((x_in - x_min) * width / x_range)
-
-    r_px = 127
 
     # Clip map_full_scaled in 255*255 from incident position
-    distance_u_n = np.min([r_px, u_c])              # distance of u for negative direction
-    distance_u_p = np.min([r_px, height - u_c - 1]) # distance of u for positive direction
-    distance_v_n = np.min([r_px, v_c])              # distance of v for negative direction
-    distance_v_p = np.min([r_px, width - v_c - 1])  # distance of v for positive direction
+    distance_u_n = np.min([r_px_range, u_c])              # distance of u for negative direction
+    distance_u_p = np.min([r_px_range, height_scaled - u_c - 1]) # distance of u for positive direction
+    distance_v_n = np.min([r_px_range, v_c])              # distance of v for negative direction
+    distance_v_p = np.min([r_px_range, width_scaled - v_c - 1])  # distance of v for positive direction
 
     u_range = [u_c - distance_u_n, u_c + distance_u_p + 1]
     v_range = [v_c - distance_v_n, v_c + distance_v_p + 1]
-    map_clip = map_full_scaled[u_range[0]: u_range[1], v_range[0]:v_range[1]]
-    del map_full_scaled
+    map_clip = map_scaled[u_range[0]: u_range[1], v_range[0]:v_range[1]]
+
+    height_clip, width_clip = map_clip.shape
+    len_height = height_clip * px_len
+    len_width = width_clip * px_len
+
+    scale_map = 255 / (6 * sigma_n / px_len)
+    map_clip = cv2.resize(map_clip, None, fx=scale_map, fy=scale_map, interpolation=cv2.INTER_AREA)
+    height_clip, width_clip = map_clip.shape
+
+    u_c = int(height_clip * distance_u_n / (distance_u_n + distance_u_p))
+    v_c = int(width_clip * distance_v_n / (distance_v_n + distance_v_p))
+
+    r_px = 127
+
+    distance_u_n = np.min([r_px, u_c])              
+    distance_u_p = np.min([r_px, height_clip - u_c - 1]) 
+    distance_v_n = np.min([r_px, v_c])
+    distance_v_p = np.min([r_px, width_clip - v_c - 1])
+    
 
     # Paste map_clip to a canvas ranging 255*255 [px]
     canvas = np.ones([2 * r_px + 1, 2 * r_px + 1], dtype="uint8") * 31
     canvas_c = r_px + 1
     canvas_size = 2 * r_px + 1
-    canvas[r_px-distance_u_n:r_px+distance_u_p+1, r_px-distance_v_n:r_px+distance_v_p+1] = map_clip
+
+
+    canvas[r_px-distance_u_n:r_px+distance_u_p, r_px-distance_v_n:r_px+distance_v_p] = map_clip[u_c-distance_u_n:u_c+distance_u_p, v_c-distance_v_n:v_c+distance_v_p]
 
     # If pixels are out of range 6 sigma_n, set pixel value to 0 by masking
     uv_range = np.arange(1, canvas_size + 1)
@@ -174,24 +186,6 @@ def gen_train_image(data, height_map, debug):
     canvas[np.logical_not(mask)] = 0
 
     if(False):
-        # Draw clipping area as rectangle
-        u_c_scaled = int((y_max - y_in) * height_scaled / y_range)
-        v_c_scaled = int((x_in - x_min) * width_scaled / x_range)
-        print(f"id:{data.id}")
-        print(f"scaling---x:{scale_x:.6f}, y:{scale_y:.6f} ")
-
-        print("left up")
-        left_up = (int(np.max([0, v_c_scaled - n_px_range / 2])),
-                   int(np.max([0, u_c_scaled - n_px_range / 2])))
-        print(f"{left_up}")
-
-        print("right down")
-        right_down = (int(np.min([width_scaled, v_c_scaled + n_px_range / 2])),
-                      int(np.min([height_scaled, u_c_scaled + n_px_range / 2])))
-        print(f"{right_down}")
-
-        cv2.rectangle(map_scaled, left_up, right_down, 0, 5)
-
         # Compare the scatter in the original height map and generated image
         ax = plt.subplot(1,2,1)
         ax.imshow(map_scaled, cmap="gray")
