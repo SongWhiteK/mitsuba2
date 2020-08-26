@@ -1,4 +1,3 @@
-import os
 import glob
 import numpy as np
 import pandas as pd
@@ -10,7 +9,6 @@ from torch.utils.data import Dataset, DataLoader
 from torch.optim.lr_scheduler import ExponentialLR
 from torchvision.transforms import ToTensor
 from vae_config import VAEConfiguration
-from vae import loss_function
 from PIL import Image
 
 class VAEDatasets(Dataset):
@@ -33,15 +31,21 @@ class VAEDatasets(Dataset):
         idx_props = ["eff_albedo", "g", "eta",
                      "d_in_x", "d_in_y", "d_in_z", "height_max"]
         props = pd.Series(data=data, index=idx_props).values
+        props = props.astype(np.float32)
         props = torch.tensor(props)
         idx_in_pos = ["p_in_x", "p_in_y", "p_in_z"]
         idx_out_pos = ["p_out_x", "p_out_y", "p_out_z"]
         in_pos = pd.Series(data=data, index=idx_in_pos).values
+        in_pos = in_pos.astype(np.float32)
         in_pos = torch.tensor(in_pos)
         out_pos = pd.Series(data=data, index=idx_out_pos).values
+        out_pos = out_pos.astype(np.float32)
         out_pos = torch.tensor(out_pos)
+        idx_abs = ["abs_prob"]
+        abs_prob = pd.Series(data=data, index=idx_abs).values
+        abs_prob = abs_prob.astype(np.float32)
+        abs_prob = torch.tensor(abs_prob)
 
-        abs_prob = torch.tensor(data["abs_prob"])
 
         sample = {}
         sample["props"] = props
@@ -53,6 +57,8 @@ class VAEDatasets(Dataset):
 
     def __len__(self):
         return len(self.data)
+
+from vae import loss_function
 
 
 def train(config, model, device, dataset):
@@ -74,11 +80,10 @@ def train(config, model, device, dataset):
         train_epoch(epoch, config, model, device, train_loader, optimizer, writer)
     
     writer.close()
-    
+
 
 def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
     model.train()
-    pid = os.getpid()
 
     for batch_idx, (im, sample) in enumerate(train_loader):
         props = sample["props"].to(device)
@@ -94,14 +99,17 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         optimizer.step()
 
         # Logging with TensorboardX
-        writer.add_scalar(f"{config.LOG_DIR}\\total_loss", loss_total, (epoch+1) * batch_idx)
-        writer.add_scalars(f"{config.LOG_DIR}\\loss",
+        writer.add_scalar("data/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
+        writer.add_scalars("data/loss",
                            {
                                "latent": losses["latent"],
                                "position": losses["pos"],
                                "absorption": losses["abs"]
                            },
-                           (epoch+1) * batch_idx)
+                           (epoch - 1) * len(train_loader) + batch_idx)
+
+        
+        print((epoch-1) * len(train_loader) + batch_idx)
 
 
     

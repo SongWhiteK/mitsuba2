@@ -34,11 +34,11 @@ class TrainDataConfiguration:
         self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
 
         ############## ITERATION NUMBERS ##############
-        self.itr_per_shape = 5
+        self.itr_per_shape = 10000
         if(self.scale_fix):
             self.scene_batch_size = 1
         else:
-            self.scene_batch_size = 1
+            self.scene_batch_size = 10
 
         ############## RANDOM NUMBER SEED ##############
         self.seed = 12

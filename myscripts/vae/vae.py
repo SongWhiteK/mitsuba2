@@ -8,6 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from vae_config import VAEConfiguration
+from torchvision.transforms import ToTensor
+
 
 
 def conv5x5(in_ch, out_ch, stride=1):
@@ -86,7 +88,6 @@ class VAE(nn.Module):
         """
         ##### Scatter Network #####
         feature_sc = torch.cat([feature, z], dim=1)
-        print(feature_sc.shape)
 
         scatter = F.relu(self.sn1(feature_sc))
         scatter = F.relu(self.sn2(scatter))
@@ -102,17 +103,20 @@ class VAE(nn.Module):
 
     def forward(self, props, im, in_pos, out_pos):
         diff_pos = out_pos - in_pos
+        # print(im.shape)
 
         ##### Height map conversion #####
         im_feature = F.relu(F.max_pool2d(self.conv1(im), self.pool))
         im_feature = F.relu(F.max_pool2d(self.conv2(im_feature), self.pool))
         im_feature = F.relu(F.max_pool2d(self.drop(self.conv3(im_feature)), self.pool))
-        im_feature = im_feature.view(1, -1)
+        im_feature = im_feature.view(config.loader_args["batch_size"], -1)
 
         ##### Feature conversion #####
         feature = F.relu(self.fn1(props))
         feature = F.relu(self.fn2(feature))
         # feature = F.relu(self.fn3(feature))
+        # print(feature.shape)
+        # print(im_feature.shape)
 
         feature = torch.cat([feature, im_feature], dim=1)
 
@@ -128,36 +132,33 @@ class VAE(nn.Module):
 
 def loss_function(recon_pos, ref_pos, recon_abs, ref_abs, mu, logvar, config):
     # Latent loss
-    loss_latent = -0.5 * torch.sum(1 + logvar - mu.pow - logvar.exp())
+    loss_latent = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
     # Outgoing position loss
     loss_position = config.loss_weight_pos * F.smooth_l1_loss(recon_pos, ref_pos, reduction="sum")
 
     # Absorption loss
+
     loss_absorption = config.loss_weight_abs * F.mse_loss(recon_abs, ref_abs, reduction="sum")
 
-    return loss_latent + loss_position + loss_absorption
+    losses = {}
+    losses["latent"] = loss_latent
+    losses["pos"] = loss_position
+    losses["abs"] = loss_absorption
+
+    return loss_latent + loss_position + loss_absorption, losses
+
 
 
 
 if __name__ == "__main__":
+    from trainer import VAEDatasets, train
     config = VAEConfiguration()
     device = torch.device("cuda")
     model = VAE(config).to(device)
+    dataset = VAEDatasets(config, ToTensor())
 
-    im = np.random.randint(0,255,[1,1,255,255]).astype(np.float32)
-    im = torch.tensor(im).to(device)
-
-    props = torch.randn([1,7]).to(device)
-    in_pos = torch.randn([1,3]).to(device)
-    out_pos = torch.randn([1,3]).to(device)
-
-    model.eval()
-
-    recon_pos, recon_abs, mu, logvar = model(props, im, in_pos, out_pos)
-    print(recon_pos)
-    print(recon_abs)
-
+    train(config, model, device, dataset)
 
 
 
