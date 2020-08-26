@@ -32,6 +32,8 @@ class VAEConfiguration:
         self.loader_args = {"batch_size": 32, "shuffle": False}
         self.lr = 2*1e-4
 
+        self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
+
         
 
 

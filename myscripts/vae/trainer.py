@@ -1,13 +1,16 @@
+import os
 import glob
 import numpy as np
 import pandas as pd
 import torch
+import torch.optim as optim
 import matplotlib.pyplot as plt
+import tensorboardX as tbx
 from torch.utils.data import Dataset, DataLoader
-from torch.optim import optim
 from torch.optim.lr_scheduler import ExponentialLR
 from torchvision.transforms import ToTensor
 from vae_config import VAEConfiguration
+from vae import loss_function
 from PIL import Image
 
 class VAEDatasets(Dataset):
@@ -64,8 +67,42 @@ def train(config, model, device, dataset):
 
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
+    # Writer instanse for logging with TensorboardX
+    writer = tbx.SummaryWriter()
+
     for epoch in range(1, config.epoch + 1):
-        train_epoch(epoch, config, model, device, train_loader, optimizer)
+        train_epoch(epoch, config, model, device, train_loader, optimizer, writer)
+    
+    writer.close()
+    
+
+def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
+    model.train()
+    pid = os.getpid()
+
+    for batch_idx, (im, sample) in enumerate(train_loader):
+        props = sample["props"].to(device)
+        in_pos = sample["in_pos"].to(device)
+        out_pos = sample["out_pos"].to(device)
+        abs_prob = sample["abs"].to(device)
+
+        optimizer.zero_grad()
+        recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
+        loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
+
+        loss_total.backward()
+        optimizer.step()
+
+        # Logging with TensorboardX
+        writer.add_scalar(f"{config.LOG_DIR}\\total_loss", loss_total, (epoch+1) * batch_idx)
+        writer.add_scalars(f"{config.LOG_DIR}\\loss",
+                           {
+                               "latent": losses["latent"],
+                               "position": losses["pos"],
+                               "absorption": losses["abs"]
+                           },
+                           (epoch+1) * batch_idx)
+
 
     
 
@@ -97,5 +134,7 @@ if __name__ == "__main__":
             plt.imshow(im, cmap="gray")
             plt.show()
         i += 1
+
+
 
         
