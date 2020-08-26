@@ -136,7 +136,7 @@ def gen_train_image(data, height_map, debug):
     # Length of a pixel edge
     px_len = x_range / width_scaled
     # The number of pixels in 6 sigma_n
-    r_px_range = np.ceil(3 * sigma_n / px_len).astype(np.uint8)
+    r_px_range = np.ceil(3 * sigma_n / px_len).astype(np.uint32)
 
     u_c = int((y_max - y_in) * height_scaled / y_range)
     v_c = int((x_in - x_min) * width_scaled / x_range)
