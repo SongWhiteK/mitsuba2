@@ -33,9 +33,9 @@ class VAE(nn.Module):
         self.pool = config.pool
 
         ##### Feature Network #####
-        # Input: 6 properties
+        # Input: 7 properties
         # Output: 16x1 vector
-        self.fn1 = nn.Linear(6, config.n_fn)
+        self.fn1 = nn.Linear(7, config.n_fn)
         self.fn2 = nn.Linear(config.n_fn, config.n_fn)
         self.fn3 = nn.Linear(config.n_fn, config.n_fn)
 
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     im = np.random.randint(0,255,[1,1,255,255]).astype(np.float32)
     im = torch.tensor(im).to(device)
 
-    props = torch.randn([1,6]).to(device)
+    props = torch.randn([1,7]).to(device)
     in_pos = torch.randn([1,3]).to(device)
     out_pos = torch.randn([1,3]).to(device)
 

@@ -58,6 +58,7 @@ class DataHandler:
 
         # refine and output sampled path data
         df_all["eff_albedo"] = utils.reduced_albedo_to_effective_albedo(utils.get_reduced_albedo(df_all["albedo"], df_all["g"], df_all["sigma_t"]))
+        df_all["height_max"] = df_all["scale_z"]
         df_all = df_all[self.tag]
         df_all.to_csv(f"{self.train_sample_dir_path}\\train_path.csv", index=False, float_format="%.6g")
 
@@ -172,7 +173,7 @@ def gen_train_image(data, height_map, debug):
     mask = (V - canvas_c)**2 + (U - canvas_c)**2 <= r_px**2
     canvas[np.logical_not(mask)] = 0
 
-    if(debug):
+    if(False):
         # Draw clipping area as rectangle
         u_c_scaled = int((y_max - y_in) * height_scaled / y_range)
         v_c_scaled = int((x_in - x_min) * width_scaled / x_range)

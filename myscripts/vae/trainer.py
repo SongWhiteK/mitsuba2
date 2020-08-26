@@ -28,7 +28,7 @@ class VAEDatasets(Dataset):
         data = self.data.iloc[index]
 
         idx_props = ["eff_albedo", "g", "eta",
-                     "d_in_x", "d_in_y", "d_in_z"]
+                     "d_in_x", "d_in_y", "d_in_z", "height_max"]
         props = pd.Series(data=data, index=idx_props).values
         props = torch.tensor(props)
         idx_in_pos = ["p_in_x", "p_in_y", "p_in_z"]
