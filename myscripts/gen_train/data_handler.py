@@ -50,10 +50,10 @@ class DataHandler:
         
             # Process with each training data 
             for row in data.itertuples():
-                gen_train_image(row, height_map, self.debug)
+                image = gen_train_image(row, height_map, self.debug)
 
                 # Save height map image with id
-                # cv2.imwrite(f"{self.train_image_dir_path}\\train_image{row.id:06}.png", image)
+                cv2.imwrite(f"{self.train_image_dir_path}\\train_image{row.id:06}.png", image)
                 id_data += 1
 
         # refine and output sampled path data
@@ -158,50 +158,43 @@ def gen_train_image(data, height_map, debug):
 
     scale_map = 255 / (6 * sigma_n / px_len)
     map_clip = cv2.resize(map_clip, None, fx=scale_map, fy=scale_map, interpolation=cv2.INTER_AREA)
-    print(map_clip.shape)
+    height_clip, width_clip = map_clip.shape
 
+    u_c = int(height_clip * distance_u_n / (distance_u_n + distance_u_p))
+    v_c = int(width_clip * distance_v_n / (distance_v_n + distance_v_p))
+
+    r_px = 127
+
+    distance_u_n = np.min([r_px, u_c])              
+    distance_u_p = np.min([r_px, height_clip - u_c - 1]) 
+    distance_v_n = np.min([r_px, v_c])
+    distance_v_p = np.min([r_px, width_clip - v_c - 1])
     
 
-    # # Paste map_clip to a canvas ranging 255*255 [px]
-    # canvas = np.ones([2 * r_px_range + 1, 2 * r_px_range + 1], dtype="uint8") * 31
-    # canvas_c = r_px_range + 1
-    # canvas_size = 2 * r_px_range + 1
-    # canvas[r_px-distance_u_n:r_px+distance_u_p+1, r_px-distance_v_n:r_px+distance_v_p+1] = map_clip
+    # Paste map_clip to a canvas ranging 255*255 [px]
+    canvas = np.ones([2 * r_px + 1, 2 * r_px + 1], dtype="uint8") * 31
+    canvas_c = r_px + 1
+    canvas_size = 2 * r_px + 1
 
-    # # If pixels are out of range 6 sigma_n, set pixel value to 0 by masking
-    # uv_range = np.arange(1, canvas_size + 1)
-    # V, U = np.meshgrid(uv_range, uv_range)
-    # mask = (V - canvas_c)**2 + (U - canvas_c)**2 <= r_px**2
-    # canvas[np.logical_not(mask)] = 0
 
-    # if(False):
-    #     # Draw clipping area as rectangle
-    #     u_c_scaled = int((y_max - y_in) * height_scaled / y_range)
-    #     v_c_scaled = int((x_in - x_min) * width_scaled / x_range)
-    #     print(f"id:{data.id}")
-    #     print(f"scaling---x:{scale_x:.6f}, y:{scale_y:.6f} ")
+    canvas[r_px-distance_u_n:r_px+distance_u_p, r_px-distance_v_n:r_px+distance_v_p] = map_clip[u_c-distance_u_n:u_c+distance_u_p, v_c-distance_v_n:v_c+distance_v_p]
 
-    #     print("left up")
-    #     left_up = (int(np.max([0, v_c_scaled - n_px_range / 2])),
-    #                int(np.max([0, u_c_scaled - n_px_range / 2])))
-    #     print(f"{left_up}")
+    # If pixels are out of range 6 sigma_n, set pixel value to 0 by masking
+    uv_range = np.arange(1, canvas_size + 1)
+    V, U = np.meshgrid(uv_range, uv_range)
+    mask = (V - canvas_c)**2 + (U - canvas_c)**2 <= r_px**2
+    canvas[np.logical_not(mask)] = 0
 
-    #     print("right down")
-    #     right_down = (int(np.min([width_scaled, v_c_scaled + n_px_range / 2])),
-    #                   int(np.min([height_scaled, u_c_scaled + n_px_range / 2])))
-    #     print(f"{right_down}")
+    if(False):
+        # Compare the scatter in the original height map and generated image
+        ax = plt.subplot(1,2,1)
+        ax.imshow(map_scaled, cmap="gray")
+        ax = plt.subplot(1,2,2)
+        ax.imshow(canvas, cmap="gray")
 
-    #     cv2.rectangle(map_scaled, left_up, right_down, 0, 5)
+        plt.show()
 
-    #     # Compare the scatter in the original height map and generated image
-    #     ax = plt.subplot(1,2,1)
-    #     ax.imshow(map_scaled, cmap="gray")
-    #     ax = plt.subplot(1,2,2)
-    #     ax.imshow(canvas, cmap="gray")
-
-    #     plt.show()
-
-    # return canvas
+    return canvas
 
 if __name__ == "__main__":
     config = TrainDataConfiguration()
