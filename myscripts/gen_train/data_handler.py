@@ -1,7 +1,8 @@
 """
 Processing trainingdata
 """
-
+import os
+import shutil
 import glob
 import numpy as np
 import pandas as pd
@@ -90,6 +91,22 @@ class DataHandler:
         df = df[self.tag]
         df.to_csv(f"{self.train_sample_dir_path}\\train_path.csv",
                   index=False, float_format="%.6g")
+
+
+        
+    def delete_sample_files(self):
+        print(f"Delete sample files in {self.sample_path}? [y/n]")
+        while(True):
+            key_input = input()
+            if(key_input == "y"):
+                shutil.rmtree(self.sample_path)
+                os.mkdir(self.sample_path)
+                break
+            elif(key_input == "n"):
+                break
+            print("Please input valid letter")
+
+            
 
 
 
