@@ -73,24 +73,14 @@ class DataHandler:
             utils.get_reduced_albedo(df["albedo"], df["g"], df["sigma_t"])
             )
         df["height_max"] = df["scale_z"]
-        df["sigma_n"] = utils.get_sigman(df)
-        df["n_dist"] = df["sigma_n"] * 12
-
 
         # Scale incident and outgoing position with sigma n
-        # df["p_in_x"] = df["p_in_x"] / df["sigma_n"]
-        # df["p_in_y"] = df["p_in_y"] / df["sigma_n"]
-        # df["p_in_z"] = df["p_in_z"] / df["sigma_n"]
-        # df["p_out_x"] = df["p_out_x"] / df["sigma_n"]
-        # df["p_out_y"] = df["p_out_y"] / df["sigma_n"]
-        # df["p_out_z"] = df["p_out_z"] / df["sigma_n"]
-
-        df["distance"] = np.sqrt((df["p_in_x"] - df["p_out_x"]) ** 2 + (df["p_in_y"] - df["p_out_y"]) ** 2 + (df["p_in_z"] - df["p_out_z"]) ** 2)
-        df.loc[df["n_dist"] < df["distance"], 'test'] = 1
-        df.loc[df["n_dist"] >= df["distance"], 'test'] = 0
-        print(len(df))
-        print(df["test"].sum())
-        print(df["test"].sum() / len(df))
+        df["p_in_x"] = df["p_in_x"] / df["sigma_n"]
+        df["p_in_y"] = df["p_in_y"] / df["sigma_n"]
+        df["p_in_z"] = df["p_in_z"] / df["sigma_n"]
+        df["p_out_x"] = df["p_out_x"] / df["sigma_n"]
+        df["p_out_y"] = df["p_out_y"] / df["sigma_n"]
+        df["p_out_z"] = df["p_out_z"] / df["sigma_n"]
 
         df = df[self.tag]
         df.to_csv(f"{self.train_sample_dir_path}\\train_path.csv",
