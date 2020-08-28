@@ -17,12 +17,17 @@ class DataHandler:
     """
 
     def __init__(self, config):
-        self.sample_list = glob.glob(f"{config.SAMPLE_DIR}\\*")
+        self.sample_path = config.SAMPLE_DIR
+        self.list_update()
         self.train_image_dir_path = f"{config.IMAGE_DIR}"
         self.map_dir_path = f"{config.MAP_DIR}"
         self.train_sample_dir_path = f"{config.TRAIN_DIR}"
         self.debug = config.DEBUG
         self.tag = config.tag
+
+    def list_update(self):
+        self.sample_list = glob.glob(f"{self.sample_path}\\*")
+        
 
     def generate_train_data(self, offset=0):
         """
