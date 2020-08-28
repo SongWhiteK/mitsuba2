@@ -2,6 +2,7 @@
 #include <mutex>
 
 #include <enoki/morton.h>
+#include <enoki/stl.h>
 #include <fstream>
 #include <iostream>
 #include <mitsuba/core/profiler.h>
@@ -345,6 +346,8 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
     m_random_sample = props.bool_("random_sample", true);
 
     m_size_train_data_batch = props.int_("data_batch", 1);
+
+    m_coeff_sigman = props.int_("coeff_sigman", 3);
 }
 
 
@@ -390,6 +393,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     std::pair<RayDifferential3f, MediumPtr> sample_result = sample_path(scene, sampler_ray);
     RayDifferential3f ray = sample_result.first;
     MediumPtr medium_sample = sample_result.second;
+    Float sigman = get_sigma_n(medium_sample);
 
     Mask active = true;
     const Medium *medium = sensor->medium();
@@ -400,6 +404,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
     size_t n_sample_thread = (total_spp >= n_threads) ? total_spp / n_threads : total_spp;
     size_t size_it_batch = std::min((size_t)32, total_spp);
     size_t size_train_data_batch = m_size_train_data_batch;
+    int coeff_sigman = m_coeff_sigman;
     int seed_add = 0;
 
     TrainingSample s;
@@ -450,29 +455,34 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                             std::lock_guard<std::mutex> lock(mutex);
 
                             // Process result data
-                            if(n_valid < total_spp){
+                            if(TrainingSamples.size() < size_train_data_batch || n_valid < total_spp){
                                 switch (r.status)
                                 {
                                 case PathSampleResult::EStatus::EValid:
                                     n_valid++;
-                                    if(TrainingSamples.size() < size_train_data_batch){
-                                        s.p_in  = r.p_in;
-                                        s.d_in  = r.d_in;
-                                        s.p_out = r.p_out;
-                                        s.d_out = r.d_out;
-                                        s.n_in  = r.n_in;
-                                        s.n_out = r.n_out;
-                                        s.eta   = r.eta;
-                                        s.throughput = r.throughput;
-                                        TrainingSamples.push_back(s);
+                                    if(sigman * coeff_sigman > enoki::norm(r.p_out - r.p_in)){
+                                        if(TrainingSamples.size() < size_train_data_batch && r.n_out[2] >= 0){
+                                            s.p_in  = r.p_in;
+                                            s.d_in  = r.d_in;
+                                            s.p_out = r.p_out;
+                                            s.d_out = r.d_out;
+                                            s.n_in  = r.n_in;
+                                            s.n_out = r.n_out;
+                                            s.eta   = r.eta;
+                                            s.throughput = r.throughput;
+                                            TrainingSamples.push_back(s);
+                                        }
                                     }
+                                    it_done++;
                                     break;
                                 case PathSampleResult::EStatus::EAbsorbed:
                                     n_valid++;
                                     if(it_done < total_spp) n_absorbed++;
+                                    it_done++;
                                     break;
                                 case PathSampleResult::EStatus::EInvalid:
                                     n_invalid++;
+                                    it_done++;
                                     break;
                                 case PathSampleResult::EStatus::EReflect:
                                     n_invalid++;
@@ -481,7 +491,6 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                                 }
                             }
 
-                            it_done++;
                         }
                     }
                 }
@@ -527,13 +536,13 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
         Log(Info, "Result----> valid: %i, absorbed %i, invalid: %i, reflect: %i",
             n_valid, n_absorbed, n_invalid, n_reflect);
 
-        result_to_csv(TrainingSamples, medium_sample);
+        result_to_csv(TrainingSamples, medium_sample, sigman);
     }
 
     return !m_stop;
 }
 
-MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples, const Medium *medium) const{
+MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<TrainingSample> TrainingSamples, const Medium *medium, const Float sigman) const{
     // Setup csv file stream
     std:: string filename = m_output_path;
     Mask init = false;
@@ -585,6 +594,30 @@ MTS_VARIANT void PathSampler<Float, Spectrum>::result_to_csv(const std::vector<T
             << s.n_out[0] << "," << s.n_out[1] << "," << s.n_out[2] << ","
             << s.throughput[0] << "," << s.abs_prob << std::endl;
     }
+}
+
+MTS_VARIANT Float
+PathSampler<Float, Spectrum>::get_sigma_n(const Medium *medium) {
+    // get medium parameters
+    MediumInteraction3f mi = zero<MediumInteraction3f>();
+    std::tuple<Spectrum, Spectrum, Spectrum> m_coef =
+        medium->get_scattering_coefficients(mi);
+    Spectrum &sigmas = std::get<0>(m_coef);
+    Spectrum &sigmat = std::get<2>(m_coef);
+    Spectrum albedo  = sigmas / sigmat;
+    Spectrum sigmaa = sigmat - sigmas;
+
+    auto phase = medium->phase_function();
+    Float g    = phase->get_param();
+
+    Float reduced_albedo = (1 - g) * sigmas[0] / ((1 - g) * sigmas[0] + sigmaa[0]);
+    Float reduced_sigmat = (1 - g) * sigmas[0] + sigmaa[0];
+
+    Float eff_albedo = -std::log(1 - reduced_albedo * (1 - std::exp(-8))) / 8;
+
+    Float MAD = 0.25 * (g + reduced_albedo) + eff_albedo;
+
+    return 2*MAD / reduced_sigmat;
 }
 
 MTS_VARIANT void PathSampler<Float, Spectrum>::sample_thread(const Scene *scene,
