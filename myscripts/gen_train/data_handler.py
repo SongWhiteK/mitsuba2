@@ -1,7 +1,8 @@
 """
 Processing trainingdata
 """
-
+import os
+import shutil
 import glob
 import numpy as np
 import pandas as pd
@@ -17,12 +18,17 @@ class DataHandler:
     """
 
     def __init__(self, config):
-        self.sample_list = glob.glob(f"{config.SAMPLE_DIR}\\*")
+        self.sample_path = config.SAMPLE_DIR
+        self.list_update()
         self.train_image_dir_path = f"{config.IMAGE_DIR}"
         self.map_dir_path = f"{config.MAP_DIR}"
         self.train_sample_dir_path = f"{config.TRAIN_DIR}"
         self.debug = config.DEBUG
         self.tag = config.tag
+
+    def list_update(self):
+        self.sample_list = glob.glob(f"{self.sample_path}\\*")
+        
 
     def generate_train_data(self, offset=0):
         """
@@ -85,6 +91,22 @@ class DataHandler:
         df = df[self.tag]
         df.to_csv(f"{self.train_sample_dir_path}\\train_path.csv",
                   index=False, float_format="%.6g")
+
+
+        
+    def delete_sample_files(self):
+        print(f"Delete sample files in {self.sample_path}? [y/n]")
+        while(True):
+            key_input = input()
+            if(key_input == "y"):
+                shutil.rmtree(self.sample_path)
+                os.mkdir(self.sample_path)
+                break
+            elif(key_input == "n"):
+                break
+            print("Please input valid letter")
+
+            
 
 
 

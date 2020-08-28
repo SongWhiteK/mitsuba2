@@ -22,6 +22,11 @@ config = TrainDataConfiguration()
 
 np.random.seed(seed=config.seed)
 
+d_handler = DataHandler(config)
+
+# Delete Existing smaple file with conforming
+d_handler.delete_sample_files()
+
 # Add the scene directory to the FileResolver's search path
 Thread.thread().file_resolver().append(os.path.dirname(config.XML_PATH))
 
@@ -38,7 +43,6 @@ process_time = time.time() - start
 print("Sampling end (took {} s)".format(process_time))
 
 print("Process with result data")
-d_handler = DataHandler(config)
 d_handler.generate_train_data()
 
 
