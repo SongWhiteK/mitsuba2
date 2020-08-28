@@ -72,7 +72,7 @@ class SceneGenerator:
         # Generate scene object
         if (config.mode is "sample"):
             scene = load_file(self.xml_path,
-                              out_path=self.out_path, spp=self.spp, seed=self.seed,
+                              out_path=self.out_path, coeff_range=config.coeff_range, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta,
                               serialized=self.serialized, mat=self.mat)

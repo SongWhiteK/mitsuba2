@@ -260,7 +260,7 @@ public:
                         const Medium *medium = nullptr,
                         size_t sample_thread = size_t(-1)) const;
 
-    void result_to_csv(const std::vector<TrainingSample> TrainingSamples, const Medium *medium) const;
+    void result_to_csv(const std::vector<TrainingSample> TrainingSamples, const Medium *medium, const Float sigman) const;
 
     void cancel() override;
 
@@ -295,6 +295,10 @@ protected:
     bool m_random_sample;
 
     size_t m_size_train_data_batch;
+
+    int m_coeff_sigman;
+
+    Float get_sigma_n(const Medium *medium);
 
 };
 

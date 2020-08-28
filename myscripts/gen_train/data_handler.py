@@ -57,10 +57,35 @@ class DataHandler:
                 id_data += 1
 
         # refine and output sampled path data
-        df_all["eff_albedo"] = utils.reduced_albedo_to_effective_albedo(utils.get_reduced_albedo(df_all["albedo"], df_all["g"], df_all["sigma_t"]))
-        df_all["height_max"] = df_all["scale_z"]
-        df_all = df_all[self.tag]
-        df_all.to_csv(f"{self.train_sample_dir_path}\\train_path.csv", index=False, float_format="%.6g")
+        self.refine_data(df_all)
+
+
+    def refine_data(self, df):
+        """
+        Refine and Save training data.
+        Refining includes select, add and scale training data
+
+        Args:
+            df: row training data
+        """
+        # Get new params
+        df["eff_albedo"] = utils.reduced_albedo_to_effective_albedo(
+            utils.get_reduced_albedo(df["albedo"], df["g"], df["sigma_t"])
+            )
+        df["height_max"] = df["scale_z"]
+
+        # Scale incident and outgoing position with sigma n
+        df["p_in_x"] = df["p_in_x"] / df["sigma_n"]
+        df["p_in_y"] = df["p_in_y"] / df["sigma_n"]
+        df["p_in_z"] = df["p_in_z"] / df["sigma_n"]
+        df["p_out_x"] = df["p_out_x"] / df["sigma_n"]
+        df["p_out_y"] = df["p_out_y"] / df["sigma_n"]
+        df["p_out_z"] = df["p_out_z"] / df["sigma_n"]
+
+        df = df[self.tag]
+        df.to_csv(f"{self.train_sample_dir_path}\\train_path.csv",
+                  index=False, float_format="%.6g")
+
 
 
 def join_scale_factor(path, scale):
@@ -136,7 +161,7 @@ def gen_train_image(data, height_map, debug):
     # Length of a pixel edge
     px_len = x_range / width_scaled
     # The number of pixels in 6 sigma_n
-    r_px_range = np.ceil(3 * sigma_n / px_len).astype(np.uint32)
+    r_px_range = np.ceil(6 * sigma_n / px_len).astype(np.uint32)
 
     u_c = int((y_max - y_in) * height_scaled / y_range)
     v_c = int((x_in - x_min) * width_scaled / x_range)
@@ -156,7 +181,7 @@ def gen_train_image(data, height_map, debug):
     len_height = height_clip * px_len
     len_width = width_clip * px_len
 
-    scale_map = 255 / (6 * sigma_n / px_len)
+    scale_map = 255 / (12 * sigma_n / px_len)
     map_clip = cv2.resize(map_clip, None, fx=scale_map, fy=scale_map, interpolation=cv2.INTER_AREA)
     height_clip, width_clip = map_clip.shape
 

@@ -3,6 +3,7 @@
 	<integrator id="integrator" type="volsample">
 		<integer name="max_depth" value="128"/>
 		<string name="output_path" value="$out_path"/>
+		<integer name="coeff_sigman" value="$coeff_range"/>
 	</integrator>
 
 	<sensor id="Camera-camera" type="perspective">
