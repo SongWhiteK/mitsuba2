@@ -4,9 +4,9 @@ import pandas as pd
 import torch
 import torch.optim as optim
 import matplotlib.pyplot as plt
-import tensorboardX as tbx
 from torch.utils.data import Dataset, DataLoader
 from torch.optim.lr_scheduler import ExponentialLR
+from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor
 from vae_config import VAEConfiguration
 from PIL import Image
@@ -78,7 +78,7 @@ def train(config, model, device, dataset):
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
     # Writer instanse for logging with TensorboardX
-    writer = tbx.SummaryWriter(config.LOG_DIR)
+    writer = SummaryWriter(config.LOG_DIR)
 
     for epoch in range(1, config.epoch + 1):
         train_epoch(epoch, config, model, device, train_loader, optimizer, writer)
