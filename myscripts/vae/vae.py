@@ -11,7 +11,6 @@ from vae_config import VAEConfiguration
 from torchvision.transforms import ToTensor
 
 
-
 def conv5x5(in_ch, out_ch, stride=1):
     """3x3 convolution"""
     return nn.Conv2d(in_ch, out_ch, 5, stride)
@@ -63,6 +62,25 @@ class VAE(nn.Module):
         self.abs2 = nn.Linear(config.n_dec1, 1)
         self.sigmoid = nn.Sigmoid()
 
+    def feature_conversion(self, im, props):
+        """Conversion from height map and properties to feature vector"""
+
+        ##### Height map conversion #####
+        im_feature = F.relu(F.max_pool2d(self.conv1(im), self.pool))
+        im_feature = F.relu(F.max_pool2d(self.conv2(im_feature), self.pool))
+        im_feature = F.relu(F.max_pool2d(self.drop(self.conv3(im_feature)), self.pool))
+        im_feature = im_feature.view(-1, 512)
+
+        ##### Feature conversion #####
+        feature = F.relu(self.fn1(props))
+        feature = F.relu(self.fn2(feature))
+        
+        feature = torch.cat([feature, im_feature], dim=1)
+
+        return feature
+
+
+
     def encode(self, x):
         """Encoding from outgoing position to average and standard deviation of normal distribution"""
         x = F.relu(self.enc1(x))
@@ -102,30 +120,22 @@ class VAE(nn.Module):
 
 
     def forward(self, props, im, in_pos, out_pos):
+        # position difference between incident and outgoing
         diff_pos = out_pos - in_pos
-        # print(im.shape)
 
-        ##### Height map conversion #####
-        im_feature = F.relu(F.max_pool2d(self.conv1(im), self.pool))
-        im_feature = F.relu(F.max_pool2d(self.conv2(im_feature), self.pool))
-        im_feature = F.relu(F.max_pool2d(self.drop(self.conv3(im_feature)), self.pool))
-        im_feature = im_feature.view(config.loader_args["batch_size"], -1)
 
-        ##### Feature conversion #####
-        feature = F.relu(self.fn1(props))
-        feature = F.relu(self.fn2(feature))
-        # feature = F.relu(self.fn3(feature))
-        # print(feature.shape)
-        # print(im_feature.shape)
 
-        feature = torch.cat([feature, im_feature], dim=1)
+        # Generate feature vector
+        feature = self.feature_conversion(im, props)
 
-        ##### Encoder #####
+        # Encode from position difference to latent variables
         mu, logvar = self.encode(diff_pos)
         z = self.reparameterize(mu, logvar)
 
-        ##### Decoder #####
+        # Decode from latent variables and feature vector to reconstructed position
         recon_pos, recon_abs = self.decode(feature, z)
+
+        # As world coordinates
         recon_pos += in_pos
 
         return recon_pos, recon_abs, mu, logvar
@@ -157,6 +167,9 @@ if __name__ == "__main__":
     device = torch.device("cuda")
     model = VAE(config).to(device)
     dataset = VAEDatasets(config, ToTensor())
+
+    # Visualize network in Tensorboard
+    
 
     train(config, model, device, dataset)
 
