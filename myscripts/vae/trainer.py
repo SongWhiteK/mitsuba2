@@ -10,6 +10,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torchvision.transforms import ToTensor
 from vae_config import VAEConfiguration
 from PIL import Image
+from sklearn.model_selection import train_test_split
 
 class VAEDatasets(Dataset):
     def __init__(self, config, transform=None):
@@ -64,7 +65,10 @@ from vae import loss_function
 def train(config, model, device, dataset):
     torch.manual_seed(config.seed)
 
-    train_loader = DataLoader(dataset, **config.loader_args)
+    train_data, test_data = train_test_split(dataset, test_size=0.2)
+
+    train_loader = DataLoader(train_data, **config.loader_args)
+    test_loader = DataLoader(test_data, **config.loader_args)
 
     init_lr = config.lr
     min_lr = init_lr / 8.0
@@ -74,10 +78,11 @@ def train(config, model, device, dataset):
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
     # Writer instanse for logging with TensorboardX
-    writer = tbx.SummaryWriter()
+    writer = tbx.SummaryWriter(config.LOG_DIR)
 
     for epoch in range(1, config.epoch + 1):
         train_epoch(epoch, config, model, device, train_loader, optimizer, writer)
+        test(epoch, config, model, device, test_loader, writer)
     
     writer.close()
 
@@ -99,8 +104,8 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         optimizer.step()
 
         # Logging with TensorboardX
-        writer.add_scalar("data/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
-        writer.add_scalars("data/loss",
+        writer.add_scalar("train/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
+        writer.add_scalars("train/loss",
                            {
                                "latent": losses["latent"],
                                "position": losses["pos"],
@@ -110,6 +115,38 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
 
         
         print((epoch-1) * len(train_loader) + batch_idx)
+
+def test(epoch, config, model, device, test_loader, writer):
+    model.eval()
+    test_loss_total = 0
+    test_loss_latent = 0
+    test_loss_pos = 0
+    test_loss_abs = 0
+
+    with torch.no_grad():
+        for im, sample in test_loader:
+            props = sample["props"].to(device)
+            in_pos = sample["in_pos"].to(device)
+            out_pos = sample["out_pos"].to(device)
+            abs_prob = sample["abs"].to(device)
+
+            recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
+
+            loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
+
+            test_loss_total += loss_total
+            test_loss_latent += losses["latent"]
+            test_loss_pos += losses["pos"]
+            test_loss_abs += losses["abs"]
+            
+    writer.add_scalar("test/total_loss", loss_total, epoch)
+    writer.add_scalars("test/loss",
+                       {
+                           "latent": losses["latent"],
+                           "position": losses["pos"],
+                           "absorption": losses["abs"]
+                       },
+                       epoch)
 
 
     
