@@ -114,8 +114,6 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
                            (epoch - 1) * len(train_loader) + batch_idx)
 
         
-        print((epoch-1) * len(train_loader) + batch_idx)
-
 def test(epoch, config, model, device, test_loader, writer):
     model.eval()
     test_loss_total = 0
