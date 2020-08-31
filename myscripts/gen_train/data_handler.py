@@ -79,6 +79,7 @@ class DataHandler:
             utils.get_reduced_albedo(df["albedo"], df["g"], df["sigma_t"])
             )
         df["height_max"] = df["scale_z"]
+        df["sigma_n"] = utils.get_sigman(df)
 
         # Scale incident and outgoing position with sigma n
         df["p_in_x"] = df["p_in_x"] / df["sigma_n"]
