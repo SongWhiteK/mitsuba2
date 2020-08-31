@@ -51,10 +51,10 @@ class VAE(nn.Module):
         ##### Scatter Network #####
         # Input: 532x1 (528 + 4) feature vector and random numbers from normal distribution
         # Output: outgoing position (xyz vector)
-        self.sn1 = nn.Linear(532, config.n_dec1)
-        self.sn2 = nn.Linear(config.n_dec1, config.n_dec1)
-        self.sn3 = nn.Linear(config.n_dec1, config.n_dec2)
-        self.sn4 = nn.Linear(config.n_dec2, 3)
+        self.scatter1 = nn.Linear(532, config.n_dec1)
+        self.scatter2 = nn.Linear(config.n_dec1, config.n_dec1)
+        self.scatter3 = nn.Linear(config.n_dec1, config.n_dec2)
+        self.scatter4 = nn.Linear(config.n_dec2, 3)
 
         ##### Absorption Network #####
         # Input: 528x1 feature vector
@@ -108,10 +108,10 @@ class VAE(nn.Module):
         ##### Scatter Network #####
         feature_sc = torch.cat([feature, z], dim=1)
 
-        scatter = F.relu(self.sn1(feature_sc))
-        scatter = F.relu(self.sn2(scatter))
-        scatter = F.relu(self.sn3(scatter))
-        scatter = self.sn4(scatter) # this outputs outgoing position
+        scatter = F.relu(self.scatter1(feature_sc))
+        scatter = F.relu(self.scatter2(scatter))
+        scatter = F.relu(self.scatter3(scatter))
+        scatter = self.scatter4(scatter) # this outputs outgoing position
 
         ##### Absorption Network #####
         absorption = F.relu(self.abs1(feature))
@@ -178,9 +178,6 @@ if __name__ == "__main__":
     props = torch.randn([1, 7]).to(device)
     in_pos = torch.randn([1, 3]).to(device)
     out_pos = torch.randn([1, 3]).to(device)
-    print(props)
-    print(in_pos)
-    print(out_pos)
 
     writer.add_graph(model, (props, im, in_pos, out_pos))
     writer.close()
