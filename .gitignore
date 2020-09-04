@@ -108,3 +108,5 @@ myscripts/train_data/sample_files/
 myscripts/train_data/train_paths/
 
 myscripts/log/
+
+myscripts/render/cbox/
