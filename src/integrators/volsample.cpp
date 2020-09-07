@@ -98,7 +98,7 @@ public:
 
                 // Check the ray is valid. If somehow the ray intersects from inside, resampling
                 SurfaceInteraction3f si_test = scene->ray_intersect(ray);
-                if(dot(si_test.n, si_test.wi) < 0){
+                if(any_or<true>(dot(si_test.n, si_test.wi) < 0)){
                     Log(Info, "This sampled position and direction are invalid");
                 }else{
                     break;
@@ -177,7 +177,7 @@ public:
 
             Mask exceeded_max_depth = depth >= (uint32_t) m_max_depth;
             if (none(active) || all(exceeded_max_depth)){
-                if(record){
+                if(any_or<true>(record)){
                     r.status = PathSampleResult::EStatus::EAbsorbed;
                 }
                 break;
@@ -334,7 +334,7 @@ public:
             active &= (active_surface | active_medium);
 
             // When the ray escapes from medium once, tracing ends.
-            active = select(!record, false, true);
+            active = record;
         }
         if(r.status == PathSampleResult::EStatus::EValid){
             r.p_in = pos_in;
