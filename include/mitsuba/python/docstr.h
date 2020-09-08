@@ -420,6 +420,8 @@ static const char *__doc_mitsuba_BSDFFlags_Transmission =
 R"doc(Any transmission component (scattering into discrete, 1D, or 2D set of
 directions))doc";
 
+static const char *__doc_mitsuba_BSDFFlags_BSSRDF = R"doc(Flag BSSRDF)doc";
+
 static const char *__doc_mitsuba_BSDFSample3 = R"doc(Data structure holding the result of BSDF sampling operations.)doc";
 
 static const char *__doc_mitsuba_BSDFSample3_BSDFSample3 =

@@ -92,6 +92,9 @@ enum class BSDFFlags : uint32_t {
     /// Does the implementation require access to texture-space differentials
     NeedsDifferentials   = 0x20000,
 
+    /// Flags BSSRDF
+    BSSRDF               = 0x40000,
+
     // =============================================================
     //!                 Compound lobe attributes
     // =============================================================

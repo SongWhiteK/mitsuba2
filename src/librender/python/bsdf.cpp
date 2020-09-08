@@ -30,6 +30,7 @@ MTS_PY_EXPORT(BSDFContext) {
         .def_value(BSDFFlags, Delta)
         .def_value(BSDFFlags, Delta1D)
         .def_value(BSDFFlags, All)
+        .def_value(BSDFFlags, BSSRDF)
         .def(py::self == py::self)
         .def(py::self | py::self)
         .def(int() | py::self)

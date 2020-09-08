@@ -109,6 +109,10 @@ std::string type_mask_to_string(Index type_mask) {
         oss << "non_symmetric ";
         type_mask = type_mask & ~BSDFFlags::NonSymmetric;
     }
+    if (is_set(BSDFFlags::BSSRDF)) {
+        oss << "BSSRDF ";
+        type_mask = type_mask & ~BSDFFlags::BSSRDF;
+    }
 #undef is_set
 
     Assert(type_mask == 0);
