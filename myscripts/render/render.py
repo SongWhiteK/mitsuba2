@@ -1,5 +1,4 @@
 import os
-import numpy
 import mitsuba
 import enoki as ek
 import integrate
@@ -23,7 +22,7 @@ Thread.thread().file_resolver().append(os.path.dirname(scenepath))
 scene = load_file(scenepath)
 
 # Rendering settings
-spp = 32
-sample_per_pass = 32
+spp = 64
+sample_per_pass = 64
 
 integrate.render(scene, spp, sample_per_pass)

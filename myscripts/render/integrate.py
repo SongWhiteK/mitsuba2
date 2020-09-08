@@ -1,16 +1,18 @@
 import sys
-import numpy
+import numpy as np
 import enoki as ek
 import render_config as config
 import mitsuba
 
 mitsuba.set_variant(config.variant)
 
-from mitsuba.core import Spectrum, Float, UInt32, UInt64, Vector2f, Vector3f
+from mitsuba.core import (Spectrum, Float, UInt32, UInt64, Vector2f, Vector3f,
+                          Color3f, RayDifferential3f, srgb_to_xyz)
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file
 from mitsuba.render import ImageBlock
-from mitsuba.render import (Emitter, BSDF, BSDFContext, BSDFFlags, has_flag)
+from mitsuba.render import (Emitter, BSDF, BSDFContext, BSDFFlags, has_flag,
+                            DirectionSample3f)
 
 
 def mis_weight(pdf_a, pdf_b):
@@ -39,6 +41,13 @@ def render(scene, spp, sample_per_pass):
     film = sensor.film()
     sampler = sensor.sampler()
     film_size = film.crop_size()
+    block = ImageBlock(
+            film.crop_size(),
+            channel_count=5,
+            filter=film.reconstruction_filter(),
+            border=False
+    )
+    block.clear()
 
     result = 0
 
@@ -71,7 +80,21 @@ def render(scene, spp, sample_per_pass):
             sample3=0
         )
 
-        result += render_sample(scene, sampler, rays)
+        result, valid_rays = render_sample(scene, sampler, rays)
+        result = weights * result
+        xyz = Color3f(srgb_to_xyz(result))
+        aovs = [xyz[0], xyz[1], xyz[2],
+                ek.select(valid_rays, Float(1.0), Float(0.0)),
+                1.0]
+
+        block.put(pos, aovs)
+        sampler.advance()
+
+    xyzaw_np = np.array(block.data()).reshape([film_size[1], film_size[0], 5])
+
+    bmp = Bitmap(xyzaw_np, Bitmap.PixelFormat.XYZAW)
+    bmp = bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.Float32, srgb_gamma=False)
+    bmp.write('result.exr')
 
 
 def render_sample(scene, sampler, rays):
@@ -89,11 +112,11 @@ def render_sample(scene, sampler, rays):
     eta = Float(1.0)
     emission_weight = Float(1.0)
     throughput = Spectrum(1.0)
-    result = Spectrum(1.0)
+    result = Spectrum(0.0)
     active = True
 
     ##### First interaction #####
-    si = scene.rai_intersect(rays, active)
+    si = scene.ray_intersect(rays, active)
     active = si.is_valid() & active
     valid_rays = si.is_valid()
 
@@ -105,9 +128,9 @@ def render_sample(scene, sampler, rays):
         depth += 1
 
         ###### Interaction with emitters #####
-        result = ek.select(active,
-                emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
-                Vector3f(0.0))
+        result += ek.select(active,
+                           emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
+                           Vector3f(0.0))
 
         active = active & si.is_valid()
 
@@ -127,10 +150,9 @@ def render_sample(scene, sampler, rays):
         bsdf = si.bsdf(rays)
         ctx = BSDFContext()
 
-        active_e = active & has_flag(BSDF.flags_vec(bsdf), BSRDFFlags.Smooth)
-        ds, emitter_val = scene.sample_emitter_direction(
-            si, sampler.next_2d(active_e), True, active_e
-        )
+        active_e = active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.Smooth)
+        ds, emitter_val = scene.sample_emitter_direction(si, sampler.next_2d(active_e),
+                                                         True, active_e)
         active_e &= ek.neq(ds.pdf, 0.0)
 
         # Query the BSDF for that emitter-sampled direction
@@ -141,7 +163,32 @@ def render_sample(scene, sampler, rays):
 
         mis = ek.select(ds.delta, Float(1), mis_weight(ds.pdf, bsdf_pdf))
         result += ek.select(active_e,
-                    mis * throughput * bsdf_val * emitter_val,
-                    Vector3f(0.0))
+                            mis * throughput * bsdf_val * emitter_val,
+                            Vector3f(0.0))
+
+        ##### BSDF sampling #####
+        bs, bsdf_val = BSDF.sample_vec(bsdf, ctx, si, sampler.next_1d(active),
+                                       sampler.next_2d(active), active)
+        throughput = throughput * bsdf_val
+        active &= ek.any(ek.neq(throughput, 0))
+
+        eta *= bs.eta
+
+        # Intersect the BSDF ray against the scene geometry
+        rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
+        si_bsdf = scene.ray_intersect(rays, active)
+
+        # Determine probability of having sampled that same
+        # direction using emitter sampling
+        emitter = si_bsdf.emitter(scene, active)
+        ds = DirectionSample3f(si_bsdf, si)
+        ds.object = emitter
+
+        delta = has_flag(bs.sampled_type, BSDFFlags.Delta)
+        emitter_pdf = ek.select(delta, Float(0.0),
+                                scene.pdf_emitter_direction(si, ds, active))
+        emission_weight = mis_weight(bs.pdf, emitter_pdf)
+
+        si = si_bsdf
 
     return result, valid_rays
