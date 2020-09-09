@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.tensorboard import SummaryWriter
+from torchvision import models
 from torchvision.transforms import ToTensor
 from vae_config import VAEConfiguration
 from PIL import Image
@@ -65,26 +66,31 @@ from vae import loss_function
 def train(config, model, device, dataset):
     torch.manual_seed(config.seed)
 
+    # Input model name at this training
+    model_name = input("Input model neme at this training")
+    model_path = config.MODEL_DIR + "\\" + model_name
+
     train_data, test_data = train_test_split(dataset, test_size=0.2)
 
     train_loader = DataLoader(train_data, **config.loader_args)
     test_loader = DataLoader(test_data, **config.loader_args)
 
     init_lr = config.lr
-    min_lr = init_lr / 8.0
     decay_rate = 0.8
     optimizer = optim.Adam(model.parameters(), lr=init_lr)
 
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
     # Writer instanse for logging with TensorboardX
-    writer = SummaryWriter(config.LOG_DIR)
+    writer = SummaryWriter(config.LOG_DIR + "\\" + model_name)
 
     for epoch in range(1, config.epoch + 1):
-        train_epoch(epoch, config, model, device, train_loader, optimizer, writer)
+        train_epoch(epoch, config, model, device,
+                    train_loader, optimizer, writer)
         test(epoch, config, model, device, test_loader, writer)
-    
+
     writer.close()
+    torch.save(model.state_dict(), model_path)
 
 
 def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
@@ -113,7 +119,7 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
                            },
                            (epoch - 1) * len(train_loader) + batch_idx)
 
-        
+
 def test(epoch, config, model, device, test_loader, writer):
     model.eval()
     test_loss_total = 0
@@ -136,7 +142,7 @@ def test(epoch, config, model, device, test_loader, writer):
             test_loss_latent += losses["latent"]
             test_loss_pos += losses["pos"]
             test_loss_abs += losses["abs"]
-            
+
     writer.add_scalar("test/total_loss", loss_total, epoch)
     writer.add_scalars("test/loss",
                        {
@@ -145,14 +151,6 @@ def test(epoch, config, model, device, test_loader, writer):
                            "absorption": losses["abs"]
                        },
                        epoch)
-
-
-    
-
-
-        
-        
-        
 
 
 if __name__ == "__main__":

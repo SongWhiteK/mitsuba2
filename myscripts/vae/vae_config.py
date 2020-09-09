@@ -33,6 +33,7 @@ class VAEConfiguration:
         self.lr = 2*1e-4
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
+        self.MODEL_DIR = "C:\\User\\mineg\\mitsuba2\\myscripts\\vae\\model"
 
         
 
