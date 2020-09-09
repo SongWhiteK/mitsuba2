@@ -33,7 +33,7 @@ template <typename Float, typename Spectrum>
 class BSSRDF final : public BSDF<Float, Spectrum> {
 public:
     MTS_IMPORT_BASE(BSDF, m_flags, m_components)
-    MTS_IMPORT_TYPES(Texture)
+    MTS_IMPORT_TYPES(Texture, Volume)
 
     BSSRDF(const Properties &props) : Base(props) {
 
@@ -48,6 +48,14 @@ public:
                   " be positive!");
 
         m_eta = int_ior / ext_ior;
+
+        m_albedo = props.volume<Volume>("albedo", 0.75f);
+        m_sigmat = props.volume<Volume>("sigma_t", 1.f);
+        m_scale = props.float_("scale", 1.0f);
+
+        m_g = props.float_("g", 0.8f);
+        if (m_g >= 1 || m_g <= -1)
+            Log(Error, "The asymmetry parameter must lie in the interval (-1, 1)!");
 
         if (props.has_property("specular_reflectance"))
             m_specular_reflectance   = props.texture<Texture>("specular_reflectance", 1.f);
@@ -215,6 +223,9 @@ private:
     ScalarFloat m_eta;
     ref<Texture> m_specular_reflectance;
     ref<Texture> m_specular_transmittance;
+    ref<Volume> m_sigmat, m_albedo;
+    Float m_scale;
+    ScalarFloat m_g;
 };
 
 MTS_IMPLEMENT_CLASS_VARIANT(BSSRDF, BSDF)
