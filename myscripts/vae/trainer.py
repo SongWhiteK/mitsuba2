@@ -88,6 +88,7 @@ def train(config, model, device, dataset):
         train_epoch(epoch, config, model, device,
                     train_loader, optimizer, writer)
         test(epoch, config, model, device, test_loader, writer)
+        scheduler.step()
 
     writer.close()
     torch.save(model.state_dict(), model_path)
