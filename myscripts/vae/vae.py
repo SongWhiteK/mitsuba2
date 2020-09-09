@@ -146,18 +146,18 @@ def loss_function(recon_pos, ref_pos, recon_abs, ref_abs, mu, logvar, config):
     loss_latent = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
     # Outgoing position loss
-    loss_position = config.loss_weight_pos * F.smooth_l1_loss(recon_pos, ref_pos, reduction="sum")
+    loss_position = F.smooth_l1_loss(recon_pos, ref_pos, reduction="sum")
 
     # Absorption loss
 
-    loss_absorption = config.loss_weight_abs * F.mse_loss(recon_abs, ref_abs, reduction="sum")
+    loss_absorption = F.mse_loss(recon_abs, ref_abs, reduction="sum")
 
     losses = {}
     losses["latent"] = loss_latent
     losses["pos"] = loss_position
     losses["abs"] = loss_absorption
 
-    return loss_latent + loss_position + loss_absorption, losses
+    return loss_latent + config.loss_weight_pos * loss_position + config.loss_weight_abs * loss_absorption, losses
 
 
 
