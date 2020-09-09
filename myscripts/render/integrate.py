@@ -127,10 +127,10 @@ def render_sample(scene, sampler, rays):
     while(True):
         depth += 1
 
-        ###### Interaction with emitters #####
+        ##### Interaction with emitters #####
         result += ek.select(active,
-                           emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
-                           Vector3f(0.0))
+                            emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
+                            Vector3f(0.0))
 
         active = active & si.is_valid()
 
@@ -177,8 +177,10 @@ def render_sample(scene, sampler, rays):
         # Whether the BSDF is BSSRDF or not? 
         is_bssrdf = active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
 
+        # Process for BSSRDF
         if(ek.any(is_bssrdf & (Frame3f.cos_theta(bs.wo) < Float(0.0)))):
             print("Process for BSSRDF: {}".format(depth))
+
         # Intersect the BSDF ray against the scene geometry
         rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
         si_bsdf = scene.ray_intersect(rays, active)

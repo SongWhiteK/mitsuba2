@@ -20,8 +20,8 @@ Thread.thread().file_resolver().append(os.path.dirname(scenepath))
 scene = load_file(scenepath)
 
 # Rendering settings
-spp = 2048
-sample_per_pass = 64
+spp = 64
+sample_per_pass = 32
 
 print("Rendering start")
 
