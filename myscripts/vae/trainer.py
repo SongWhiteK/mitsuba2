@@ -16,16 +16,10 @@ from sklearn.model_selection import train_test_split
 class VAEDatasets(Dataset):
     def __init__(self, config, transform=None):
         self.data = pd.read_csv(config.SAMPLE_PATH)
-        self.im_list = glob.glob(f"{config.MAP_DIR}\\*")
+        self.im_dir = config.MAP_DIR
         self.transform = transform
 
     def __getitem__(self, index):
-        # Get processed height map from index (~= id)
-        path = self.im_list[index]
-        im = Image.open(path)
-
-        if self.transform is not None:
-            im = self.transform(im)
 
         # Get csv data
         data = self.data.iloc[index]
@@ -48,6 +42,18 @@ class VAEDatasets(Dataset):
         abs_prob = abs_prob.astype(np.float32)
         abs_prob = torch.tensor(abs_prob)
 
+        sample_id = int(data["id"])
+        model_id = int(data["model_id"])
+
+        # Get processed height map from index (~= id)
+        num_subdir = (sample_id // 10000) * 10000
+        path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
+        print(path)
+        im = Image.open(path)
+
+        if self.transform is not None:
+            im = self.transform(im)
+        
 
         sample = {}
         sample["props"] = props
@@ -162,14 +168,15 @@ if __name__ == "__main__":
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
     i = 0
 
-    for im_batch, props_batch in dataloader:
+    for im_batch, sample_batch in dataloader:
         if (i % 5 == 0):
-            material_batch = props_batch["material"]
-            pos_batch = props_batch["pos"]
-            abs_batch = props_batch["abs"]
-            print(im_batch.shape, material_batch.shape, pos_batch.shape, abs_batch.shape)
-            print(material_batch)
-            print(pos_batch)
+            props_batch = sample_batch["props"]
+            in_pos_batch = sample_batch["in_pos"]
+            out_pos_batch = sample_batch["out_pos"]
+            abs_batch = sample_batch["abs"]
+            print(im_batch.shape, props_batch.shape, in_pos_batch.shape, out_pos_batch.shape, abs_batch.shape)
+            print(props_batch)
+            print(in_pos_batch)
 
             im = im_batch.numpy()
             im = np.transpose(im[0],[1,2,0])[:,:,0]
