@@ -4,6 +4,7 @@ Processing trainingdata
 import os
 import shutil
 import glob
+import datetime
 import numpy as np
 import pandas as pd
 import cv2
@@ -41,26 +42,52 @@ class DataHandler:
         height_map_list = glob.glob(f"{self.map_dir_path}\\height_map*.png")
         df_all = pd.DataFrame()
 
+        print(f"Delete sample files in {self.train_image_dir_path}? [y/n]")
+        key_input = None
+        while(True):
+            key_input = input()
+            if(key_input == "y"):
+                shutil.rmtree(self.train_image_dir_path)
+                os.mkdir(self.train_image_dir_path)
+                break
+            elif(key_input == "n"):
+                break
+            print("Please input valid letter")
+        
         # Process with given csv files
         for i, file_name in enumerate(self.sample_list):
             # get id number and map number
             data = pd.read_csv(file_name)
             data["id"] = data.index + id_data + offset
+            df_model_id = pd.DataFrame(np.ones([len(data), 1]) * i, columns=["model_id"])
+            data["model_id"] = df_model_id["model_id"]
 
             # join train data into one file
             df_all = df_all.append(data)
 
             # Get entire height map for a training data
-            
             height_map = cv2.imread(height_map_list[i], cv2.IMREAD_GRAYSCALE)
+
+            # Make training images directory for each height map
+            if(key_input == "y"):
+                os.mkdir(f"{self.train_image_dir_path}\\map_{i:03}")
+
+            file_path = None
         
-            # Process with each training data 
+            # Process with each training data
             for row in data.itertuples():
+                if(row.id % 10000 == 0):
+                    file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
+                    os.mkdir(file_path)
+
                 image = gen_train_image(row, height_map, self.debug)
 
                 # Save height map image with id
-                cv2.imwrite(f"{self.train_image_dir_path}\\train_image{row.id:06}.png", image)
+                cv2.imwrite(f"{file_path}\\train_image{row.id:08}.png", image)
                 id_data += 1
+
+                if(row.id % 1000 == 0):
+                    print(f"{datetime.datetime.now()} -- Log: Processed {row.id}")
 
         # refine and output sampled path data
         self.refine_data(df_all)

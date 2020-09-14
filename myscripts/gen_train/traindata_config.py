@@ -46,7 +46,8 @@ class TrainDataConfiguration:
 
         ############## TAIN DATA TAG ##############
         self.tag = ["eff_albedo", "albedo", "g", "eta", "p_in_x", "p_in_y", "p_in_z",
-                    "p_out_x", "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z", "abs_prob", "height_max"]
+                    "p_out_x", "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z",
+                    "abs_prob", "height_max", "model_id", "id"]
         self.coeff_range = 6
 
 
