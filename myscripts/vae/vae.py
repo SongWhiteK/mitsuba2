@@ -167,7 +167,7 @@ if __name__ == "__main__":
     config = VAEConfiguration()
     device = torch.device("cuda")
     model = VAE(config).to(device)
-    dataset = VAEDatasets(config)
+    dataset = VAEDatasets(config, ToTensor())
 
     # Visualize network in Tensorboard
     model.eval()

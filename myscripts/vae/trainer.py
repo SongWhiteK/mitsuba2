@@ -2,6 +2,7 @@ import glob
 import datetime
 import numpy as np
 import pandas as pd
+import cv2
 import torch
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -15,9 +16,10 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 
 class VAEDatasets(Dataset):
-    def __init__(self, config):
+    def __init__(self, config, transform=None):
         self.data = pd.read_csv(config.SAMPLE_PATH)
         self.im_dir = config.MAP_DIR
+        self.transform = transform
 
     def __getitem__(self, index):
 
@@ -73,7 +75,7 @@ def train(config, model, device, dataset):
 
     # Input model name at this training
     model_name = input("Input model neme at this training")
-    model_path = config.MODEL_DIR + "\\" + model_name
+    model_path = f"myscripts/vae/model/{model_name}.pt"
 
     train_data, test_data = train_test_split(dataset, test_size=0.2)
 
@@ -102,7 +104,6 @@ def train(config, model, device, dataset):
 
 def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
     model.train()
-    transform = ToTensor()
 
     for batch_idx, (im_path, sample) in enumerate(train_loader):
         props = sample["props"].to(device)
@@ -110,9 +111,9 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         out_pos = sample["out_pos"].to(device)
         abs_prob = sample["abs"].to(device)
 
-        print(len(im_path))
-
         im = image_generate(im_path)
+
+        print(im.shape)
         
         optimizer.zero_grad()
         recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
@@ -145,11 +146,13 @@ def test(epoch, config, model, device, test_loader, writer):
     test_loss_abs = 0
 
     with torch.no_grad():
-        for im, sample in test_loader:
+        for im_path, sample in test_loader:
             props = sample["props"].to(device)
             in_pos = sample["in_pos"].to(device)
             out_pos = sample["out_pos"].to(device)
             abs_prob = sample["abs"].to(device)
+
+            im = image_generate(im_path)
 
             recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
 
@@ -172,6 +175,16 @@ def test(epoch, config, model, device, test_loader, writer):
 
 def image_generate(im_path):
     batch_size = len(im_path)
+
+    im = np.zeros([batch_size, 1, 255, 255])
+
+    for i, path in enumerate(im_path):
+        im[i, 0, :, :] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+
+    im = im.astype(np.float32)
+    im_tensor = torch.from_numpy(im).clone()
+
+    return im_tensor
 
 
 if __name__ == "__main__":
