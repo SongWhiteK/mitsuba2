@@ -20,8 +20,8 @@ class VAEConfiguration:
         self.n_dec1 = 256
         self.n_dec2 = 64
 
-        self.loss_weight_pos = 100
-        self.loss_weight_abs = 5000
+        self.loss_weight_pos = 1
+        self.loss_weight_abs = 1
 
         ##### Trainer #####
         self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
@@ -29,7 +29,7 @@ class VAEConfiguration:
 
         self.seed = 1
         self.epoch = 10
-        self.loader_args = {"batch_size": 32, "shuffle": False}
+        self.loader_args = {"batch_size": 32, "shuffle": True}
         self.lr = 2*1e-4
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"

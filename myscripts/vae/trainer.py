@@ -1,4 +1,5 @@
 import glob
+import datetime
 import numpy as np
 import pandas as pd
 import torch
@@ -48,7 +49,6 @@ class VAEDatasets(Dataset):
         # Get processed height map from index (~= id)
         num_subdir = (sample_id // 10000) * 10000
         path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
-        print(path)
         im = Image.open(path)
 
         if self.transform is not None:
@@ -91,6 +91,7 @@ def train(config, model, device, dataset):
     writer = SummaryWriter(config.LOG_DIR + "\\" + model_name)
 
     for epoch in range(1, config.epoch + 1):
+        print(f"epoch {epoch} start")
         train_epoch(epoch, config, model, device,
                     train_loader, optimizer, writer)
         test(epoch, config, model, device, test_loader, writer)
@@ -115,6 +116,11 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
 
         loss_total.backward()
         optimizer.step()
+
+        if(batch_idx % 5000 == 0):
+            day_time = datetime.datetime.now()
+            n_data = batch_idx * config.loader_args["batch_size"]
+            print(f"{day_time} -- Log: epoch-{epoch}, data-{n_data} / 2000000")
 
         # Logging with TensorboardX
         writer.add_scalar("train/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
