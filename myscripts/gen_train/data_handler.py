@@ -219,9 +219,9 @@ def gen_train_image(data, height_map, debug):
 
     # Clip map_full_scaled in 255*255 from incident position
     distance_u_n = np.min([r_px_range, u_c])              # distance of u for negative direction
-    distance_u_p = np.min([r_px_range, height_scaled - u_c - 1]) # distance of u for positive direction
+    distance_u_p = np.max([np.min([r_px_range, height_scaled - u_c - 1]), 0]) # distance of u for positive direction
     distance_v_n = np.min([r_px_range, v_c])              # distance of v for negative direction
-    distance_v_p = np.min([r_px_range, width_scaled - v_c - 1])  # distance of v for positive direction
+    distance_v_p = np.max([np.min([r_px_range, width_scaled - v_c - 1]), 0])  # distance of v for positive direction
 
     u_range = [u_c - distance_u_n, u_c + distance_u_p + 1]
     v_range = [v_c - distance_v_n, v_c + distance_v_p + 1]
@@ -241,16 +241,15 @@ def gen_train_image(data, height_map, debug):
     r_px = 127
 
     distance_u_n = np.min([r_px, u_c])              
-    distance_u_p = np.min([r_px, height_clip - u_c - 1]) 
+    distance_u_p = np.max([np.min([r_px, height_clip - u_c - 1]), 0])
     distance_v_n = np.min([r_px, v_c])
-    distance_v_p = np.min([r_px, width_clip - v_c - 1])
+    distance_v_p = np.max([np.min([r_px, width_clip - v_c - 1]), 0])
     
 
     # Paste map_clip to a canvas ranging 255*255 [px]
     canvas = np.ones([2 * r_px + 1, 2 * r_px + 1], dtype="uint8") * 31
     canvas_c = r_px + 1
     canvas_size = 2 * r_px + 1
-
 
     canvas[r_px-distance_u_n:r_px+distance_u_p, r_px-distance_v_n:r_px+distance_v_p] = map_clip[u_c-distance_u_n:u_c+distance_u_p, v_c-distance_v_n:v_c+distance_v_p]
 
