@@ -76,7 +76,7 @@ class DataHandler:
         
             # Process with each training data
             for row in data.itertuples():
-                if(row.id % 10000 == 0):
+                if(row.id % 100 == 0):
                     file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
                     os.mkdir(file_path)
 

@@ -15,10 +15,9 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 
 class VAEDatasets(Dataset):
-    def __init__(self, config, transform=None):
+    def __init__(self, config):
         self.data = pd.read_csv(config.SAMPLE_PATH)
         self.im_dir = config.MAP_DIR
-        self.transform = transform
 
     def __getitem__(self, index):
 
@@ -47,12 +46,12 @@ class VAEDatasets(Dataset):
         model_id = int(data["model_id"])
 
         # Get processed height map from index (~= id)
-        num_subdir = (sample_id // 10000) * 10000
-        path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
-        im = Image.open(path)
+        num_subdir = (sample_id // 100) * 100
+        im_path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
+        # im = Image.open(path)
 
-        if self.transform is not None:
-            im = self.transform(im)
+        # if self.transform is not None:
+        #     im = self.transform(im)
         
 
         sample = {}
@@ -61,7 +60,7 @@ class VAEDatasets(Dataset):
         sample["out_pos"] = out_pos
         sample["abs"] = abs_prob
 
-        return im, sample
+        return im_path, sample
 
     def __len__(self):
         return len(self.data)
@@ -103,13 +102,18 @@ def train(config, model, device, dataset):
 
 def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
     model.train()
+    transform = ToTensor()
 
-    for batch_idx, (im, sample) in enumerate(train_loader):
+    for batch_idx, (im_path, sample) in enumerate(train_loader):
         props = sample["props"].to(device)
         in_pos = sample["in_pos"].to(device)
         out_pos = sample["out_pos"].to(device)
         abs_prob = sample["abs"].to(device)
 
+        print(len(im_path))
+
+        im = image_generate(im_path)
+        
         optimizer.zero_grad()
         recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
         loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
@@ -164,6 +168,10 @@ def test(epoch, config, model, device, test_loader, writer):
                            "absorption": losses["abs"]
                        },
                        epoch)
+
+
+def image_generate(im_path):
+    batch_size = len(im_path)
 
 
 if __name__ == "__main__":
