@@ -72,6 +72,7 @@ from vae import loss_function
 
 def train(config, model, device, dataset):
     torch.manual_seed(config.seed)
+    print("Training Start")
 
     # Input model name at this training
     model_name = input("Input model neme at this training")
@@ -89,7 +90,7 @@ def train(config, model, device, dataset):
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
     # Writer instanse for logging with TensorboardX
-    writer = SummaryWriter(config.LOG_DIR + "\\" + model_name)
+    writer = SummaryWriter(f"{config.LOG_DIR}_{model_name}")
 
     for epoch in range(1, config.epoch + 1):
         print(f"epoch {epoch} start")
@@ -112,8 +113,6 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         abs_prob = sample["abs"].to(device)
 
         im = image_generate(im_path)
-
-        print(im.shape)
         
         optimizer.zero_grad()
         recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
@@ -125,7 +124,7 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         if(batch_idx % 5000 == 0):
             day_time = datetime.datetime.now()
             n_data = batch_idx * config.loader_args["batch_size"]
-            print(f"{day_time} -- Log: epoch-{epoch}, data-{n_data} / 2000000")
+            print(f"{day_time} -- Log: data {n_data} / {2000000 * 0.8}")
 
         # Logging with TensorboardX
         writer.add_scalar("train/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
@@ -139,11 +138,14 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
 
 
 def test(epoch, config, model, device, test_loader, writer):
+    print("Test Start")
     model.eval()
     test_loss_total = 0
     test_loss_latent = 0
     test_loss_pos = 0
     test_loss_abs = 0
+
+    im_show = True
 
     with torch.no_grad():
         for im_path, sample in test_loader:
@@ -151,6 +153,7 @@ def test(epoch, config, model, device, test_loader, writer):
             in_pos = sample["in_pos"].to(device)
             out_pos = sample["out_pos"].to(device)
             abs_prob = sample["abs"].to(device)
+
 
             im = image_generate(im_path)
 
@@ -162,6 +165,13 @@ def test(epoch, config, model, device, test_loader, writer):
             test_loss_latent += losses["latent"]
             test_loss_pos += losses["pos"]
             test_loss_abs += losses["abs"]
+
+            if(im_show):
+                print("recon pos: " + str(recon_pos[0:10, :]))
+                print("ref pos: " + str(out_pos[0:10, :]))
+                print("recon_abs: " + str(recon_abs[0:10]))
+                print("ref_abs: " + str(abs_prob[0:10]))
+                imshow = False
 
     writer.add_scalar("test/total_loss", loss_total, epoch)
     writer.add_scalars("test/loss",
