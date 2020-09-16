@@ -1,8 +1,8 @@
 import glob
 import datetime
+import time
 import numpy as np
 import pandas as pd
-import cv2
 import torch
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -189,7 +189,7 @@ def image_generate(im_path):
     im = np.zeros([batch_size, 1, 255, 255])
 
     for i, path in enumerate(im_path):
-        im[i, 0, :, :] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        im[i, 0, :, :] = Image.open(path)
 
     im = im.astype(np.float32)
     im_tensor = torch.from_numpy(im).clone()
