@@ -24,12 +24,13 @@ class VAEConfiguration:
         self.loss_weight_abs = 1
 
         ##### Trainer #####
-        self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_mini\\train_path.csv"
-        self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
+        self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
+        self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
 
         self.seed = 1
-        self.epoch = 10
-        self.loader_args = {"batch_size": 32, "shuffle": True}
+        self.epoch = 20
+        self.loader_args = {"batch_size": 512, "shuffle": True,
+                            "num_workers": 0, "pin_memory": False}
         self.lr = 2*1e-4
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
