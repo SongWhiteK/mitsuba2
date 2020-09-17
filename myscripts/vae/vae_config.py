@@ -29,8 +29,7 @@ class VAEConfiguration:
 
         self.seed = 1
         self.epoch = 20
-        self.loader_args = {"batch_size": 512, "shuffle": True,
-                            "num_workers": 0, "pin_memory": False}
+        self.loader_args = {"batch_size": 256, "shuffle": True}
         self.lr = 2*1e-4
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"

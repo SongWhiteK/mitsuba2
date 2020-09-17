@@ -1,6 +1,7 @@
 """
 NN module for VAE
 """
+from datetime import datetime
 import time
 import sys
 import numpy as np
@@ -8,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.data.dataset import Dataset
 from vae_config import VAEConfiguration
 from torchvision.transforms import ToTensor
 from torch.utils.tensorboard import SummaryWriter
@@ -169,7 +171,10 @@ if __name__ == "__main__":
 
     config = VAEConfiguration()
     device = torch.device("cuda")
+    print(f"{datetime.now()} -- Model generation")
     model = VAE(config).to(device)
+    
+    print(f"{datetime.now()} -- Dataset generation")
     dataset = VAEDatasets(config, ToTensor())
 
     # Visualize network in Tensorboard

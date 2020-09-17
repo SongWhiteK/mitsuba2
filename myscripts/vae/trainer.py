@@ -48,13 +48,8 @@ class VAEDatasets(Dataset):
         model_id = int(data["model_id"])
 
         # Get processed height map from index (~= id)
-        num_subdir = (sample_id // 100) * 100
+        num_subdir = (sample_id // 10000) * 10000
         im_path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
-        # im = Image.open(path)
-
-        # if self.transform is not None:
-        #     im = self.transform(im)
-        
 
         sample = {}
         sample["props"] = props
@@ -72,13 +67,15 @@ from vae import loss_function
 
 def train(config, model, device, dataset):
     torch.manual_seed(config.seed)
-    print("Training Start")
+    print(f"{datetime.datetime.now()} -- Training Start")
 
     # Input model name at this training
-    model_name = input("Input model neme at this training")
+    model_name = input("Input model neme at this training: ")
     model_path = f"myscripts/vae/model/{model_name}.pt"
 
+    print(f"{datetime.datetime.now()} -- Data split start")
     train_data, test_data = train_test_split(dataset, test_size=0.2)
+    print(f"{datetime.datetime.now()} -- Data split end")
 
     train_loader = DataLoader(train_data, **config.loader_args)
     test_loader = DataLoader(test_data, **config.loader_args)
@@ -121,7 +118,7 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         loss_total.backward()
         optimizer.step()
 
-        if(batch_idx % 5000 == 0):
+        if(batch_idx % 750 == 0):
             day_time = datetime.datetime.now()
             n_data = batch_idx * config.loader_args["batch_size"]
             print(f"{day_time} -- Log: data {n_data} / {2000000 * 0.8}")
@@ -135,10 +132,19 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
                                "absorption": losses["abs"]
                            },
                            (epoch - 1) * len(train_loader) + batch_idx)
+        writer.add_scalars("train/loss_average",
+                           {
+                               "latent": (losses["latent"] / config.loader_args["batch_size"]),
+                               "position": (losses["pos"] / config.loader_args["batch_size"]),
+                               "absorption": (losses["abs"] / config.loader_args["batch_size"])
+                           },
+                           (epoch - 1) * len(train_loader) + batch_idx)
+        
 
 
 def test(epoch, config, model, device, test_loader, writer):
-    print("Test Start")
+    day_time = datetime.datetime.now()
+    print(f"{day_time} -- Test Start")
     model.eval()
     test_loss_total = 0
     test_loss_latent = 0
@@ -146,6 +152,8 @@ def test(epoch, config, model, device, test_loader, writer):
     test_loss_abs = 0
 
     im_show = True
+
+    cnt_test = 0
 
     with torch.no_grad():
         for im_path, sample in test_loader:
@@ -166,12 +174,14 @@ def test(epoch, config, model, device, test_loader, writer):
             test_loss_pos += losses["pos"]
             test_loss_abs += losses["abs"]
 
+            cnt_test += 1
+
             if(im_show):
-                print("recon pos: " + str(recon_pos[0:10, :]))
-                print("ref pos: " + str(out_pos[0:10, :]))
-                print("recon_abs: " + str(recon_abs[0:10]))
-                print("ref_abs: " + str(abs_prob[0:10]))
-                imshow = False
+                print("recon pos diff: " + str(recon_pos[0:5, :] - in_pos[0:5, :]))
+                print("ref pos diff: " + str(out_pos[0:5, :] - in_pos[0:5, :]))
+                print("recon_abs: " + str(recon_abs[0:5]))
+                print("ref_abs: " + str(abs_prob[0:5]))
+                im_show = False
 
     writer.add_scalar("test/total_loss", loss_total, epoch)
     writer.add_scalars("test/loss",
@@ -181,6 +191,16 @@ def test(epoch, config, model, device, test_loader, writer):
                            "absorption": losses["abs"]
                        },
                        epoch)
+    writer.add_scalars("test/loss_average",
+                       {
+                           "latent": (losses["latent"] / cnt_test),
+                           "position": (losses["pos"] / cnt_test),
+                           "absorption": (losses["abs"] / cnt_test)
+                       },
+                       epoch)
+
+    day_time = datetime.datetime.now()
+    print(f"{day_time} -- Test End")
 
 
 def image_generate(im_path):
