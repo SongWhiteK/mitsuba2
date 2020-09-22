@@ -420,6 +420,8 @@ static const char *__doc_mitsuba_BSDFFlags_Transmission =
 R"doc(Any transmission component (scattering into discrete, 1D, or 2D set of
 directions))doc";
 
+static const char *__doc_mitsuba_BSDFFlags_BSSRDF = R"doc(Flag BSSRDF)doc";
+
 static const char *__doc_mitsuba_BSDFSample3 = R"doc(Data structure holding the result of BSDF sampling operations.)doc";
 
 static const char *__doc_mitsuba_BSDFSample3_BSDFSample3 =
@@ -444,6 +446,12 @@ static const char *__doc_mitsuba_BSDFSample3_BSDFSample3_4 = R"doc()doc";
 static const char *__doc_mitsuba_BSDFSample3_BSDFSample3_5 = R"doc()doc";
 
 static const char *__doc_mitsuba_BSDFSample3_eta = R"doc(Relative index of refraction in the sampled direction)doc";
+
+static const char *__doc_mitsuba_BSDFSample3_albedo = R"doc()doc";
+
+static const char *__doc_mitsuba_BSDFSample3_sigma_t = R"doc()doc";
+
+static const char *__doc_mitsuba_BSDFSample3_g = R"doc()doc";
 
 static const char *__doc_mitsuba_BSDFSample3_operator_assign = R"doc()doc";
 

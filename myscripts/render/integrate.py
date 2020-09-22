@@ -7,7 +7,7 @@ import mitsuba
 mitsuba.set_variant(config.variant)
 
 from mitsuba.core import (Spectrum, Float, UInt32, UInt64, Vector2f, Vector3f,
-                          Color3f, RayDifferential3f, srgb_to_xyz)
+                          Frame3f, Color3f, RayDifferential3f, srgb_to_xyz)
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file
 from mitsuba.render import ImageBlock
@@ -127,10 +127,10 @@ def render_sample(scene, sampler, rays):
     while(True):
         depth += 1
 
-        ###### Interaction with emitters #####
+        ##### Interaction with emitters #####
         result += ek.select(active,
-                           emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
-                           Vector3f(0.0))
+                            emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
+                            Vector3f(0.0))
 
         active = active & si.is_valid()
 
@@ -173,6 +173,13 @@ def render_sample(scene, sampler, rays):
         active &= ek.any(ek.neq(throughput, 0))
 
         eta *= bs.eta
+
+        # Whether the BSDF is BSSRDF or not?
+        is_bssrdf = (active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
+                     & (Frame3f.cos_theta(bs.wo) < Float(0.0)))
+
+        # Process for BSSRDF
+        print(bs.g)
 
         # Intersect the BSDF ray against the scene geometry
         rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
