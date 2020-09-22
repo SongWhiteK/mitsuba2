@@ -174,7 +174,7 @@ def test(epoch, config, model, device, test_loader, writer):
             test_loss_pos += losses["pos"]
             test_loss_abs += losses["abs"]
 
-            cnt_test += 1
+            cnt_test += len(im_path)
 
             if(im_show):
                 print("recon pos diff: " + str(recon_pos[0:5, :] - in_pos[0:5, :]))
