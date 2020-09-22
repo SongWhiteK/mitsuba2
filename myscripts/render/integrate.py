@@ -174,12 +174,12 @@ def render_sample(scene, sampler, rays):
 
         eta *= bs.eta
 
-        # Whether the BSDF is BSSRDF or not? 
-        is_bssrdf = active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
+        # Whether the BSDF is BSSRDF or not?
+        is_bssrdf = (active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
+                     & (Frame3f.cos_theta(bs.wo) < Float(0.0)))
 
         # Process for BSSRDF
-        if(ek.any(is_bssrdf & (Frame3f.cos_theta(bs.wo) < Float(0.0)))):
-            print("Process for BSSRDF: {}".format(depth))
+        print(bs.g)
 
         # Intersect the BSDF ray against the scene geometry
         rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
