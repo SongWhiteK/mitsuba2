@@ -110,3 +110,11 @@ myscripts/train_data/train_paths/
 myscripts/log/
 
 myscripts/render/cbox/
+
+myscripts/train_data/train_images_mini/
+
+myscripts/train_data/train_paths_mini/
+
+myscripts/train_data/test_paths/
+
+myscripts/train_data/test_images/

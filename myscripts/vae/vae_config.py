@@ -20,16 +20,28 @@ class VAEConfiguration:
         self.n_dec1 = 256
         self.n_dec2 = 64
 
-        self.loss_weight_pos = 100
-        self.loss_weight_abs = 5000
+        self.loss_weight_pos = 1
+        self.loss_weight_abs = 1
 
         ##### Trainer #####
-        self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
-        self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
+        self.data = "test"
+        if(self.data == "test"):
+            self.n_per_shape = 250
+            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
+            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_images"
+        elif(self.data == "mini"):
+            self.n_per_shape = 1000
+            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_mini\\train_path.csv"
+            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
+        else:
+            self.n_per_shape = 500000
+            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
+            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
+            
 
         self.seed = 1
-        self.epoch = 10
-        self.loader_args = {"batch_size": 32, "shuffle": False}
+        self.epoch = 20
+        self.loader_args = {"batch_size": 256, "shuffle": True}
         self.lr = 2*1e-4
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"

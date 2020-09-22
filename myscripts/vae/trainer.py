@@ -1,4 +1,6 @@
 import glob
+import datetime
+import time
 import numpy as np
 import pandas as pd
 import torch
@@ -46,14 +48,8 @@ class VAEDatasets(Dataset):
         model_id = int(data["model_id"])
 
         # Get processed height map from index (~= id)
-        num_subdir = (sample_id // 10000) * 10000
-        path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
-        print(path)
-        im = Image.open(path)
-
-        if self.transform is not None:
-            im = self.transform(im)
-        
+        num_subdir = (sample_id // config.n_per_shape) * config.n_per_shape
+        im_path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
 
         sample = {}
         sample["props"] = props
@@ -61,7 +57,7 @@ class VAEDatasets(Dataset):
         sample["out_pos"] = out_pos
         sample["abs"] = abs_prob
 
-        return im, sample
+        return im_path, sample
 
     def __len__(self):
         return len(self.data)
@@ -71,12 +67,15 @@ from vae import loss_function
 
 def train(config, model, device, dataset):
     torch.manual_seed(config.seed)
+    print(f"{datetime.datetime.now()} -- Training Start")
 
     # Input model name at this training
-    model_name = input("Input model neme at this training")
-    model_path = config.MODEL_DIR + "\\" + model_name
+    model_name = input("Input model neme at this training: ")
+    model_path = f"myscripts/vae/model/{model_name}.pt"
 
+    print(f"{datetime.datetime.now()} -- Data split start")
     train_data, test_data = train_test_split(dataset, test_size=0.2)
+    print(f"{datetime.datetime.now()} -- Data split end")
 
     train_loader = DataLoader(train_data, **config.loader_args)
     test_loader = DataLoader(test_data, **config.loader_args)
@@ -88,9 +87,10 @@ def train(config, model, device, dataset):
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
     # Writer instanse for logging with TensorboardX
-    writer = SummaryWriter(config.LOG_DIR + "\\" + model_name)
+    writer = SummaryWriter(f"{config.LOG_DIR}_{model_name}")
 
     for epoch in range(1, config.epoch + 1):
+        print(f"epoch {epoch} start")
         train_epoch(epoch, config, model, device,
                     train_loader, optimizer, writer)
         test(epoch, config, model, device, test_loader, writer)
@@ -103,18 +103,25 @@ def train(config, model, device, dataset):
 def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
     model.train()
 
-    for batch_idx, (im, sample) in enumerate(train_loader):
+    for batch_idx, (im_path, sample) in enumerate(train_loader):
         props = sample["props"].to(device)
         in_pos = sample["in_pos"].to(device)
         out_pos = sample["out_pos"].to(device)
         abs_prob = sample["abs"].to(device)
 
+        im = image_generate(im_path)
+        
         optimizer.zero_grad()
         recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
         loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
 
         loss_total.backward()
         optimizer.step()
+
+        if(batch_idx % 750 == 0):
+            day_time = datetime.datetime.now()
+            n_data = batch_idx * config.loader_args["batch_size"]
+            print(f"{day_time} -- Log: data {n_data} / {2000000 * 0.8}")
 
         # Logging with TensorboardX
         writer.add_scalar("train/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
@@ -125,21 +132,38 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
                                "absorption": losses["abs"]
                            },
                            (epoch - 1) * len(train_loader) + batch_idx)
+        writer.add_scalars("train/loss_average",
+                           {
+                               "latent": (losses["latent"] / config.loader_args["batch_size"]),
+                               "position": (losses["pos"] / config.loader_args["batch_size"]),
+                               "absorption": (losses["abs"] / config.loader_args["batch_size"])
+                           },
+                           (epoch - 1) * len(train_loader) + batch_idx)
+        
 
 
 def test(epoch, config, model, device, test_loader, writer):
+    day_time = datetime.datetime.now()
+    print(f"{day_time} -- Test Start")
     model.eval()
     test_loss_total = 0
     test_loss_latent = 0
     test_loss_pos = 0
     test_loss_abs = 0
 
+    im_show = True
+
+    cnt_test = 0
+
     with torch.no_grad():
-        for im, sample in test_loader:
+        for im_path, sample in test_loader:
             props = sample["props"].to(device)
             in_pos = sample["in_pos"].to(device)
             out_pos = sample["out_pos"].to(device)
             abs_prob = sample["abs"].to(device)
+
+
+            im = image_generate(im_path)
 
             recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
 
@@ -150,6 +174,15 @@ def test(epoch, config, model, device, test_loader, writer):
             test_loss_pos += losses["pos"]
             test_loss_abs += losses["abs"]
 
+            cnt_test += len(im_path)
+
+            if(im_show):
+                print("recon pos diff: " + str(recon_pos[0:5, :] - in_pos[0:5, :]))
+                print("ref pos diff: " + str(out_pos[0:5, :] - in_pos[0:5, :]))
+                print("recon_abs: " + str(recon_abs[0:5]))
+                print("ref_abs: " + str(abs_prob[0:5]))
+                im_show = False
+
     writer.add_scalar("test/total_loss", loss_total, epoch)
     writer.add_scalars("test/loss",
                        {
@@ -158,6 +191,30 @@ def test(epoch, config, model, device, test_loader, writer):
                            "absorption": losses["abs"]
                        },
                        epoch)
+    writer.add_scalars("test/loss_average",
+                       {
+                           "latent": (losses["latent"] / cnt_test),
+                           "position": (losses["pos"] / cnt_test),
+                           "absorption": (losses["abs"] / cnt_test)
+                       },
+                       epoch)
+
+    day_time = datetime.datetime.now()
+    print(f"{day_time} -- Test End")
+
+
+def image_generate(im_path):
+    batch_size = len(im_path)
+
+    im = np.zeros([batch_size, 1, 255, 255])
+
+    for i, path in enumerate(im_path):
+        im[i, 0, :, :] = Image.open(path)
+
+    im = im.astype(np.float32)
+    im_tensor = torch.from_numpy(im).clone()
+
+    return im_tensor
 
 
 if __name__ == "__main__":

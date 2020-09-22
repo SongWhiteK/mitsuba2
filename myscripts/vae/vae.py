@@ -1,12 +1,15 @@
 """
 NN module for VAE
 """
+from datetime import datetime
+import time
 import sys
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.data.dataset import Dataset
 from vae_config import VAEConfiguration
 from torchvision.transforms import ToTensor
 from torch.utils.tensorboard import SummaryWriter
@@ -164,26 +167,33 @@ def loss_function(recon_pos, ref_pos, recon_abs, ref_abs, mu, logvar, config):
 
 if __name__ == "__main__":
     from trainer import VAEDatasets, train
+    time1 = time.time()
+
     config = VAEConfiguration()
     device = torch.device("cuda")
+    print(f"{datetime.now()} -- Model generation")
     model = VAE(config).to(device)
+    
+    print(f"{datetime.now()} -- Dataset generation")
     dataset = VAEDatasets(config, ToTensor())
 
     # Visualize network in Tensorboard
-    model.eval()
-    writer = SummaryWriter(config.LOG_DIR)
-    im = np.random.randint(0, 255, [1, 1, 255, 255]).astype(np.float32)
-    im = torch.tensor(im).to(device)
+    # model.eval()
+    # writer = SummaryWriter(config.LOG_DIR)
+    # im = np.random.randint(0, 255, [1, 1, 255, 255]).astype(np.float32)
+    # im = torch.tensor(im).to(device)
 
-    props = torch.randn([1, 7]).to(device)
-    in_pos = torch.randn([1, 3]).to(device)
-    out_pos = torch.randn([1, 3]).to(device)
+    # props = torch.randn([1, 7]).to(device)
+    # in_pos = torch.randn([1, 3]).to(device)
+    # out_pos = torch.randn([1, 3]).to(device)
 
-    writer.add_graph(model, (props, im, in_pos, out_pos))
-    writer.close()
-
+    # writer.add_graph(model, (props, im, in_pos, out_pos))
+    # writer.close()
 
     train(config, model, device, dataset)
+    print(time.time() - time1)
+
+    
 
 
 
