@@ -113,7 +113,10 @@ public:
 
         bs.eta = select(selected_r, Float(1.f), eta_it);
 
-        bs.albedo = m_albedo->eval(si, selected_r);
+        bs.albedo = m_albedo->eval(si, selected_t);
+        bs.sigma_t = m_sigmat->eval(si, selected_t);
+
+        bs.g = select(selected_t, m_g, bs.g);
 
         UnpolarizedSpectrum reflectance = 1.f, transmittance = 1.f;
         if (m_specular_reflectance)

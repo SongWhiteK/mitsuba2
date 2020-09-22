@@ -449,6 +449,10 @@ static const char *__doc_mitsuba_BSDFSample3_eta = R"doc(Relative index of refra
 
 static const char *__doc_mitsuba_BSDFSample3_albedo = R"doc()doc";
 
+static const char *__doc_mitsuba_BSDFSample3_sigma_t = R"doc()doc";
+
+static const char *__doc_mitsuba_BSDFSample3_g = R"doc()doc";
+
 static const char *__doc_mitsuba_BSDFSample3_operator_assign = R"doc()doc";
 
 static const char *__doc_mitsuba_BSDFSample3_operator_assign_2 = R"doc()doc";
