@@ -217,6 +217,8 @@ template <typename Float, typename Spectrum> struct BSDFSample3 {
     /// Relative index of refraction in the sampled direction
     Float eta;
 
+    Spectrum albedo;
+
     /// Stores the component type that was sampled by \ref BSDF::sample()
     UInt32 sampled_type;
 
@@ -244,14 +246,14 @@ template <typename Float, typename Spectrum> struct BSDFSample3 {
      *      the scattering event.
      */
     BSDFSample3(const Vector3f &wo)
-        : wo(wo), pdf(0.f), eta(1.f), sampled_type(0),
+        : wo(wo), pdf(0.f), eta(1.f), albedo(0.f), sampled_type(0),
           sampled_component(uint32_t(-1)) { }
 
 
     //! @}
     // =============================================================
 
-    ENOKI_STRUCT(BSDFSample3, wo, pdf, eta, sampled_type, sampled_component);
+    ENOKI_STRUCT(BSDFSample3, wo, pdf, eta, albedo, sampled_type, sampled_component);
 };
 
 
@@ -479,6 +481,7 @@ std::ostream &operator<<(std::ostream &os, const BSDFSample3<Float, Spectrum>& b
         << "  wo = " << bs.wo << "," << std::endl
         << "  pdf = " << bs.pdf << "," << std::endl
         << "  eta = " << bs.eta << "," << std::endl
+        << "  albedo = " << bs.albedo << "," << std::endl
         << "  sampled_type = " << "TODO" /*type_mask_to_string(bs.sampled_type)*/ << "," << std::endl
         << "  sampled_component = " << bs.sampled_component << std::endl
         << "]";
@@ -512,7 +515,7 @@ NAMESPACE_END(mitsuba)
 //! @{ \name Enoki accessors for dynamic vectorization
 // -----------------------------------------------------------------------
 
-ENOKI_STRUCT_SUPPORT(mitsuba::BSDFSample3, wo, pdf, eta,
+ENOKI_STRUCT_SUPPORT(mitsuba::BSDFSample3, wo, pdf, eta, albedo,
                      sampled_type, sampled_component)
 
 //! @}

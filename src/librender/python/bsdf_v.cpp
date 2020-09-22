@@ -15,6 +15,7 @@ MTS_PY_EXPORT(BSDFSample) {
         .def_readwrite("wo", &BSDFSample3f::wo, D(BSDFSample3, wo))
         .def_readwrite("pdf", &BSDFSample3f::pdf, D(BSDFSample3, pdf))
         .def_readwrite("eta", &BSDFSample3f::eta, D(BSDFSample3, eta))
+        .def_readwrite("albedo", &BSDFSample3f::albedo, D(BSDFSample3, albedo))
         .def_readwrite("sampled_type", &BSDFSample3f::sampled_type, D(BSDFSample3, sampled_type))
         .def_readwrite("sampled_component", &BSDFSample3f::sampled_component, D(BSDFSample3, sampled_component))
         .def_repr(BSDFSample3f);

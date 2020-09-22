@@ -447,6 +447,8 @@ static const char *__doc_mitsuba_BSDFSample3_BSDFSample3_5 = R"doc()doc";
 
 static const char *__doc_mitsuba_BSDFSample3_eta = R"doc(Relative index of refraction in the sampled direction)doc";
 
+static const char *__doc_mitsuba_BSDFSample3_albedo = R"doc()doc";
+
 static const char *__doc_mitsuba_BSDFSample3_operator_assign = R"doc()doc";
 
 static const char *__doc_mitsuba_BSDFSample3_operator_assign_2 = R"doc()doc";
