@@ -5,6 +5,7 @@ import os
 import shutil
 import glob
 import datetime
+import time
 import numpy as np
 import pandas as pd
 import cv2
@@ -42,17 +43,22 @@ class DataHandler:
         height_map_list = glob.glob(f"{self.map_dir_path}\\height_map*.png")
         df_all = pd.DataFrame()
 
-        print(f"Delete sample files in {self.train_image_dir_path}? [y/n]")
+        # File operation
         key_input = None
-        while(True):
-            key_input = input()
-            if(key_input == "y"):
-                shutil.rmtree(self.train_image_dir_path)
-                os.mkdir(self.train_image_dir_path)
-                break
-            elif(key_input == "n"):
-                break
-            print("Please input valid letter")
+        file_list = glob.glob(self.train_image_dir_path)
+        if(os.path.exists(self.train_image_dir_path)):
+            print(f"Delete sample files in {self.train_image_dir_path}? [y/n]")
+            while(True):
+                key_input = input()
+                if(key_input == "y"):
+                    shutil.rmtree(self.train_image_dir_path)
+                    os.mkdir(self.train_image_dir_path)
+                    break
+                elif(key_input == "n"):
+                    break
+                print("Please input valid letter")
+        else:
+            os.makedirs(self.train_image_dir_path)
         
         # Process with given csv files
         for i, file_name in enumerate(self.sample_list):
@@ -70,13 +76,13 @@ class DataHandler:
 
             # Make training images directory for each height map
             if(key_input == "y"):
-                os.mkdir(f"{self.train_image_dir_path}\\map_{i:03}")
+                os.makedirs(f"{self.train_image_dir_path}\\map_{i:03}")
 
             file_path = None
         
             # Process with each training data
             for row in data.itertuples():
-                if(row.id % 100 == 0):
+                if(row.id % 10000 == 0):
                     file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
                     os.mkdir(file_path)
 
@@ -90,6 +96,8 @@ class DataHandler:
                     print(f"{datetime.datetime.now()} -- Log: Processed {row.id}")
 
         # refine and output sampled path data
+        time.sleep(2)
+        print(df_all)
         self.refine_data(df_all)
 
 
@@ -123,16 +131,21 @@ class DataHandler:
 
         
     def delete_sample_files(self):
-        print(f"Delete sample files in {self.sample_path}? [y/n]")
-        while(True):
-            key_input = input()
-            if(key_input == "y"):
-                shutil.rmtree(self.sample_path)
-                os.mkdir(self.sample_path)
-                break
-            elif(key_input == "n"):
-                break
-            print("Please input valid letter")
+        file_list = glob.glob(f"{self.sample_path}\\*")
+        if(os.path.exists(self.sample_path)):
+            print(f"Delete sample files in {self.sample_path}? [y/n]")
+            while(True):
+                key_input = input()
+                if(key_input == "y"):
+                    shutil.rmtree(self.sample_path)
+                    time.sleep(0.5)
+                    os.makedirs(self.sample_path)
+                    break
+                elif(key_input == "n"):
+                    break
+                print("Please input valid letter")
+        else:
+            os.makedirs(self.sample_path)
 
             
 
