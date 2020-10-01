@@ -88,7 +88,7 @@ def train(config, model, device, dataset):
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
     # Writer instanse for logging with TensorboardX
-    writer = SummaryWriter(f"{config.LOG_DIR}_{model_name}")
+    writer = SummaryWriter(f"{config.LOG_DIR}\\{model_name}")
 
     for epoch in range(1, config.epoch + 1):
         print(f"epoch {epoch} start")
