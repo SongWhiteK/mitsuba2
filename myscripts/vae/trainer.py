@@ -20,6 +20,7 @@ class VAEDatasets(Dataset):
         self.data = pd.read_csv(config.SAMPLE_PATH)
         self.im_dir = config.MAP_DIR
         self.transform = transform
+        self.n_per_subdir = config.n_per_subdir
 
     def __getitem__(self, index):
 
@@ -48,7 +49,7 @@ class VAEDatasets(Dataset):
         model_id = int(data["model_id"])
 
         # Get processed height map from index (~= id)
-        num_subdir = (sample_id // config.n_per_shape) * config.n_per_shape
+        num_subdir = (sample_id // self.n_per_subdir) * self.n_per_subdir
         im_path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
 
         sample = {}

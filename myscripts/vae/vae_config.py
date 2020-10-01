@@ -26,23 +26,27 @@ class VAEConfiguration:
         ##### Trainer #####
         self.data = "test"
         if(self.data == "test"):
-            self.n_per_shape = 250
+            self.n_per_subdir = 250
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_images"
         elif(self.data == "mini"):
-            self.n_per_shape = 1000
+            self.n_per_subdir = 1000
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_mini\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
+        elif(self.data == "plane"):
+            self.n_per_subdir = 10000
+            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_plane\\train_path.csv"
+            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_plane"
         else:
-            self.n_per_shape = 500000
+            self.n_per_subdir = 10000
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
             
 
         self.seed = 1
         self.epoch = 20
-        self.loader_args = {"batch_size": 256, "shuffle": True}
-        self.lr = 2*1e-4
+        self.loader_args = {"batch_size": 128, "shuffle": True}
+        self.lr = 1*1e-4
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
         self.MODEL_DIR = "C:\\User\\mineg\\mitsuba2\\myscripts\\vae\\model"
