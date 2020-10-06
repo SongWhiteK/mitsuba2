@@ -7,24 +7,25 @@ class VAEConfiguration:
         ##### Network #####
         self.use_dropout = True
 
-        self.ch1 = 32
-        self.ch2 = 64
-        self.ch3 = 128
+        self.ch1    = 32
+        self.ch2    = 64
+        self.ch3    = 128
 
         self.stride = 2
 
-        self.pool = 3
+        self.pool   = 3
 
-        self.n_fn = 16
-        self.n_enc = 16
+        self.n_fn   = 16
+        self.n_enc  = 16
         self.n_dec1 = 256
         self.n_dec2 = 64
 
-        self.loss_weight_pos = 1
-        self.loss_weight_abs = 1
+        self.loss_weight_pos    = 1
+        self.loss_weight_abs    = 400
+        self.loss_weight_latent = 50000
 
         ##### Trainer #####
-        self.data = "test"
+        self.data = "mini"
         if(self.data == "test"):
             self.n_per_subdir = 250
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
