@@ -128,9 +128,9 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         writer.add_scalar("train/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
         writer.add_scalars("train/loss",
                            {
-                               "latent": losses["latent"],
-                               "position": losses["pos"],
-                               "absorption": losses["abs"]
+                               "latent": losses["latent"] * config.loss_weight_latent,
+                               "position": losses["pos"] * config.loss_weight_pos,
+                               "absorption": losses["abs"] * config.loss_weight_abs
                            },
                            (epoch - 1) * len(train_loader) + batch_idx)
         writer.add_scalars("train/loss_average",
@@ -184,19 +184,19 @@ def test(epoch, config, model, device, test_loader, writer):
                 print("ref_abs: " + str(abs_prob[0:5]))
                 im_show = False
 
-    writer.add_scalar("test/total_loss", loss_total, epoch)
+    writer.add_scalar("test/total_loss", test_loss_total, epoch)
     writer.add_scalars("test/loss",
                        {
-                           "latent": losses["latent"],
-                           "position": losses["pos"],
-                           "absorption": losses["abs"]
+                           "latent": test_loss_latent * config.loss_weight_latent,
+                           "position": test_loss_pos * config.loss_weight_pos,
+                           "absorption": test_loss_abs * config.loss_weight_abs
                        },
                        epoch)
     writer.add_scalars("test/loss_average",
                        {
-                           "latent": (losses["latent"] / cnt_test),
-                           "position": (losses["pos"] / cnt_test),
-                           "absorption": (losses["abs"] / cnt_test)
+                           "latent": (test_loss_latent / cnt_test),
+                           "position": (test_loss_pos / cnt_test),
+                           "absorption": (test_loss_abs / cnt_test)
                        },
                        epoch)
 

@@ -160,7 +160,7 @@ def loss_function(recon_pos, ref_pos, recon_abs, ref_abs, mu, logvar, config):
     losses["pos"] = loss_position
     losses["abs"] = loss_absorption
 
-    return loss_latent + config.loss_weight_pos * loss_position + config.loss_weight_abs * loss_absorption, losses
+    return config.loss_weight_latent * loss_latent + config.loss_weight_pos * loss_position + config.loss_weight_abs * loss_absorption, losses
 
 
 
