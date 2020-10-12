@@ -135,7 +135,7 @@ def render(itr, config):
                     sensor = scene.sensors()[0]
                 else:
                     # Set sampler's seed and generate new sensor object
-                    seed = np.random.randint(1000000)
+                    seed = np.random.randint(100000000)
                     sensor = get_sensor(spp, seed)
 
                 # If medium parameters are not fixed, sample medium parameters again and update

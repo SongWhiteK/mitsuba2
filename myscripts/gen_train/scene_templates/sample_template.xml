@@ -9,7 +9,7 @@
 	<sensor id="Camera-camera" type="perspective">
 		<float name="fov" value="22.8952"/>
 		<float name="near_clip" value="0.1"/>
-		<float name="far_clip" value="1000"/>
+		<float name="far_clip" value="5000"/>
 		
 		<sampler id="Camera-camera_sampler" type="independent">
 			<integer name="sample_count" value="$spp"/>
