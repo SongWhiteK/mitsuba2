@@ -98,7 +98,8 @@ public:
 
                 // Check the ray is valid. If somehow the ray intersects from inside, resampling
                 SurfaceInteraction3f si_test = scene->ray_intersect(ray);
-                if(any_or<true>(dot(si_test.n, si_test.wi) < 0)){
+
+                if(any_or<true>(dot(si_test.n, si_test.to_world(si_test.wi)) < 0)){
                     Log(Info, "This sampled position and direction are invalid");
                 }else{
                     break;
