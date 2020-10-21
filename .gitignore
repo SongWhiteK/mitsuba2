@@ -128,3 +128,5 @@ myscripts/train_data/train_paths_plane/
 myscripts/vae/model/
 
 myscripts/train_data/train_paths_simple/
+
+debug.log
