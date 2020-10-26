@@ -33,6 +33,8 @@ class TrainDataConfiguration:
         self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\height_map"
         self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
 
+        self.plane = [False, False, False, True]
+
         ############## ITERATION NUMBERS ##############
         self.itr_per_shape = 1000
         if(self.scale_fix):

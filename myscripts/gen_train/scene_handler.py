@@ -51,13 +51,16 @@ class SceneGenerator:
     def set_transform_matrix(self, mat):
         self.mat = utils.scale_mat_2_str(mat)
 
-    def random_set_transform_matrix(self, config):
+    def random_set_transform_matrix(self, config, plane=False):
         scale_factor = np.ones(3) * 0.25 + np.random.rand(3) * 2.75
         scale_mat = np.diag(scale_factor)
         self.set_transform_matrix(scale_mat)
 
         if(config.DEBUG):
             print(scale_mat)
+
+        if(plane):
+            scale_factor[2] = 0
 
         return scale_factor
 
@@ -122,7 +125,7 @@ def render(itr, config):
         for i in range(itr // config.scene_batch_size):
             if (not config.scale_fix):
                 # Sample scaling matrix and set
-                scale_rec_v = scene_gen.random_set_transform_matrix(config)
+                scale_rec_v = scene_gen.random_set_transform_matrix(config, plane=config.plane[i])
                 scale_rec[config.scene_batch_size * i:config.scene_batch_size * i + config.scene_batch_size] *= scale_rec_v
 
             
