@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 import mitsuba
@@ -8,7 +7,7 @@ import data_pipeline
 
 sys.path.append("myscripts/render/dict")
 from scene_dict import scene_dict
-from mesh_dict import meshes_rectangle
+from mesh_dict import meshes_cube
 
 mitsuba.set_variant(config.variant)
 
@@ -21,7 +20,7 @@ for i in range(6):
     i += 1
     bdata.register_medium(i)
 
-meshes_rectangle().register_all_mesh(bdata)
+meshes_cube().register_all_mesh(bdata)
 
 scene_dict = bdata.add_object(scene_dict)
 scene = load_dict(scene_dict)

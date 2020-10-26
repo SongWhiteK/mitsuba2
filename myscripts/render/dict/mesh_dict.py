@@ -32,7 +32,7 @@ class meshes:
                                 scale=self.scale[i]
                                 )
 
-class meshes_rectangle(meshes):
+class meshes_cube(meshes):
     """
     Rectangle meshes for BSSRDF
     Mesh ID indicates each mesh below,
@@ -45,7 +45,7 @@ class meshes_rectangle(meshes):
     """
 
     def __init__(self):
-        super(meshes_rectangle, self).__init__()
+        super(meshes_cube, self).__init__()
         self.n_mesh = 6
         self.type = "rectangle"
         self.translate = [
