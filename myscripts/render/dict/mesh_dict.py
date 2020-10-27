@@ -1,6 +1,9 @@
 """Basic scene file format of meshes for bssrdf"""
 
 import sys
+import numpy as np
+
+from PIL import Image
 sys.path.append("myscripts/render")
 
 import mitsuba
@@ -22,6 +25,7 @@ class meshes:
         self.translate = [None for i in range(self.n_mesh)]
         self.rotate = [None for i in range(self.n_mesh)]
         self.scale = [None for i in range(self.n_mesh)]
+        self.map = [None for i in range(self.n_mesh)]
 
     def register_all_mesh(self, bdata):
         """Register whole meshes in this class to BSSRDF_Data"""
