@@ -133,7 +133,7 @@ def render_sample(scene, sampler, rays):
         ##### Interaction with emitters #####
         result += ek.select(active,
                             emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
-                            Vector3f(0.0))
+                            Spectrum(0.0))
 
         active = active & si.is_valid()
 
@@ -167,11 +167,12 @@ def render_sample(scene, sampler, rays):
         mis = ek.select(ds.delta, Float(1), mis_weight(ds.pdf, bsdf_pdf))
         result += ek.select(active_e,
                             mis * throughput * bsdf_val * emitter_val,
-                            Vector3f(0.0))
+                            Spectrum(0.0))
 
         ##### BSDF sampling #####
         bs, bsdf_val = BSDF.sample_vec(bsdf, ctx, si, sampler.next_1d(active),
                                        sampler.next_2d(active), active)
+        
         throughput = throughput * bsdf_val
         active &= ek.any(ek.neq(throughput, 0))
 
@@ -215,7 +216,7 @@ def render_sample(scene, sampler, rays):
 
         delta = has_flag(bs.sampled_type, BSDFFlags.Delta)
         emitter_pdf = ek.select(delta, Float(0.0),
-                                scene.pdf_emitter_direction(si, ds, active))
+                                scene.pdf_emitter_direction(si, ds))
         emission_weight = mis_weight(bs.pdf, emitter_pdf)
 
         si = si_bsdf
