@@ -59,12 +59,12 @@ class meshes_cube(meshes):
         self.n_mesh = 6
         self.type = "rectangle"
         self.translate = [
-            ScalarTransform4f(),
-            ScalarTransform4f.translate([0, 30, 30]),
-            ScalarTransform4f.translate([30, 0, 30]),
-            ScalarTransform4f.translate([0, -30, 30]),
-            ScalarTransform4f.translate([-30, 0, 30]),
-            ScalarTransform4f.translate([0, 0, 60])
+            ScalarTransform4f.translate([0, 0, 0.01]),
+            ScalarTransform4f.translate([0, 30, 30.01]),
+            ScalarTransform4f.translate([30, 0, 30.01]),
+            ScalarTransform4f.translate([0, -30, 30.01]),
+            ScalarTransform4f.translate([-30, 0, 30.01]),
+            ScalarTransform4f.translate([0, 0, 60.01])
         ]
         self.rotate = [
             ScalarTransform4f.rotate([1,0,0], angle=180),
