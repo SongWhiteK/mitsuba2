@@ -32,6 +32,16 @@ class meshes:
                                 scale=self.scale[i]
                                 )
 
+    def register_params(self, bdata, ior=1.5, scale=1.0,
+                        sigma_t=1.0, albedo=0.5, g=0.25):
+        """Register same medium parameters to meshes of one object"""
+
+        for i in range(self.n_mesh):
+            i += 1
+            bdata.register_medium(i, ior=ior, scale=scale,
+                                  sigma_t=sigma_t, albedo=albedo, g=g)
+
+
 class meshes_cube(meshes):
     """
     Rectangle meshes for BSSRDF

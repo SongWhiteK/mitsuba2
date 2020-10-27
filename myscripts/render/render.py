@@ -16,9 +16,7 @@ from mitsuba.core.xml import load_file, load_dict
 
 ##### Setting scene #####
 bdata = data_pipeline.BSSRDF_Data()
-for i in range(6):
-    i += 1
-    bdata.register_medium(i)
+meshes_cube().register_params(bdata)
 
 meshes_cube().register_all_mesh(bdata)
 
