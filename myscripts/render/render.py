@@ -24,8 +24,8 @@ scene_dict = bdata.add_object(scene_dict)
 scene = load_dict(scene_dict)
 
 # Rendering settings
-spp = 128
-sample_per_pass = 16
+spp = config.spp
+sample_per_pass = config.sample_per_pass
 
 print("Rendering start")
 

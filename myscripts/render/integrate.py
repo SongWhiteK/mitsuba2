@@ -125,7 +125,7 @@ def render_sample(scene, sampler, rays):
 
     depth = 0
 
-    # bssrdf = BSSRDF(config.model_name)
+    bssrdf = BSSRDF(config.model_name)
 
     while(True):
         depth += 1
@@ -187,8 +187,9 @@ def render_sample(scene, sampler, rays):
         in_pos = ek.select(is_bssrdf, si.p, Vector3f(0))
 
         # Get transform matrix w.r.t each mesh of BSSDF
-        mesh_id = bsdf.mesh_id(is_bssrdf)
-        transform_mat = get_trans_mat(mesh_id)
+        mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
+        print(mesh_id)
+        # transform_mat = get_trans_mat(mesh_id)
         
         # TODO: Get properties, e.g., medium params and incident angle as tensor
 
