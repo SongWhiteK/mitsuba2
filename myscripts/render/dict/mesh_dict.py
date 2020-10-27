@@ -64,14 +64,10 @@ class meshes_cube(meshes):
             ScalarTransform4f.rotate([0,1,0], angle=-90),
             ScalarTransform4f()
         ]
-        self.scale = [
-            ScalarTransform4f.scale(30),
-            ScalarTransform4f.scale(30),
-            ScalarTransform4f.scale(30),
-            ScalarTransform4f.scale(30),
-            ScalarTransform4f.scale(30),
-            ScalarTransform4f.scale(30)
-        ]
+
+        for i in range(self.n_mesh):
+            self.scale[i] = ScalarTransform4f.scale(30)
+            self.map[i] = np.ones([512, 512], dtype="uint8") * 63
 
 
 

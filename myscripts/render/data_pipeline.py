@@ -21,7 +21,7 @@ class BSSRDF_Data:
         self.mesh = {}
 
     def register_medium(self, id, ior=1.5, scale=1.0,
-                        sigam_t=1.0, albedo=0.5, g=0.25):
+                        sigma_t=1.0, albedo=0.5, g=0.25):
         """
         Register medium with mesh id
 
@@ -49,12 +49,15 @@ class BSSRDF_Data:
         self.bssrdf[id] = {
             "type": "bssrdf",
             "int_ior": ior,
+            "ext_ior": 1.0,
             "scale": scale,
-            "sigma_t": sigam_t,
+            "sigma_t": sigma_t,
             "albedo": albedo,
             "g": g,
             "mesh_id": id
             }
+
+        
 
     def register_mesh(self, id, mesh_type, filename=None, translate=ScalarTransform4f(),
                       rotate=ScalarTransform4f(), scale=ScalarTransform4f()):
