@@ -4,9 +4,9 @@ Handle some data, such as, mesh transform matrix for BSSRDF
 and create scene format
 """
 
-from numpy.core.fromnumeric import transpose
 import mitsuba
 import render_config as config
+import numpy as np
 
 mitsuba.set_variant(config.variant)
 
