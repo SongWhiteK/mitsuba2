@@ -125,7 +125,7 @@ def render_sample(scene, sampler, rays, bdata):
 
     depth = 0
 
-    bssrdf = BSSRDF(config.model_name)
+    # bssrdf = BSSRDF(config.model_name)
 
     while(True):
         depth += 1
