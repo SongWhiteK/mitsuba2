@@ -12,7 +12,7 @@ import data_pipeline
 
 mitsuba.set_variant(config.variant)
 
-from mitsuba.core import ScalarTransform4f
+from mitsuba.core import ScalarTransform4f, ScalarVector3f
 
 
 class meshes:
@@ -63,24 +63,24 @@ class meshes_cube(meshes):
         self.n_mesh = 6
         self.type = "rectangle"
         self.translate = [
-            ScalarTransform4f.translate([0, 0, 0.01]),
-            ScalarTransform4f.translate([0, 30, 30.01]),
-            ScalarTransform4f.translate([30, 0, 30.01]),
-            ScalarTransform4f.translate([0, -30, 30.01]),
-            ScalarTransform4f.translate([-30, 0, 30.01]),
-            ScalarTransform4f.translate([0, 0, 60.01])
+            ScalarVector3f([0, 0, 0.01]),
+            ScalarVector3f([0, 30, 30.01]),
+            ScalarVector3f([30, 0, 30.01]),
+            ScalarVector3f([0, -30, 30.01]),
+            ScalarVector3f([-30, 0, 30.01]),
+            ScalarVector3f([0, 0, 60.01])
         ]
         self.rotate = [
-            ScalarTransform4f.rotate([1,0,0], angle=180),
-            ScalarTransform4f.rotate([1,0,0], angle=-90),
-            ScalarTransform4f.rotate([0,1,0], angle=90),
-            ScalarTransform4f.rotate([1,0,0], angle=90),
-            ScalarTransform4f.rotate([0,1,0], angle=-90),
-            ScalarTransform4f()
+            {"axis": "x", "angle": 180},
+            {"axis": "x", "angle": -90},
+            {"axis": "y", "angle": 90},
+            {"axis": "x", "angle": 90},
+            {"axis": "y", "angle": -90},
+            {"axis": "x", "angle": 0}
         ]
 
         for i in range(self.n_mesh):
-            self.scale[i] = ScalarTransform4f.scale(30)
+            self.scale[i] = ScalarVector3f(30)
             self.map[i] = np.ones([512, 512], dtype="uint8") * 63
 
 

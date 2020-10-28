@@ -10,7 +10,7 @@ import render_config as config
 
 mitsuba.set_variant(config.variant)
 
-from mitsuba.core import ScalarTransform4f
+from mitsuba.core import ScalarTransform4f, ScalarVector3f
 
 
 class BSSRDF_Data:
@@ -59,8 +59,10 @@ class BSSRDF_Data:
 
         
 
-    def register_mesh(self, id, mesh_type, filename=None, translate=ScalarTransform4f(),
-                      rotate=ScalarTransform4f(), scale=ScalarTransform4f()):
+    def register_mesh(self, id, mesh_type, filename=None,
+                      translate=ScalarVector3f([0,0,0]),
+                      rotate={"axis": "x", "angle": 0.0},
+                      scale=ScalarVector3f([1,1,1])):
         """
         Register mesh data
         """
@@ -87,23 +89,40 @@ class BSSRDF_Data:
             bssrdf = self.bssrdf[i]
             mesh = self.mesh[i]
 
+            axis = None
+            if(mesh["rotate"]["axis"] == "x"):
+                axis = [1, 0, 0]
+            elif(mesh["rotate"]["axis"] == "y"):
+                axis = [0, 1, 0]
+            elif(mesh["rotate"]["axis"] == "z"):
+                axis = [0, 0, 1]
+            angle = mesh["rotate"]["angle"]
+
 
             if self.mesh[i]["type"] == "rectangle":
                 scene_dict[str(i)] = {
                     "type": mesh["type"],
-                    "to_world": mesh["translate"]
-                                * mesh["rotate"]
-                                * mesh["scale"],
+                    "to_world": ScalarTransform4f.translate(mesh["translate"])
+                                * ScalarTransform4f.rotate(axis, angle)
+                                * ScalarTransform4f.scale(mesh["scale"]),
                 }
         
             else:
                 scene_dict[str(i)] = {
                     "type": self.mesh["type"],
                     "filename": mesh["filename"],
-                    "to_world": mesh["translate"]
-                                * mesh["rotate"]
-                                * mesh["scale"]
+                    "to_world": ScalarTransform4f.translate(mesh["translate"])
+                                * ScalarTransform4f.rotate(axis, angle)
+                                * ScalarTransform4f.scale(mesh["scale"]),
                 }
+
+            bssrdf["trans"] = mesh["translate"]
+            if(mesh["rotate"]["axis"] == "x"):
+                bssrdf["rotate_x"] = angle
+            elif(mesh["rotate"]["axis"] == "y"):
+                bssrdf["rotate_y"] = angle
+            elif(mesh["rotate"]["axis"] == "z"):
+                bssrdf["rotate_z"] = angle
 
             bsdf = {
                 "bsdf_" + str(i): bssrdf
