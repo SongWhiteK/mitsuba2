@@ -118,6 +118,7 @@ MTS_PY_EXPORT(SurfaceInteraction) {
             "wavelengths"_a, D(SurfaceInteraction, SurfaceInteraction))
         .def("to_world", &SurfaceInteraction3f::to_world, "v"_a, D(SurfaceInteraction, to_world))
         .def("to_local", &SurfaceInteraction3f::to_local, "v"_a, D(SurfaceInteraction, to_local))
+        .def("to_mesh_local", &SurfaceInteraction3f::to_mesh_local, "bs"_a, D(SurfaceInteraction, to_mesh_local))
         .def("to_world_mueller", &SurfaceInteraction3f::to_world_mueller, "M_local"_a,
             "wi_local"_a, "wo_local"_a, D(SurfaceInteraction, to_world_mueller))
         .def("to_local_mueller", &SurfaceInteraction3f::to_local_mueller, "M_world"_a,

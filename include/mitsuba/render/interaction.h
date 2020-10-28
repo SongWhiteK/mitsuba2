@@ -91,6 +91,7 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
     MTS_IMPORT_OBJECT_TYPES()
     using Index            = typename CoreAliases::UInt32;
     using PositionSample3f = typename RenderAliases::PositionSample3f;
+    using BSDFSample3f              = BSDFSample3<Float, Spectrum>;
     // Make parent fields/functions visible
     MTS_IMPORT_BASE(Interaction, t, time, wavelengths, p, is_valid)
     //! @}
@@ -163,6 +164,18 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
     /// Convert a world-space vector into local shading coordinates
     Vector3f to_local(const Vector3f &v) const {
         return sh_frame.to_local(v);
+    }
+
+    Vector3f to_mesh_local(const BSDFSample3f &bs) const {
+        Transform4f to_mesh_world = Transform4f::translate(bs.trans) *
+                                    Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                                    Transform4f::rotate(Vector3f(0,0,1), bs.z);
+        Transform4f to_local = to_mesh_world.inverse();
+
+        Vector3f p_local = to_local * p;
+
+        return p_local;
     }
 
     /**

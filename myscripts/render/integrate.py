@@ -185,11 +185,18 @@ def render_sample(scene, sampler, rays, bdata):
 
         ##### Process for BSSRDF #####
         # TODO: Convert incident position into local coordinates of mesh of interested as tensor
-        in_pos = ek.select(is_bssrdf, si.p, Vector3f(0))
+        in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
 
         # Get transform matrix w.r.t each mesh of BSSDF
         mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
+        print(is_bssrdf)
         print(mesh_id)
+        print(si.p)
+        print(in_pos)
+
+
+        # Convert incident position into local coordinates
+        
         # transform_mat = get_trans_mat(mesh_id)
         
         # TODO: Get properties, e.g., medium params and incident angle as tensor
