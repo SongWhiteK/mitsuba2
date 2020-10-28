@@ -22,7 +22,7 @@ def mis_weight(pdf_a, pdf_b):
     return ek.select(pdf_a > 0.0, pdf_a / (pdf_a + pdf_b), Float(0.0))
 
 
-def render(scene, spp, sample_per_pass):
+def render(scene, spp, sample_per_pass, bdata):
     """
     Generate basic objects and rays.
     Throw render job
@@ -81,7 +81,7 @@ def render(scene, spp, sample_per_pass):
             sample3=0
         )
 
-        result, valid_rays = render_sample(scene, sampler, rays)
+        result, valid_rays = render_sample(scene, sampler, rays, bdata)
         result = weights * result
         xyz = Color3f(srgb_to_xyz(result))
         aovs = [xyz[0], xyz[1], xyz[2],
@@ -98,7 +98,7 @@ def render(scene, spp, sample_per_pass):
     bmp.write('result.exr')
 
 
-def render_sample(scene, sampler, rays):
+def render_sample(scene, sampler, rays, bdata):
     """
     Sample RTE
 

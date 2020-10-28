@@ -30,7 +30,7 @@ sample_per_pass = config.sample_per_pass
 print("Rendering start")
 
 start = time.time()
-integrate.render(scene, spp, sample_per_pass)
+integrate.render(scene, spp, sample_per_pass, bdata)
 process_time = time.time() - start
 
 print(f"Rendering end (took {process_time}s)")
