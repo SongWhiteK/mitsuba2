@@ -53,6 +53,11 @@ public:
         m_sigmat = props.volume<Volume>("sigma_t", 1.f);
         m_scale = props.float_("scale", 1.0f);
 
+        m_trans = props.vector3f("trans", 0.f);
+        m_rotate_x = props.float_("rotate_x", 0.f);
+        m_rotate_y = props.float_("rotate_y", 0.f);
+        m_rotate_z = props.float_("rotate_z", 0.f);
+
         m_mesh_id = props.int_("mesh_id", 0);
         if(m_mesh_id <= 0){
             Log(Error, "The mesh ID should be set as larger than 0");
@@ -118,10 +123,18 @@ public:
 
         bs.eta = select(selected_r, Float(1.f), eta_it);
 
-        bs.albedo = m_albedo->eval(si, selected_t);
-        bs.sigma_t = m_sigmat->eval(si, selected_t);
+        Mask incident = selected_t & (cos_theta_i > 0);
 
-        bs.g = select(selected_t, m_g, bs.g);
+        bs.albedo = m_albedo->eval(si, incident);
+        bs.sigma_t = m_sigmat->eval(si, incident);
+
+        bs.g = select(incident, m_g, bs.g);
+
+        bs.trans = select(incident, m_trans, bs.trans);
+
+        bs.x = select(incident, m_rotate_x, bs.x);
+        bs.y = select(incident, m_rotate_y, bs.y);
+        bs.z = select(incident, m_rotate_z, bs.z);
 
         UnpolarizedSpectrum reflectance = 1.f, transmittance = 1.f;
         if (m_specular_reflectance)
@@ -224,12 +237,21 @@ public:
 
     std::string to_string() const override {
         std::ostringstream oss;
-        oss << "SmoothDielectric[" << std::endl;
+        oss << "BSSRDF[" << std::endl;
         if (m_specular_reflectance)
             oss << "  specular_reflectance = " << string::indent(m_specular_reflectance) << "," << std::endl;
         if (m_specular_transmittance)
             oss << "  specular_transmittance = " << string::indent(m_specular_transmittance) << ", " << std::endl;
-        oss << "  eta = " << m_eta << "," << std::endl
+        oss << "  eta = " << m_eta << "," << std::endl;
+        oss << "  sigma_t = " << m_sigmat << "," << std::endl;
+        oss << "  albedo = " << m_albedo << "," << std::endl;
+        oss << "  scale = " << m_scale << "," << std::endl;
+        oss << "  g = " << m_g << "," << std::endl;
+        oss << "  mesh_id = " << m_mesh_id << "," << std::endl;
+        oss << "  trans = " << m_trans << "," << std::endl;
+        oss << "  rotate_x = " << m_rotate_x << "," << std::endl;
+        oss << "  rotate_y = " << m_rotate_y << "," << std::endl;
+        oss << "  rotate_z = " << m_rotate_z << "," << std::endl
             << "]";
         return oss.str();
     }
@@ -243,6 +265,8 @@ private:
     Float m_scale;
     ScalarFloat m_g;
     ScalarInt32 m_mesh_id;
+    Vector3f m_trans;
+    ScalarFloat m_rotate_x, m_rotate_y, m_rotate_z;
 };
 
 MTS_IMPLEMENT_CLASS_VARIANT(BSSRDF, BSDF)
