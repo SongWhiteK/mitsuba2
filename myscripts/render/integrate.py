@@ -22,7 +22,7 @@ def mis_weight(pdf_a, pdf_b):
     return ek.select(pdf_a > 0.0, pdf_a / (pdf_a + pdf_b), Float(0.0))
 
 
-def render(scene, spp, sample_per_pass):
+def render(scene, spp, sample_per_pass, bdata):
     """
     Generate basic objects and rays.
     Throw render job
@@ -81,7 +81,7 @@ def render(scene, spp, sample_per_pass):
             sample3=0
         )
 
-        result, valid_rays = render_sample(scene, sampler, rays)
+        result, valid_rays = render_sample(scene, sampler, rays, bdata)
         result = weights * result
         xyz = Color3f(srgb_to_xyz(result))
         aovs = [xyz[0], xyz[1], xyz[2],
@@ -98,7 +98,7 @@ def render(scene, spp, sample_per_pass):
     bmp.write('result.exr')
 
 
-def render_sample(scene, sampler, rays):
+def render_sample(scene, sampler, rays, bdata):
     """
     Sample RTE
 
@@ -125,7 +125,7 @@ def render_sample(scene, sampler, rays):
 
     depth = 0
 
-    bssrdf = BSSRDF(config.model_name)
+    # bssrdf = BSSRDF(config.model_name)
 
     while(True):
         depth += 1
@@ -180,7 +180,8 @@ def render_sample(scene, sampler, rays):
 
         # Whether the BSDF is BSSRDF or not?
         is_bssrdf = (active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
-                     & (Frame3f.cos_theta(bs.wo) < Float(0.0)))
+                     & (Frame3f.cos_theta(bs.wo) < Float(0.0))
+                     & (Frame3f.cos_theta(si.wi) > Float(0.0)))
 
         ##### Process for BSSRDF #####
         # TODO: Convert incident position into local coordinates of mesh of interested as tensor

@@ -1,4 +1,7 @@
 """Process BSSRDF with VAE"""
+import sys
+sys.path.append("./myscripts/vae")
+sys.path.append("./myscripts/gen_train")
 
 import torch
 from torch._C import device
