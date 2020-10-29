@@ -453,6 +453,8 @@ static const char *__doc_mitsuba_BSDFSample3_sigma_t = R"doc()doc";
 
 static const char *__doc_mitsuba_BSDFSample3_g = R"doc()doc";
 
+static const char *__doc_mitsuba_BSDFSample3_height_max = R"doc()doc";
+
 static const char *__doc_mitsuba_BSDFSample3_trans = R"doc()doc";
 
 static const char *__doc_mitsuba_BSDFSample3_x = R"doc()doc";

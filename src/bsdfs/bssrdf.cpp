@@ -66,6 +66,8 @@ public:
         m_g = props.float_("g", 0.8f);
         if (m_g >= 1 || m_g <= -1)
             Log(Error, "The asymmetry parameter must lie in the interval (-1, 1)!");
+        
+        m_height_max = props.float_("height_max", 0.f);
 
         if (props.has_property("specular_reflectance"))
             m_specular_reflectance   = props.texture<Texture>("specular_reflectance", 1.f);
@@ -129,6 +131,8 @@ public:
         bs.sigma_t = m_sigmat->eval(si, incident);
 
         bs.g = select(incident, m_g, bs.g);
+
+        bs.height_max = select(incident, m_height_max, bs.height_max);
 
         bs.trans = select(incident, m_trans, bs.trans);
 
@@ -263,7 +267,7 @@ private:
     ref<Texture> m_specular_transmittance;
     ref<Volume> m_sigmat, m_albedo;
     Float m_scale;
-    ScalarFloat m_g;
+    ScalarFloat m_g, m_height_max;
     ScalarInt32 m_mesh_id;
     Vector3f m_trans;
     ScalarFloat m_rotate_x, m_rotate_y, m_rotate_z;

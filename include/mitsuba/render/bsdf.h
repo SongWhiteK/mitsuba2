@@ -223,6 +223,8 @@ template <typename Float, typename Spectrum> struct BSDFSample3 {
     /// anisotropic index for BSSRDF
     Float g;
 
+    Float height_max;
+
     /// Translation of mesh
     Vector3f trans;
 
@@ -256,15 +258,15 @@ template <typename Float, typename Spectrum> struct BSDFSample3 {
      *      the scattering event.
      */
     BSDFSample3(const Vector3f &wo)
-        : wo(wo), pdf(0.f), eta(1.f), albedo(0.f), sigma_t(1.f), g(0.25f), trans(0.f),
-          x(0.f), y(0.f), z(0.f), sampled_type(0), sampled_component(uint32_t(-1)) { }
+        : wo(wo), pdf(0.f), eta(1.f), albedo(0.f), sigma_t(1.f), g(0.25f), height_max(0.0f),
+          trans(0.f), x(0.f), y(0.f), z(0.f), sampled_type(0), sampled_component(uint32_t(-1)) { }
 
 
     //! @}
     // =============================================================
 
-    ENOKI_STRUCT(BSDFSample3, wo, pdf, eta, albedo, sigma_t, g, trans,
-                 x, y, z, sampled_type, sampled_component);
+    ENOKI_STRUCT(BSDFSample3, wo, pdf, eta, albedo, sigma_t, g, height_max,
+                 trans, x, y, z, sampled_type, sampled_component);
 };
 
 
@@ -497,6 +499,7 @@ std::ostream &operator<<(std::ostream &os, const BSDFSample3<Float, Spectrum>& b
         << "  albedo = " << bs.albedo << "," << std::endl
         << "  sigma_t = " << bs.sigma_t << ", " << std::endl
         << "  g = " << bs.g << ", " << std::endl
+        << "  height_max" << bs.height_max << ", " << std::endl
         << "  trans = " << bs.trans << ", " << std::endl
         << "  x = " << bs.x << ", " << std::endl
         << "  y = " << bs.y << ", " << std::endl
@@ -535,7 +538,7 @@ NAMESPACE_END(mitsuba)
 // -----------------------------------------------------------------------
 
 ENOKI_STRUCT_SUPPORT(mitsuba::BSDFSample3, wo, pdf, eta, albedo, sigma_t,
-                     g, trans, x, y, z, sampled_type, sampled_component)
+                     g, height_max, trans, x, y, z, sampled_type, sampled_component)
 
 //! @}
 // -----------------------------------------------------------------------
