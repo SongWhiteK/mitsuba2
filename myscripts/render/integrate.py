@@ -184,7 +184,8 @@ def render_sample(scene, sampler, rays, bdata):
                      & (Frame3f.cos_theta(si.wi) > Float(0.0)))
 
         ##### Process for BSSRDF #####
-        # TODO: Convert incident position into local coordinates of mesh of interested as tensor
+        mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
+        # Convert incident position into local coordinates of mesh of interested as tensor
         in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
 
         # Get transform matrix w.r.t each mesh of BSSDF
