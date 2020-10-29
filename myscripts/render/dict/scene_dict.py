@@ -32,8 +32,8 @@ scene_dict = {
 
         "film": {
             "type": "hdrfilm",
-            "width": 256,
-            "height": 256,
+            "width": 4,
+            "height": 4,
             "rfilter": {
                 "type": "gaussian"
             }
