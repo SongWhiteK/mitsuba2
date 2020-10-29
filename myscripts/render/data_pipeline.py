@@ -59,7 +59,7 @@ class BSSRDF_Data:
 
         
 
-    def register_mesh(self, id, mesh_type, filename=None,
+    def register_mesh(self, id, mesh_type, height_max, filename=None,
                       translate=ScalarVector3f([0,0,0]),
                       rotate={"axis": "x", "angle": 0.0},
                       scale=ScalarVector3f([1,1,1])):
@@ -71,7 +71,8 @@ class BSSRDF_Data:
             "filename": filename,
             "translate": translate,
             "rotate": rotate,
-            "scale": scale
+            "scale": scale,
+            "height_max": height_max
         }
 
     def add_object(self, scene_dict):
@@ -123,6 +124,8 @@ class BSSRDF_Data:
                 bssrdf["rotate_y"] = angle
             elif(mesh["rotate"]["axis"] == "z"):
                 bssrdf["rotate_z"] = angle
+
+            bssrdf["height_max"] = mesh["height_max"]
 
             bsdf = {
                 "bsdf_" + str(i): bssrdf

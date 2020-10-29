@@ -2,7 +2,7 @@
 
 variant = "gpu_rgb"
 rr_depth = 5
-max_depth = 16
+max_depth = 4
 spp = 1
 sample_per_pass = 1
 

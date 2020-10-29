@@ -18,6 +18,7 @@ MTS_PY_EXPORT(BSDFSample) {
         .def_readwrite("albedo", &BSDFSample3f::albedo, D(BSDFSample3, albedo))
         .def_readwrite("sigma_t", &BSDFSample3f::sigma_t, D(BSDFSample3, sigma_t))
         .def_readwrite("g", &BSDFSample3f::g, D(BSDFSample3, g))
+        .def_readwrite("height_max", &BSDFSample3f::height_max, D(BSDFSample3, height_max))
         .def_readwrite("trans", &BSDFSample3f::trans, D(BSDFSample3, trans))
         .def_readwrite("x", &BSDFSample3f::x, D(BSDFSample3, x))
         .def_readwrite("y", &BSDFSample3f::y, D(BSDFSample3, y))

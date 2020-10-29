@@ -25,13 +25,14 @@ class meshes:
         self.translate = [None for i in range(self.n_mesh)]
         self.rotate = [None for i in range(self.n_mesh)]
         self.scale = [None for i in range(self.n_mesh)]
+        self.height_max = [None for i in range(self.n_mesh)]
         self.map = [None for i in range(self.n_mesh)]
 
     def register_all_mesh(self, bdata):
         """Register whole meshes in this class to BSSRDF_Data"""
 
         for i in range(self.n_mesh):
-            bdata.register_mesh(i+1, self.type, filename=self.filename[i],
+            bdata.register_mesh(i+1, self.type, self.height_max, filename=self.filename[i],
                                 translate=self.translate[i], rotate=self.rotate[i],
                                 scale=self.scale[i]
                                 )
@@ -81,6 +82,7 @@ class meshes_cube(meshes):
 
         for i in range(self.n_mesh):
             self.scale[i] = ScalarVector3f(30)
+            self.height_max[i] = 0
             self.map[i] = np.ones([512, 512], dtype="uint8") * 63
 
 
