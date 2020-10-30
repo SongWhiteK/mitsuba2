@@ -59,7 +59,7 @@ class BSSRDF_Data:
 
         
 
-    def register_mesh(self, id, mesh_type, height_max, filename=None,
+    def register_mesh(self, id, mesh_type, height_max, mesh_map, filename=None,
                       translate=ScalarVector3f([0,0,0]),
                       rotate={"axis": "x", "angle": 0.0},
                       scale=ScalarVector3f([1,1,1])):
@@ -72,7 +72,8 @@ class BSSRDF_Data:
             "translate": translate,
             "rotate": rotate,
             "scale": scale,
-            "height_max": height_max
+            "height_max": height_max,
+            "mesh_map": mesh_map
         }
 
     def add_object(self, scene_dict):
@@ -110,7 +111,7 @@ class BSSRDF_Data:
         
             else:
                 scene_dict[str(i)] = {
-                    "type": self.mesh["type"],
+                    "type": mesh["type"],
                     "filename": mesh["filename"],
                     "to_world": ScalarTransform4f.translate(mesh["translate"])
                                 * ScalarTransform4f.rotate(axis, angle)
