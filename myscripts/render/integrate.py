@@ -1,8 +1,9 @@
 import sys
 import numpy as np
+import mitsuba
 import enoki as ek
 import render_config as config
-import mitsuba
+import utils_render
 from bssrdf import BSSRDF
 
 mitsuba.set_variant(config.variant)
@@ -185,22 +186,12 @@ def render_sample(scene, sampler, rays, bdata):
 
         ##### Process for BSSRDF #####
         mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
+        print(mesh_id)
         # Convert incident position into local coordinates of mesh of interested as tensor
         in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
 
-        # Get transform matrix w.r.t each mesh of BSSDF
-        mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
-        print(is_bssrdf)
-        print(mesh_id)
-        print(si.p)
-        print(in_pos)
-
-
-        # Convert incident position into local coordinates
-        
-        # transform_mat = get_trans_mat(mesh_id)
-        
         # TODO: Get properties, e.g., medium params and incident angle as tensor
+        props = utils_render.get_props(bs, si, channel)
 
         # TODO: Get height map around incident position as tensor
 
