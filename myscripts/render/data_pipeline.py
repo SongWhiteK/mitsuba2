@@ -3,10 +3,17 @@ Data pipeline for rendering
 Handle some data, such as, mesh transform matrix for BSSRDF
 and create scene format
 """
+import sys
+sys.path.append("./myscripts/vae")
+sys.path.append("./myscripts/gen_train")
 
 import mitsuba
 import render_config as config
 import numpy as np
+from multiprocessing import Pool
+from data_handler import clip_scaled_map
+
+
 
 mitsuba.set_variant(config.variant)
 
@@ -147,9 +154,33 @@ class BSSRDF_Data:
         medium["sigma_t"] = self.bssrdf[mesh_id]["sigma_t"]
         medium["albedo"] = self.bssrdf[mesh_id]["albedo"]
         medium["g"] = self.bssrdf[mesh_id]["g"]
-                
+
         return medium
 
-            
 
+    def get_height_map(self, in_pos, mesh_id):
+        
+        num_objects = range(len(mesh_id))
+        self.mesh_id = mesh_id.torch().cpu()
+        self.in_pos = in_pos.torch().cpu()
 
+        with Pool(processes=8) as p:
+            result = p.map(func=self.call_map, iterable=num_objects)
+
+        result = [x for x in result if x is not None]
+
+    def call_map(self, i):
+        ref_id = int(self.mesh_id[i])
+
+        if(ref_id == 0):
+            return
+
+        mesh_map = self.mesh_map[ref_id]
+        medium = self.get_medium_dict(ref_id)
+        ref_in = self.in_pos[i, :]
+        x_range, y_range = self.mesh_range[ref_id]
+        x_min, y_max = self.mesh_minmax[ref_id]
+
+        height_map = clip_scaled_map(mesh_map, ref_in, medium, x_range, y_range, x_min, y_max)
+
+        return i, height_map
