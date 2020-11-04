@@ -185,6 +185,12 @@ def render_sample(scene, sampler, rays, bdata):
                      & (Frame3f.cos_theta(bs.wo) < Float(0.0))
                      & (Frame3f.cos_theta(si.wi) > Float(0.0)))
 
+        # if ek.any(is_bssrdf):
+
+        cnt = ek.select(is_bssrdf, UInt32(1), UInt32(0))
+        print(ek.hsum(cnt))
+
+
         ##### Process for BSSRDF #####
         mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
         print(mesh_id)
