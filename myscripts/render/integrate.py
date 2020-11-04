@@ -133,7 +133,7 @@ def render_sample(scene, sampler, rays, bdata):
     n_channels = 3
     channel = UInt32(ek.min(sampler.next_1d(active) * n_channels, n_channels - 1))
 
-    # bssrdf = BSSRDF(config.model_name)
+    bssrdf = BSSRDF(config.model_name)
 
     while(True):
         depth += 1
@@ -218,7 +218,7 @@ def render_sample(scene, sampler, rays, bdata):
         
 
         # TODO: Estimate position and absorption probability with VAE as mitsuba types
-        # pos_recon_local, abs_recon = bssrdf.estimate(in_pos, im, props, sigma_n, is_bssrdf)
+        pos_recon_local, abs_recon = bssrdf.estimate(in_pos, im, props, sigma_n, is_bssrdf)
         # TODO: Convert from mesh coordinates to world coordinates
 
         # TODO: Project estimated position onto nearest mesh
