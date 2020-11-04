@@ -19,6 +19,9 @@ class BSSRDF_Data:
     def __init__(self):
         self.bssrdf = {}
         self.mesh = {}
+        self.mesh_map = {}
+        self.mesh_range = {}
+        self.mesh_minmax = {}
 
     def register_medium(self, mesh_id, ior=1.5, scale=1.0,
                         sigma_t=1.0, albedo=0.5, g=0.25):
@@ -71,9 +74,12 @@ class BSSRDF_Data:
             "translate": translate,
             "rotate": rotate,
             "scale": scale,
-            "height_max": height_max,
-            "mesh_map": mesh_map
+            "height_max": height_max
         }
+
+        self.mesh_map[mesh_id] = mesh_map
+        self.mesh_range[mesh_id] = range
+        self.mesh_minmax[mesh_id] = minmax
 
     def add_object(self, scene_dict):
         """
