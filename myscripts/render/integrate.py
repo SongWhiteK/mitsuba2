@@ -128,10 +128,16 @@ def render_sample(scene, sampler, rays, bdata):
 
     depth = 0
 
+    # Set channel
+    # At and after evaluating BSSRDF, a ray consider only this one channel
+    n_channels = 3
+    channel = UInt32(ek.min(sampler.next_1d(active) * n_channels, n_channels - 1))
+
     # bssrdf = BSSRDF(config.model_name)
 
     while(True):
         depth += 1
+        print(depth)
 
         ##### Interaction with emitters #####
         result += ek.select(active,

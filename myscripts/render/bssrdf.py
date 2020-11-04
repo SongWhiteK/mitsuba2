@@ -10,6 +10,7 @@ import vae_config
 import mitsuba
 import enoki as ek
 import utils
+from utils_render import index_spectrum
 
 mitsuba.set_variant(render_config.variant)
 
