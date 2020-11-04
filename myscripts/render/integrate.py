@@ -1,14 +1,15 @@
+from time import time
 import sys
 import numpy as np
 import mitsuba
 import enoki as ek
 import render_config as config
 import utils_render
-from bssrdf import BSSRDF
+from bssrdf import BSSRDF, get_props
 
 mitsuba.set_variant(config.variant)
 
-from mitsuba.core import (Spectrum, Float, UInt32, UInt64, Vector2f, Vector3f,
+from mitsuba.core import (Spectrum, Float, UInt32, Vector2f, Vector3f,
                           Frame3f, Color3f, RayDifferential3f, srgb_to_xyz)
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file
@@ -194,6 +195,11 @@ def render_sample(scene, sampler, rays, bdata):
         props = utils_render.get_props(bs, si, channel)
 
         # TODO: Get height map around incident position as tensor
+        # mesh_map = get_mesh_map(bdata, mesh_id)
+        time1 = time()
+        print("get map start")
+        im = bdata.get_height_map(in_pos, mesh_id)
+        print(f"took {time() - time1}s")
 
         # TODO: Estimate position and absorption probability with VAE as mitsuba types
         # pos_recon_local, abs_recon = bssrdf.estimate(in_pos, im, props, sigma_n, is_bssrdf)

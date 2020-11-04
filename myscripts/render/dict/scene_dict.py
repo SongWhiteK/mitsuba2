@@ -42,7 +42,7 @@ scene_dict = {
 
     "emitter": {
         "type": "envmap",
-        "filename": "myscripts/render/dict/envmap.exr",
+        "filename": "C:/Users/mineg/mitsuba2/myscripts/render/dict/envmap.exr",
         "to_world": ScalarTransform4f.rotate([1,0,0], angle=90)
     },
 
