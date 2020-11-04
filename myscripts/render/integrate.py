@@ -205,20 +205,21 @@ def render_sample(scene, sampler, rays, bdata):
         # Convert incident position into local coordinates of mesh of interested as tensor
         in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
 
+
         # Get properties, e.g., medium params and incident angle as tensor
-        props, sigma_n = get_props(bs, si, channel)
+        props, sigma_n = get_props(bs, si, channel, is_bssrdf)
 
         # Get height map around incident position as tensor
         time1 = time()
         print("get map start")
         im = bdata.get_height_map(in_pos, mesh_id)
         print(f"took {time() - time1}s")
-        im_tensor = torch.tensor(im)
-        im_tensor = im_tensor.reshape([cnt, 1, 255, 255])
+        im = torch.tensor(im)
+        im = im.reshape([cnt, 1, 255, 255])
         
 
         # TODO: Estimate position and absorption probability with VAE as mitsuba types
-        pos_recon_local, abs_recon = bssrdf.estimate(in_pos, im, props, sigma_n, is_bssrdf)
+        # pos_recon_local, abs_recon = bssrdf.estimate(in_pos, im, props, sigma_n, is_bssrdf)
         # TODO: Convert from mesh coordinates to world coordinates
 
         # TODO: Project estimated position onto nearest mesh
