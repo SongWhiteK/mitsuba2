@@ -169,6 +169,8 @@ class BSSRDF_Data:
 
         result = [x for x in result if x is not None]
 
+        return result
+
     def call_map(self, i):
         ref_id = int(self.mesh_id[i])
 
@@ -183,4 +185,4 @@ class BSSRDF_Data:
 
         height_map = clip_scaled_map(mesh_map, ref_in, medium, x_range, y_range, x_min, y_max)
 
-        return i, height_map
+        return height_map

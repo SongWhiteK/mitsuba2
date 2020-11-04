@@ -189,7 +189,8 @@ def render_sample(scene, sampler, rays, bdata):
         # if ek.any(is_bssrdf):
 
         cnt = ek.select(is_bssrdf, UInt32(1), UInt32(0))
-        print(ek.hsum(cnt))
+        cnt = int(ek.hsum(cnt)[0])
+        print(cnt)
 
 
         ##### Process for BSSRDF #####
@@ -201,12 +202,14 @@ def render_sample(scene, sampler, rays, bdata):
         # Get properties, e.g., medium params and incident angle as tensor
         props, sigma_n = get_props(bs, si, channel)
 
-        # TODO: Get height map around incident position as tensor
-        # mesh_map = get_mesh_map(bdata, mesh_id)
+        # Get height map around incident position as tensor
         time1 = time()
         print("get map start")
         im = bdata.get_height_map(in_pos, mesh_id)
         print(f"took {time() - time1}s")
+        im_tensor = torch.tensor(im)
+        im_tensor = im_tensor.reshape([cnt, 1, 255, 255])
+        
 
         # TODO: Estimate position and absorption probability with VAE as mitsuba types
         # pos_recon_local, abs_recon = bssrdf.estimate(in_pos, im, props, sigma_n, is_bssrdf)
