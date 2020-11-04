@@ -20,7 +20,7 @@ class BSSRDF_Data:
         self.bssrdf = {}
         self.mesh = {}
 
-    def register_medium(self, id, ior=1.5, scale=1.0,
+    def register_medium(self, mesh_id, ior=1.5, scale=1.0,
                         sigma_t=1.0, albedo=0.5, g=0.25):
         """
         Register medium with mesh id
@@ -30,12 +30,12 @@ class BSSRDF_Data:
             ior, scale, sigma_t, albedo, g: Medium parameters
         """
 
-        if id in self.bssrdf:
+        if mesh_id in self.bssrdf:
             print("This ID has already used. Do you want to overwrite? [y/n]")
             while(True):
                 key = input()
                 if key == "y":
-                    print("ID " +"\"" + str(id) + "\"" " is overwritten")
+                    print("ID " +"\"" + str(mesh_id) + "\"" " is overwritten")
                     break
 
                 elif key == "n":
@@ -46,7 +46,7 @@ class BSSRDF_Data:
                     print("Input valid key")
                     continue
 
-        self.bssrdf[id] = {
+        self.bssrdf[mesh_id] = {
             "type": "bssrdf",
             "int_ior": ior,
             "ext_ior": 1.0,
@@ -54,19 +54,18 @@ class BSSRDF_Data:
             "sigma_t": sigma_t,
             "albedo": albedo,
             "g": g,
-            "mesh_id": id
+            "mesh_id": mesh_id
             }
 
         
 
-    def register_mesh(self, id, mesh_type, height_max, mesh_map, filename=None,
-                      translate=ScalarVector3f([0,0,0]),
-                      rotate={"axis": "x", "angle": 0.0},
-                      scale=ScalarVector3f([1,1,1])):
+    def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, range,
+                      minmax, filename=None, translate=[0,0,0],
+                      rotate={"axis": "x", "angle": 0.0}, scale=[1,1,1]):
         """
         Register mesh data
         """
-        self.mesh[id] = {
+        self.mesh[mesh_id] = {
             "type": mesh_type,
             "filename": filename,
             "translate": translate,
