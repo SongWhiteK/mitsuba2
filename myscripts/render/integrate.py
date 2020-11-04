@@ -1,6 +1,7 @@
 from time import time
 import sys
 import numpy as np
+import torch
 import mitsuba
 import enoki as ek
 import render_config as config
@@ -198,7 +199,7 @@ def render_sample(scene, sampler, rays, bdata):
         in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
 
         # Get properties, e.g., medium params and incident angle as tensor
-        props = get_props(bs, si, channel)
+        props, sigma_n = get_props(bs, si, channel)
 
         # TODO: Get height map around incident position as tensor
         # mesh_map = get_mesh_map(bdata, mesh_id)

@@ -9,6 +9,7 @@ import render_config
 import vae_config
 import mitsuba
 import enoki as ek
+import utils
 
 mitsuba.set_variant(render_config.variant)
 
@@ -98,6 +99,11 @@ def get_props(bs, si, channel):
     albedo = index_spectrum(bs.albedo, channel)
     g = bs.g
     sigma_t = index_spectrum(bs.sigma_t, channel)
+    medium = {}
+    medium["albedo"] = albedo
+    medium["g"] = g
+    medium["sigma_t"] = sigma_t
+    sigma_n = utils.get_sigman(medium)
     eff_albedo = utils.reduced_albedo_to_effective_albedo(
         utils.get_reduced_albedo(albedo, g, sigma_t)
         ).torch().view(-1, 1)
@@ -109,8 +115,9 @@ def get_props(bs, si, channel):
     height_max = bs.height_max.torch().view(-1, 1)
 
     props = torch.cat([eff_albedo, g, eta, d_in, height_max], 1)
-    print(props)
-    print(props.size())
+
+
+    return props, sigma_n
     
 
 
