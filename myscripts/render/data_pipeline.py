@@ -136,7 +136,13 @@ class BSSRDF_Data:
 
         return scene_dict
 
+    def get_medium_dict(self, mesh_id):
+        medium = {}
+        medium["sigma_t"] = self.bssrdf[mesh_id]["sigma_t"]
+        medium["albedo"] = self.bssrdf[mesh_id]["albedo"]
+        medium["g"] = self.bssrdf[mesh_id]["g"]
                 
+        return medium
 
             
 
