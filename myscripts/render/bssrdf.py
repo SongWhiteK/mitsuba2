@@ -77,11 +77,11 @@ class BSSRDF:
             # Decode and get reconstructed position and absorption
             recon_pos, recon_abs = self.model.decode(feature, z)
 
-            # Convert from tensor to Vector3f, and as world coordinates
-            pos += ek.select(active, sigma_n * Vector3f(recon_pos), 0)
-            pos += ek.select(active, in_pos, 0)
+        # Convert from tensor to Vector3f, and as world coordinates
+        pos += ek.select(active, sigma_n * Vector3f(recon_pos), 0)
+        pos += ek.select(active, in_pos, 0)
 
-            abs_prob += ek.select(active, Float(recon_abs), 0)
+        abs_prob += ek.select(active, Float(recon_abs), 0)
 
         return pos, abs_prob
 
