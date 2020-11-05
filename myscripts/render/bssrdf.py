@@ -89,7 +89,7 @@ class BSSRDF:
     
 
 
-def get_props(bs, si, channel, active):
+def get_props(bs, si, channel):
     """
     Get property tensor for vae
     
@@ -114,7 +114,7 @@ def get_props(bs, si, channel, active):
     medium["albedo"] = albedo
     medium["g"] = g
     medium["sigma_t"] = sigma_t
-    sigma_n = utils.get_sigman(medium).torch()[active].view(-1, 1)
+    sigma_n = utils.get_sigman(medium).torch().view(-1, 1)
     eff_albedo = utils.reduced_albedo_to_effective_albedo(
         utils.get_reduced_albedo(albedo, g, sigma_t)
         ).torch().view(-1, 1)
@@ -125,7 +125,7 @@ def get_props(bs, si, channel, active):
     d_in = si.wi.torch()
     height_max = bs.height_max.torch().view(-1, 1)
 
-    props = torch.cat([eff_albedo, g, eta, d_in, height_max], 1)[active]
+    props = torch.cat([eff_albedo, g, eta, d_in, height_max], 1)
 
     return props, sigma_n
     

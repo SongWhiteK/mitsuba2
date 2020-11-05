@@ -207,7 +207,7 @@ def render_sample(scene, sampler, rays, bdata):
 
 
         # Get properties, e.g., medium params and incident angle as tensor
-        props, sigma_n = get_props(bs, si, channel, is_bssrdf)
+        props, sigma_n = get_props(bs, si, channel)
 
         # Get height map around incident position as tensor
         time1 = time()
