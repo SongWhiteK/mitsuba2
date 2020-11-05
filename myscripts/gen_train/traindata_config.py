@@ -8,7 +8,7 @@ Configuration of generating train data
 class TrainDataConfiguration:
     def __init__(self):
         ############## EXECUTION MODES ##############
-        self.DEBUG = True
+        self.DEBUG = False
         self.mode = "sample" # visualizing medium appearance
         self.medium_fix = False # generating fixed medium parameters
         self.scale_fix = False # no scale shape objects
