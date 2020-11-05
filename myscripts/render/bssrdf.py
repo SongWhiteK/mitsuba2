@@ -67,19 +67,22 @@ class BSSRDF:
 
         with torch.no_grad():
             # Feature conversion
-            feature = self.model.feature_conversion(im.to(self.device), props.to(self.device))
+            feature = self.model.feature_conversion(im.to(self.device, dtype=torch.float), props.to(self.device, dtype=torch.float))
 
             # Sample latent variable from normal distribution
-            z = torch.randn(n_sample, 4)
+            z = torch.randn(n_sample, 4).to(self.device, dtype=torch.float)
 
             # Decode and get reconstructed position and absorption
             recon_pos, recon_abs = self.model.decode(feature, z)
 
         # Convert from tensor to Vector3f, and as world coordinates
-        pos += ek.select(active, sigma_n * Vector3f(recon_pos), 0)
-        pos += ek.select(active, in_pos, 0)
+        recon_pos = Vector3f(recon_pos)
+        recon_abs[torch.isnan(recon_abs)] = 0
+        abs_prob = Float(recon_abs.view(1,-1).squeeze())
 
-        abs_prob += ek.select(active, Float(recon_abs), 0)
+        # Reconstruct real scale position in mesh local coordinates
+        pos += ek.select(active, sigma_n * recon_pos, 0)
+        pos += ek.select(active, Vector3f(in_pos), 0)
 
         return pos, abs_prob
 
@@ -112,7 +115,7 @@ def get_props(bs, si, channel):
     medium["albedo"] = albedo
     medium["g"] = g
     medium["sigma_t"] = sigma_t
-    sigma_n = utils.get_sigman(medium).torch().view(-1, 1)
+    sigma_n = utils.get_sigman(medium)
     eff_albedo = utils.reduced_albedo_to_effective_albedo(
         utils.get_reduced_albedo(albedo, g, sigma_t)
         ).torch().view(-1, 1)
