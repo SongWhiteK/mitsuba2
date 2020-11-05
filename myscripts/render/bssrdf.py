@@ -38,7 +38,7 @@ class BSSRDF:
     def estimate(self, in_pos, im, props, sigma_n, active):
         """
         Estimate output position and absorption with VAE
-        Notice that the types of arguments are in pytorch (tensor), but the ones of returns are in mitsuba (Vector3f, Float)
+        Notice that the types of arguments are in pytorch (tensor) except sigma_n, but the ones of returns are in mitsuba (Vector3f, Float)
         Args:
             in_pos: Incident position in local mesh coordinates, and the type of this is tensor
             im: Height map around incident position ranging to multiple of sigma_n.
@@ -52,7 +52,7 @@ class BSSRDF:
                    , and the type of this argument is tensor
             sigma_n: Standard deviation of the range of medium scattering.
                      In this method, this value is used as scale factor of coordinates in vae
-            active: 
+            active: Boolean mask which indicates whether a ray is applied VAE or not
 
         Return:
             recon_pos: estimated outgoing position (Vector3f)
@@ -75,7 +75,7 @@ class BSSRDF:
             # Decode and get reconstructed position and absorption
             recon_pos, recon_abs = self.model.decode(feature, z)
 
-        # Convert from tensor to Vector3f, and as world coordinates
+        # Convert from tensor to Vector3f and Float
         recon_pos = Vector3f(recon_pos)
         recon_abs[torch.isnan(recon_abs)] = 0
         abs_prob = Float(recon_abs.view(1,-1).squeeze())
