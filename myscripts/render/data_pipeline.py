@@ -167,7 +167,6 @@ class BSSRDF_Data:
         with Pool(processes=8) as p:
             result = p.map(func=self.call_map, iterable=num_objects)
 
-        result = [x for x in result if x is not None]
 
         return result
 
@@ -175,7 +174,7 @@ class BSSRDF_Data:
         ref_id = int(self.mesh_id[i])
 
         if(ref_id == 0):
-            return
+            return np.zeros([255, 255])
 
         mesh_map = self.mesh_map[ref_id]
         medium = self.get_medium_dict(ref_id)

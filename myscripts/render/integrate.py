@@ -215,7 +215,7 @@ def render_sample(scene, sampler, rays, bdata):
         im = bdata.get_height_map(in_pos, mesh_id)
         print(f"took {time() - time1}s")
         im = torch.tensor(im)
-        im = im.reshape([cnt, 1, 255, 255])
+        im = im.reshape([-1, 1, 255, 255])
         
 
         # TODO: Estimate position and absorption probability with VAE as mitsuba types
