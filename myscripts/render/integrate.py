@@ -219,7 +219,7 @@ def render_sample(scene, sampler, rays, bdata):
         
 
         # TODO: Estimate position and absorption probability with VAE as mitsuba types
-        pos_recon_local, abs_recon = bssrdf.estimate(in_pos.torch(), im, props, sigma_n, is_bssrdf)
+        recon_pos_local, abs_recon = bssrdf.estimate(in_pos.torch(), im, props, sigma_n, is_bssrdf)
         # TODO: Convert from mesh coordinates to world coordinates
 
         # TODO: Project estimated position onto nearest mesh
