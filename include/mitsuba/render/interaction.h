@@ -167,15 +167,26 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
     }
 
     Vector3f to_mesh_local(const BSDFSample3f &bs) const {
-        Transform4f to_mesh_world = Transform4f::translate(bs.trans) *
+        Transform4f mat_mesh_world = Transform4f::translate(bs.trans) *
                                     Transform4f::rotate(Vector3f(1,0,0), bs.x) *
                                     Transform4f::rotate(Vector3f(0,1,0), bs.y) *
                                     Transform4f::rotate(Vector3f(0,0,1), bs.z);
-        Transform4f to_local = to_mesh_world.inverse();
+        Transform4f mat_local = mat_mesh_world.inverse();
 
-        Vector3f p_local = to_local * p;
+        Vector3f p_local = mat_local * p;
 
         return p_local;
+    }
+
+    Vector3f to_mesh_world(const BSDFSample3f &bs, const Vector3f &v_local) const {
+        Transform4f mat_mesh_world = Transform4f::translate(bs.trans) *
+                                    Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                                    Transform4f::rotate(Vector3f(0,0,1), bs.z);
+        
+        Point3f p_local = Point3f(v_local);
+
+        return mat_mesh_world * p_local;
     }
 
     /**

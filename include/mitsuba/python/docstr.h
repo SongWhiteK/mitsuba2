@@ -6515,7 +6515,9 @@ Returns:
     Equivalent Mueller matrix that operates in world-space
     coordinates.)doc";
 
-static const char *__doc_mitsuba_SurfaceInteraction_to_mesh_local = R"doc(UV surface coordinates)doc";
+static const char *__doc_mitsuba_SurfaceInteraction_to_mesh_local = R"doc()doc";
+
+static const char *__doc_mitsuba_SurfaceInteraction_to_mesh_world = R"doc()doc";
 
 static const char *__doc_mitsuba_SurfaceInteraction_uv = R"doc(UV surface coordinates)doc";
 
