@@ -218,7 +218,7 @@ def render_sample(scene, sampler, rays, bdata):
         im = im.reshape([-1, 1, 255, 255])
         
 
-        # TODO: Estimate position and absorption probability with VAE as mitsuba types
+        # Estimate position and absorption probability with VAE as mitsuba types
         recon_pos_local, abs_recon = bssrdf.estimate(in_pos.torch(), im, props, sigma_n, is_bssrdf)
         # TODO: Convert from mesh coordinates to world coordinates
 
