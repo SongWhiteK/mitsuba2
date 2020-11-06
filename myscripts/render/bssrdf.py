@@ -60,7 +60,7 @@ class BSSRDF:
         """
 
         n_sample, _, _, _ = im.shape
-        pos = Vector3f().zero(n_sample)
+        pos = Vector3f(in_pos)
         abs_prob = Float().zero(n_sample)
 
         self.model.eval()
@@ -82,7 +82,6 @@ class BSSRDF:
 
         # Reconstruct real scale position in mesh local coordinates
         pos += ek.select(active, sigma_n * recon_pos, 0)
-        pos += ek.select(active, Vector3f(in_pos), 0)
 
         return pos, abs_prob
 
