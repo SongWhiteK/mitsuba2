@@ -204,6 +204,20 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
 
         return 4.f * val * val / (sigmaTp * sigmaTp);
     }
+
+    Float index_spectrum(const UnpolarizedSpectrum &spec, const UInt32 &idx) const {
+        Float m = spec[0];
+        if constexpr (is_rgb_v<Spectrum>) { // Handle RGB rendering
+            masked(m, eq(idx, 1u)) = spec[1];
+            masked(m, eq(idx, 2u)) = spec[2];
+        } else {
+            ENOKI_MARK_USED(idx);
+        }
+        return m;
+    }
+
+
+
     /**
      * Return the emitter associated with the intersection (if any)
      * \note Defined in scene.h
