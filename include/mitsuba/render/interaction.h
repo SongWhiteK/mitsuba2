@@ -189,6 +189,21 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
         return mat_mesh_world * p_local;
     }
 
+    Float get_kernelEps(const BSDFSample3f &bs, const UInt32 &channel) const {
+
+        Float sigmaT = index_spectrum(bs.sigma_t, channel);
+        Float albedo = index_spectrum(bs.albedo, channel);
+        Float g = bs.g;
+        Float sigmaS    = albedo * sigmaT;
+        Float sigmaa    = sigmaT - sigmaS;
+        Float sigmaSp   = (1 - g) * sigmaS;
+        Float sigmaTp   = sigmaSp + sigmaa;
+        Float alphaP    = sigmaSp / sigmaTp;
+        Float effAlphaP = -log(1.f - albedo * (1.f - exp(-8.f))) / 8.f;
+        Float val = 0.25f * g + 0.25f * alphaP + 1.f * effAlphaP;
+
+        return 4.f * val * val / (sigmaTp * sigmaTp);
+    }
     /**
      * Return the emitter associated with the intersection (if any)
      * \note Defined in scene.h
