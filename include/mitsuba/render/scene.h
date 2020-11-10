@@ -259,84 +259,84 @@ SurfaceInteraction<Float, Spectrum>::project_to_mesh_effnormal(const Scene *scen
                                                             const BSDFSample3f &bs,
                                                             const UInt32 &channel,
                                                             Mask active) const {
-        MTS_MASKED_FUNCTION(ProfilerPhase::SurfaceProjection, active);
+    MTS_MASKED_FUNCTION(ProfilerPhase::SurfaceProjection, active);
 
-        SurfaceInteraction3f si_result = zero<SurfaceInteraction3f>();
-        Mask si_found = false;
+    SurfaceInteraction3f si_result = zero<SurfaceInteraction3f>();
+    Mask si_found = false;
 
-        Vector3f dx = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
-                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
-                    Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(1, 0, 0);
-        Vector3f dy = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
-                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
-                    Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(0, 1, 0);
-        Vector3f dz = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
-                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
-                    Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(0, 0, 1);
+    Vector3f dx = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(1, 0, 0);
+    Vector3f dy = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(0, 1, 0);
+    Vector3f dz = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(0, 0, 1);
 
-        Float kernelEps = get_kernelEps(bs, channel);
-        Vector2f dists;
-        dists[0] = 2 * kernelEps;
-        dists[1] = math::Infinity<Float>;
+    Float kernelEps = get_kernelEps(bs, channel);
+    Vector2f dists;
+    dists[0] = 2 * kernelEps;
+    dists[1] = math::Infinity<Float>;
 
 
 
-        for (int i = 0; i < 2; i++){
-            Float projdist_max = dists[i];
-            Float point_dist = Float(-1.f);
+    for (int i = 0; i < 2; i++){
+        Float projdist_max = dists[i];
+        Float point_dist = Float(-1.f);
 
-            for (int j = 0; j < 3; j++){
-                Vector3f d;
-                switch (j)
-                {
-                case 0:
-                    d = dz;
-                    break;
-                case 1:
-                    d = dy;
-                    break;
-                case 2:
-                    d = dx;
-                    break;
-                }
-
-                Ray3f ray1 = zero<Ray3f>();
-                ray1.o = sampled_pos;
-                ray1.d = -d;
-                ray1.mint = math::RayEpsilon<Float>;
-                ray1.maxt = projdist_max;
-                ray1.update();
-
-                SurfaceInteraction3f si1 = scene->ray_intersect(ray1, active);
-                si_found |= si1.is_valid() && active;
-                if(any_or<true>(si_found)){
-                    Mask si1_valid = (point_dist < 0 || point_dist > si1.t) & active;
-                    masked(point_dist, si1_valid) = si1.t;
-                    masked(si_result, si1_valid) = si1;
-                }
-
-                Float maxT = select(si_found, si1.t, projdist_max);
-                Ray3f ray2 = zero<Ray3f>();
-                ray2.o = sampled_pos;
-                ray2.d = d;
-                ray2.mint = math::RayEpsilon<Float>;
-                ray2.maxt = maxT;
-
-                SurfaceInteraction3f si2 = scene->ray_intersect(ray2, active);
-                si_found |= si2.is_valid() && active;
-                if(any_or<true>(si2.is_valid())){
-                    Mask si2_valid = (point_dist < 0 || point_dist > si2.t) & active;
-                    masked(point_dist, si2_valid) = si2.t;
-                    masked(si_result, si2_valid)  = si2;
-                }
-
+        for (int j = 0; j < 3; j++){
+            Vector3f d;
+            switch (j)
+            {
+            case 0:
+                d = dz;
+                break;
+            case 1:
+                d = dy;
+                break;
+            case 2:
+                d = dx;
+                break;
             }
-            if(none(active ^ si_found)){
-                return {si_result, si_found};
+
+            Ray3f ray1 = zero<Ray3f>();
+            ray1.o = sampled_pos;
+            ray1.d = -d;
+            ray1.mint = math::RayEpsilon<Float>;
+            ray1.maxt = projdist_max;
+            ray1.update();
+
+            SurfaceInteraction3f si1 = scene->ray_intersect(ray1, active);
+            si_found |= si1.is_valid() && active;
+            if(any_or<true>(si_found)){
+                Mask si1_valid = (point_dist < 0 || point_dist > si1.t) & active;
+                masked(point_dist, si1_valid) = si1.t;
+                masked(si_result, si1_valid) = si1;
             }
+
+            Float maxT = select(si_found, si1.t, projdist_max);
+            Ray3f ray2 = zero<Ray3f>();
+            ray2.o = sampled_pos;
+            ray2.d = d;
+            ray2.mint = math::RayEpsilon<Float>;
+            ray2.maxt = maxT;
+
+            SurfaceInteraction3f si2 = scene->ray_intersect(ray2, active);
+            si_found |= si2.is_valid() && active;
+            if(any_or<true>(si2.is_valid())){
+                Mask si2_valid = (point_dist < 0 || point_dist > si2.t) & active;
+                masked(point_dist, si2_valid) = si2.t;
+                masked(si_result, si2_valid)  = si2;
+            }
+
         }
-        return {si_result, si_found};
+        if(none(active ^ si_found)){
+            return {si_result, si_found};
+        }
     }
+    return {si_result, si_found};
+}
 
 MTS_EXTERN_CLASS_RENDER(Scene)
 NAMESPACE_END(mitsuba)
