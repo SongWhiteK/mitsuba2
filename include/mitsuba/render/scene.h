@@ -11,7 +11,7 @@ NAMESPACE_BEGIN(mitsuba)
 template <typename Float, typename Spectrum>
 class MTS_EXPORT_RENDER Scene : public Object {
 public:
-    MTS_IMPORT_TYPES(BSDF, Emitter, EmitterPtr, Film, Sampler, Shape, ShapePtr,
+    MTS_IMPORT_TYPES(BSDF, BSDFSample3f, Emitter, EmitterPtr, Film, Sampler, Shape, ShapePtr,
                      ShapeGroup, Sensor, Integrator, Medium, MediumPtr)
 
     /// Instantiate a scene from a \ref Properties object
@@ -251,6 +251,92 @@ SurfaceInteraction<Float, Spectrum>::emitter(const Scene *scene, Mask active) co
         return select(is_valid(), shape->emitter(active), scene->environment());
     }
 }
+
+template <typename Float, typename Spectrum>
+std::pair<typename SurfaceInteraction<Float, Spectrum>::SurfaceInteraction3f, typename SurfaceInteraction<Float, Spectrum>::Mask>
+SurfaceInteraction<Float, Spectrum>::project_to_mesh_effnormal(const Scene *scene,
+                                                            const Vector3f &sampled_pos,
+                                                            const BSDFSample3f &bs,
+                                                            const UInt32 &channel,
+                                                            Mask active) const {
+        MTS_MASKED_FUNCTION(ProfilerPhase::SurfaceProjection, active);
+
+        SurfaceInteraction3f si_result = zero<SurfaceInteraction3f>();
+        Mask si_found = false;
+
+        Vector3f dx = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                    Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(1, 0, 0);
+        Vector3f dy = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                    Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(0, 1, 0);
+        Vector3f dz = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                    Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                    Transform4f::rotate(Vector3f(0,0,1), bs.z) * Vector3f(0, 0, 1);
+
+        Float kernelEps = get_kernelEps(bs, channel);
+        Vector2f dists;
+        dists[0] = 2 * kernelEps;
+        dists[1] = math::Infinity<Float>;
+
+
+
+        for (int i = 0; i < 2; i++){
+            Float projdist_max = dists[i];
+            Float point_dist = Float(-1.f);
+
+            for (int j = 0; j < 3; j++){
+                Vector3f d;
+                switch (j)
+                {
+                case 0:
+                    d = dz;
+                    break;
+                case 1:
+                    d = dy;
+                    break;
+                case 2:
+                    d = dx;
+                    break;
+                }
+
+                Ray3f ray1 = zero<Ray3f>();
+                ray1.o = sampled_pos;
+                ray1.d = -d;
+                ray1.mint = math::RayEpsilon<Float>;
+                ray1.maxt = projdist_max;
+                ray1.update();
+
+                SurfaceInteraction3f si1 = scene->ray_intersect(ray1, active);
+                si_found |= si1.is_valid() && active;
+                if(any_or<true>(si_found)){
+                    Mask si1_valid = (point_dist < 0 || point_dist > si1.t) & active;
+                    masked(point_dist, si1_valid) = si1.t;
+                    masked(si_result, si1_valid) = si1;
+                }
+
+                Float maxT = select(si_found, si1.t, projdist_max);
+                Ray3f ray2 = zero<Ray3f>();
+                ray2.o = sampled_pos;
+                ray2.d = d;
+                ray2.mint = math::RayEpsilon<Float>;
+                ray2.maxt = maxT;
+
+                SurfaceInteraction3f si2 = scene->ray_intersect(ray2, active);
+                si_found |= si2.is_valid() && active;
+                if(any_or<true>(si2.is_valid())){
+                    Mask si2_valid = (point_dist < 0 || point_dist > si2.t) & active;
+                    masked(point_dist, si2_valid) = si2.t;
+                    masked(si_result, si2_valid)  = si2;
+                }
+
+            }
+            if(none(active ^ si_found)){
+                return {si_result, si_found};
+            }
+        }
+        return {si_result, si_found};
+    }
 
 MTS_EXTERN_CLASS_RENDER(Scene)
 NAMESPACE_END(mitsuba)
