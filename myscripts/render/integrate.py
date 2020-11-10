@@ -192,7 +192,6 @@ def render_sample(scene, sampler, rays, bdata):
                      & (Frame3f.cos_theta(bs.wo) < Float(0.0))
                      & (Frame3f.cos_theta(si.wi) > Float(0.0)))
 
-        # if ek.any(is_bssrdf):
 
         cnt = ek.select(is_bssrdf, UInt32(1), UInt32(0))
         cnt = int(ek.hsum(cnt)[0])
@@ -225,6 +224,7 @@ def render_sample(scene, sampler, rays, bdata):
         recon_pos_world = si.to_mesh_world(bs, recon_pos_local)
 
         # TODO: Project estimated position onto nearest mesh
+        projected_si, proj_suc = si.project_to_mesh_effnormal(scene, recon_pos_world, bs, channel, is_bssrdf)
 
         # TODO: Apply absorption probability
         ##############################

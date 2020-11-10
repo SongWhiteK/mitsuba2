@@ -92,6 +92,7 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
     using Index            = typename CoreAliases::UInt32;
     using PositionSample3f = typename RenderAliases::PositionSample3f;
     using BSDFSample3f              = BSDFSample3<Float, Spectrum>;
+    using SurfaceInteraction3f      = SurfaceInteraction<Float, Spectrum>;
     // Make parent fields/functions visible
     MTS_IMPORT_BASE(Interaction, t, time, wavelengths, p, is_valid)
     //! @}
@@ -188,6 +189,42 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
 
         return mat_mesh_world * p_local;
     }
+
+
+    std::pair<SurfaceInteraction3f, Mask>
+    project_to_mesh_effnormal(const Scene *scene, const Vector3f &sampled_pos,
+                                    const BSDFSample3f &bs, const UInt32 &channel, Mask active = true) const;
+
+
+
+    Float get_kernelEps(const BSDFSample3f &bs, const UInt32 &channel) const {
+
+        Float sigmaT = index_spectrum(bs.sigma_t, channel);
+        Float albedo = index_spectrum(bs.albedo, channel);
+        Float g = bs.g;
+        Float sigmaS    = albedo * sigmaT;
+        Float sigmaa    = sigmaT - sigmaS;
+        Float sigmaSp   = (1 - g) * sigmaS;
+        Float sigmaTp   = sigmaSp + sigmaa;
+        Float alphaP    = sigmaSp / sigmaTp;
+        Float effAlphaP = -log(1.f - albedo * (1.f - exp(-8.f))) / 8.f;
+        Float val = 0.25f * g + 0.25f * alphaP + 1.f * effAlphaP;
+
+        return 4.f * val * val / (sigmaTp * sigmaTp);
+    }
+
+    Float index_spectrum(const UnpolarizedSpectrum &spec, const UInt32 &idx) const {
+        Float m = spec[0];
+        if constexpr (is_rgb_v<Spectrum>) { // Handle RGB rendering
+            masked(m, eq(idx, 1u)) = spec[1];
+            masked(m, eq(idx, 2u)) = spec[2];
+        } else {
+            ENOKI_MARK_USED(idx);
+        }
+        return m;
+    }
+
+
 
     /**
      * Return the emitter associated with the intersection (if any)
