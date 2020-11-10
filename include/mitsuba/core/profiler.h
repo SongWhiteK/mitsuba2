@@ -31,6 +31,7 @@ enum class ProfilerPhase : int {
     BSDFEvaluate,               /* BSDF::eval() and BSDF::pdf() */
     BSDFSample,                 /* BSDF::sample() */
     BSDFID,                     /* BSDF::medh_id() */
+    SurfaceProjection,          /* SurfaceInteraction::project_...() */
     PhaseFunctionEvaluate,      /* PhaseFunction::eval() and PhaseFunction::pdf() */
     PhaseFunctionSample,        /* PhaseFunction::sample() */
     MediumEvaluate,             /* Medium::eval() and Medium::pdf() */
