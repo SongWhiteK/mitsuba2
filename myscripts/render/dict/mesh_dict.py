@@ -34,7 +34,7 @@ class meshes:
         """Register whole meshes in this class to BSSRDF_Data"""
 
         for i in range(self.n_mesh):
-            bdata.register_mesh(i+1, self.type, self.height_max[i], self.map[i], self.range[i],
+            bdata.register_mesh(i+1, self.type[i], self.height_max[i], self.map[i], self.range[i],
                                 self.minmax[i], filename=self.filename[i],
                                 translate=self.translate[i], rotate=self.rotate[i],
                                 scale=self.scale[i]
