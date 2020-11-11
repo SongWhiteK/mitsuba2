@@ -9,4 +9,6 @@ sample_per_pass = 1
 film_width = 4
 film_height = 4
 
+seed = 4
+
 model_name = "best_model"
