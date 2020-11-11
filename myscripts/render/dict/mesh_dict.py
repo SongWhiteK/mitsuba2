@@ -65,7 +65,6 @@ class meshes_cube(meshes):
     def __init__(self):
         super(meshes_cube, self).__init__()
         self.n_mesh = 6
-        self.type = "rectangle"
         self.translate = [
             [0, 0, 0.01],
             [0, 30, 30.01],
@@ -84,6 +83,7 @@ class meshes_cube(meshes):
         ]
 
         for i in range(self.n_mesh):
+            self.type[i] = "rectangle"
             self.scale[i] = 30
             self.height_max[i] = 0
             self.map[i] = np.ones([512, 512], dtype="uint8") * 63
