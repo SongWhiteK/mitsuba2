@@ -1,9 +1,12 @@
-"""Configuration for rendering with VAE BSSRDF"""
+"""Configuration for rendering with path tracing and VAE BSSRDF"""
 
 variant = "gpu_rgb"
 rr_depth = 5
-max_depth = 4
+max_depth = 3
 spp = 1
 sample_per_pass = 1
+
+film_width = 4
+film_height = 4
 
 model_name = "best_model"
