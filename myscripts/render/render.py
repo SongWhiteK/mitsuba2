@@ -8,7 +8,7 @@ from multiprocessing import freeze_support
 
 sys.path.append("myscripts/render/dict")
 from scene_dict import scene_dict
-from mesh_dict import meshes_cube
+from mesh_dict import meshes_cube, meshes_leather
 
 mitsuba.set_variant(config.variant)
 
@@ -19,9 +19,11 @@ if __name__ == "__main__":
     freeze_support()
     ##### Setting scene #####
     bdata = data_pipeline.BSSRDF_Data()
-    meshes_cube().register_params(bdata)
+    mesh = meshes_leather(0)
 
-    meshes_cube().register_all_mesh(bdata)
+    mesh.register_params(bdata)
+
+    mesh.register_all_mesh(bdata)
 
     scene_dict = bdata.add_object(scene_dict)
     scene = load_dict(scene_dict)
