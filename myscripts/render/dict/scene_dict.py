@@ -27,13 +27,13 @@ scene_dict = {
         "sampler": {
             "type": "independent",
             "sample_count": 16,
-            "seed": 4
+            "seed": config.seed
         },
 
         "film": {
             "type": "hdrfilm",
-            "width": 4,
-            "height": 4,
+            "width": config.film_width,
+            "height": config.film_height,
             "rfilter": {
                 "type": "gaussian"
             }
