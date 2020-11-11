@@ -126,6 +126,8 @@ MTS_PY_EXPORT(SurfaceInteraction) {
             "wi_world"_a, "wo_world"_a, D(SurfaceInteraction, to_local_mueller))
         .def("project_to_mesh_effnormal", &SurfaceInteraction3f::project_to_mesh_effnormal,
             "scene"_a, "sampled_pos"_a, "bs"_a, "channel"_a, "active"_a, D(SurfaceInteraction, project_to_mesh_effnormal))
+        .def("project_to_mesh_normal", &SurfaceInteraction3f::project_to_mesh_normal,
+            "scene"_a, "sampled_pos"_a, "bs"_a, "channel"_a, "active"_a, D(SurfaceInteraction, project_to_mesh_normal))
         .def("emitter", &SurfaceInteraction3f::emitter, D(SurfaceInteraction, emitter),
             "scene"_a, "active"_a = true)
         .def("is_sensor", &SurfaceInteraction3f::is_sensor, D(SurfaceInteraction, is_sensor))
