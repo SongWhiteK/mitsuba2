@@ -198,7 +198,7 @@ def render_sample(scene, sampler, rays, bdata):
         print(cnt)
 
 
-        ##### Process for BSSRDF #####
+        ###### Process for BSSRDF ######
         mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
         print(mesh_id)
         # Convert incident position into local coordinates of mesh of interested as tensor
@@ -220,8 +220,11 @@ def render_sample(scene, sampler, rays, bdata):
         # Project estimated position onto nearest mesh
         projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, is_bssrdf)
 
+        # TODO: Replace surface interactions on medium by projected ones
+        # TODO: Sample outoging direction from projected position
         # TODO: Apply absorption probability
-        ##############################
+        # TODO: Apply Frenel's low
+        ################################
         
 
         # Intersect the BSDF ray against the scene geometry
