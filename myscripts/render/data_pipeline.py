@@ -7,6 +7,8 @@ import sys
 sys.path.append("./myscripts/vae")
 sys.path.append("./myscripts/gen_train")
 
+from time import time
+import torch
 import mitsuba
 import render_config as config
 import numpy as np
@@ -159,7 +161,9 @@ class BSSRDF_Data:
 
 
     def get_height_map(self, in_pos, mesh_id):
-        
+        time1 = time()
+        print("get map start")
+
         num_objects = range(len(mesh_id))
         self.mesh_id = mesh_id.torch().cpu()
         self.in_pos = in_pos.torch().cpu()
@@ -167,7 +171,10 @@ class BSSRDF_Data:
         with Pool(processes=8) as p:
             result = p.map(func=self.call_map, iterable=num_objects)
 
+        result = torch.tensor(result)
+        result = result.reshape([-1, 1, 255, 255])
 
+        print(f"took {time() - time1}s")
         return result
 
     def call_map(self, i):

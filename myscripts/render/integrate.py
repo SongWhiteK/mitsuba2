@@ -209,13 +209,7 @@ def render_sample(scene, sampler, rays, bdata):
         props, sigma_n = get_props(bs, si, channel)
 
         # Get height map around incident position as tensor
-        time1 = time()
-        print("get map start")
         im = bdata.get_height_map(in_pos, mesh_id)
-        print(f"took {time() - time1}s")
-        im = torch.tensor(im)
-        im = im.reshape([-1, 1, 255, 255])
-        
 
         # Estimate position and absorption probability with VAE as mitsuba types
         recon_pos_local, abs_recon = bssrdf.estimate(in_pos.torch(), im, props, sigma_n, is_bssrdf)
