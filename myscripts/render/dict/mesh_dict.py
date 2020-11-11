@@ -90,6 +90,19 @@ class meshes_cube(meshes):
             self.range[i] = (60, 60)
             self.minmax[i] = (-30, 30)
 
+class meshes_leather(meshes_cube):
+    """
+    Meshes cube with leather displacement top.
+    Details are almost same as meshes_cube.
+    """
 
+    def __init__(self, leather_num):
+        """Only top mesh is replaced by leather serialized model"""
+        super(meshes_leather, self).__init__()
+        self.type[5] = "serialized"
+        self.scale[5] = 1
+        self.height_max[5] = 1
+        self.filename[5] = f"C:/Users/mineg/mitsuba2/myscripts/render/dict/serialized/leather_top0.serialized"
 
-    
+        map_path = f"C:/Users/mineg/mitsuba2/myscripts/train_data/height_map/height_map{leather_num:02}.png"
+        self.map[5] = np.array(Image.open(map_path))
