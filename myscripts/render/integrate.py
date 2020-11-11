@@ -223,7 +223,7 @@ def render_sample(scene, sampler, rays, bdata):
         # Convert from mesh coordinates to world coordinates
         recon_pos_world = si.to_mesh_world(bs, recon_pos_local)
 
-        # TODO: Project estimated position onto nearest mesh
+        # Project estimated position onto nearest mesh
         projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, is_bssrdf)
 
         # TODO: Apply absorption probability
