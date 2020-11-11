@@ -31,7 +31,6 @@ class BSSRDF:
         # Instanciate and load trained model
         model_path = f"{self.config.MODEL_DIR}\\{model_name}.pt"
         self.model = VAE(self.config).to(self.device)
-        print(os.path.exists(model_path))
         if os.path.exists(model_path):
             self.model.load_state_dict(torch.load(model_path))
 
