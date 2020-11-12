@@ -224,7 +224,7 @@ def render_sample(scene, sampler, rays, bdata):
             active = active & (not is_bssrdf | proj_suc)
             result[(is_bssrdf & (not proj_suc))] += Spectrum([100, 0, 0])
 
-        # TODO: Replace surface interactions on medium by projected ones
+        # Replace surface interactions on medium by projected ones
         si_replaced = SurfaceInteraction3f().masked_si(si, projected_si, is_bssrdf)
 
         # TODO: Sample outgoing direction from projected position
