@@ -157,6 +157,15 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
         sh_frame.t = cross(sh_frame.n, sh_frame.s);
     }
 
+    SurfaceInteraction3f masked_si(const SurfaceInteraction3f &si_base,
+                                    const SurfaceInteraction3f &si, Mask active) const {
+        SurfaceInteraction3f si_masked = si_base;
+
+        masked(si_masked, active) = si;
+
+        return si_masked;
+    }
+
     /// Convert a local shading-space vector into world space
     Vector3f to_world(const Vector3f &v) const {
         return sh_frame.to_world(v);

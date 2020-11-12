@@ -12,3 +12,6 @@ film_height = 4
 seed = 4
 
 model_name = "best_model"
+
+visualize_invalid_sample = True
+

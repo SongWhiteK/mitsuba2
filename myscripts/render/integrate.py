@@ -16,7 +16,7 @@ from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file
 from mitsuba.render import ImageBlock
 from mitsuba.render import (Emitter, BSDF, BSDFContext, BSDFFlags, has_flag,
-                            DirectionSample3f)
+                            DirectionSample3f, SurfaceInteraction3f)
 
 
 def mis_weight(pdf_a, pdf_b):
@@ -220,8 +220,14 @@ def render_sample(scene, sampler, rays, bdata):
         # Project estimated position onto nearest mesh
         projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, is_bssrdf)
 
-        # TODO: Replace surface interactions on medium by projected ones
-        # TODO: Sample outoging direction from projected position
+        if config.visualize_invalid_sample:
+            active = active & (not is_bssrdf | proj_suc)
+            result[(is_bssrdf & (not proj_suc))] += Spectrum([100, 0, 0])
+
+        # Replace surface interactions on medium by projected ones
+        si_replaced = SurfaceInteraction3f().masked_si(si, projected_si, is_bssrdf)
+
+        # TODO: Sample outgoing direction from projected position
         # TODO: Apply absorption probability
         # TODO: Apply Frenel's low
         ################################

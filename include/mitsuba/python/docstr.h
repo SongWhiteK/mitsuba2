@@ -6523,6 +6523,8 @@ static const char *__doc_mitsuba_SurfaceInteraction_project_to_mesh_effnormal = 
 
 static const char *__doc_mitsuba_SurfaceInteraction_project_to_mesh_normal = R"doc()doc";
 
+static const char *__doc_mitsuba_SurfaceInteraction_masked_si = R"doc()doc";
+
 static const char *__doc_mitsuba_SurfaceInteraction_uv = R"doc(UV surface coordinates)doc";
 
 static const char *__doc_mitsuba_SurfaceInteraction_wi = R"doc(Incident direction in the local shading frame)doc";
