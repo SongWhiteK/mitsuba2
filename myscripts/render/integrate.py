@@ -228,6 +228,8 @@ def render_sample(scene, sampler, rays, bdata):
         si_replaced = SurfaceInteraction3f().masked_si(si, projected_si, is_bssrdf)
 
         # TODO: Sample outgoing direction from projected position
+        d_out, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
+        bs.wo[is_bssrdf] = d_out
         # TODO: Apply absorption probability
         # TODO: Apply Frenel's low
         ################################
