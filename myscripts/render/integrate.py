@@ -223,7 +223,7 @@ def render_sample(scene, sampler, rays, bdata):
         # TODO: Replace surface interactions on medium by projected ones
         si_replaced = SurfaceInteraction3f().masked_si(si, projected_si, is_bssrdf)
 
-        # TODO: Sample outoging direction from projected position
+        # TODO: Sample outgoing direction from projected position
         # TODO: Apply absorption probability
         # TODO: Apply Frenel's low
         ################################
