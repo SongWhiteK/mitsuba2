@@ -221,11 +221,11 @@ def render_sample(scene, sampler, rays, bdata):
         projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, is_bssrdf)
 
         if config.visualize_invalid_sample:
-            active = active & (not is_bssrdf | proj_suc)
-            result[(is_bssrdf & (not proj_suc))] += Spectrum([100, 0, 0])
+            active = active & (~is_bssrdf | proj_suc)
+            result[(is_bssrdf & (~proj_suc))] += Spectrum([100, 0, 0])
 
         # Replace surface interactions on medium by projected ones
-        si_replaced = SurfaceInteraction3f().masked_si(si, projected_si, is_bssrdf)
+        si = SurfaceInteraction3f().masked_si(si, projected_si, is_bssrdf)
 
         # Sample outgoing direction from projected position
         d_out, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
