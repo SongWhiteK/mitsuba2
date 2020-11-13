@@ -37,8 +37,6 @@ def render(scene, spp, sample_per_pass, bdata):
                          calculation with GPU
     """
 
-    if spp % sample_per_pass != 0:
-        sys.exit("please set spp as multilple of sample_per_pass")
 
     # Generate basic objects for rendering
     sensor = scene.sensors()[0]
@@ -54,33 +52,44 @@ def render(scene, spp, sample_per_pass, bdata):
     block.clear()
 
     result = 0
+    
 
     # The number of iteration for gpu rendering
-    n_ite = int(spp / sample_per_pass)
 
     # The number of samples in one gpu rendering
-    total_sample_count = ek.hprod(film_size) * sample_per_pass
+    total_sample_count = ek.hprod(film_size) * spp
+
+    if total_sample_count % sample_per_pass != 0:
+        sys.exit("total_sample_count is not multilple of sample_per_pass")
+    n_ite = int(total_sample_count / sample_per_pass)
 
     # Seed the sampler
     if sampler.wavefront_size() != total_sample_count:
         sampler.seed(0, total_sample_count)
 
+    pos = ek.arange(UInt32, total_sample_count)
+
+    pos //= spp
+    scale = Vector2f(1.0 / film_size[0], 1.0 / film_size[1])
+
+    pos_x = Float(pos % int(film_size[0]))
+    pos_x += sampler.next_1d()
+    pos_y = Float(pos // int(film_size[0]))
+    pos_y += sampler.next_1d()
+
+    sampler.seed(0, sample_per_pass)
+    cnt = 0
+
     for ite in range(n_ite):
-        # Get sampling position in film uv space
-        pos = ek.arange(UInt32, total_sample_count)
-
-        pos //= sample_per_pass
-        scale = Vector2f(1.0 / film_size[0], 1.0 / film_size[1])
-        pos = Vector2f(Float(pos % int(film_size[0])),
-                       Float(pos // int(film_size[0])))
-
-        pos += sampler.next_2d()
+        # Get position for this iteration
+        pos_ite = Vector2f(pos_x[ite*sample_per_pass:ite*sample_per_pass+sample_per_pass],
+                           pos_y[ite*sample_per_pass:ite*sample_per_pass+sample_per_pass])
 
         # Get rays for path tracing
         rays, weights = sensor.sample_ray_differential(
             time=0,
             sample1=sampler.next_1d(),
-            sample2=pos * scale,
+            sample2=pos_ite * scale,
             sample3=0
         )
 
@@ -91,7 +100,7 @@ def render(scene, spp, sample_per_pass, bdata):
                 ek.select(valid_rays, Float(1.0), Float(0.0)),
                 1.0]
 
-        block.put(pos, aovs)
+        block.put(pos_ite, aovs)
         sampler.advance()
 
     xyzaw_np = np.array(block.data()).reshape([film_size[1], film_size[0], 5])
