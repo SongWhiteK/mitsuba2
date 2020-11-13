@@ -10,7 +10,7 @@ import torch
 
 mitsuba.set_variant("gpu_rgb")
 
-from mitsuba.core import warp
+from mitsuba.core import Float, warp
 
 def index_spectrum(spec, idx):
     m = spec[0]
@@ -27,4 +27,13 @@ def resample_wo(si, sampler, active):
 
     return d_out_local, d_out_pdf
 
+
+def check_zero_scatter(sampler, si, bs, channel, active):
+
+    sigma_t = index_spectrum(bs.sigma_t, channel)
+
+    # Ray passes through medium w/o scattering?
+    is_zero_scatter = (sampler.next_1d(active) > Float(1) - ek.exp(-sigma_t * si.t)) & active
+
+    return is_zero_scatter
 
