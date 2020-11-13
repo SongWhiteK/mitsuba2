@@ -201,6 +201,10 @@ def render_sample(scene, sampler, rays, bdata):
 
         eta *= bs.eta
 
+        # Intersect the BSDF ray against the scene geometry
+        rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
+        si_bsdf = scene.ray_intersect(rays, active)
+
         # Whether the BSDF is BSSRDF or not?
         is_bssrdf = (active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
                      & (Frame3f.cos_theta(bs.wo) < Float(0.0))
@@ -243,9 +247,6 @@ def render_sample(scene, sampler, rays, bdata):
         ################################
         
 
-        # Intersect the BSDF ray against the scene geometry
-        rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
-        si_bsdf = scene.ray_intersect(rays, active)
         # Replace interactions by sampled ones from BSSRDF
         si_bsdf = SurfaceInteraction3f().masked_si(si_bsdf, projected_si, is_bssrdf)
 
