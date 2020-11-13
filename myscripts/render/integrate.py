@@ -224,9 +224,6 @@ def render_sample(scene, sampler, rays, bdata):
             active = active & (~is_bssrdf | proj_suc)
             result[(is_bssrdf & (~proj_suc))] += Spectrum([100, 0, 0])
 
-        # Replace surface interactions on medium by projected ones
-        si = SurfaceInteraction3f().masked_si(si, projected_si, is_bssrdf)
-
         # Sample outgoing direction from projected position
         d_out, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
         bs.wo[is_bssrdf] = d_out
@@ -238,6 +235,8 @@ def render_sample(scene, sampler, rays, bdata):
         # Intersect the BSDF ray against the scene geometry
         rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
         si_bsdf = scene.ray_intersect(rays, active)
+        # Replace interactions by sampled ones from BSSRDF
+        si_bsdf = SurfaceInteraction3f().masked_si(si_bsdf, projected_si, is_bssrdf)
 
         # Determine probability of having sampled that same
         # direction using emitter sampling
