@@ -226,9 +226,8 @@ def render_sample(scene, sampler, rays, bdata):
 
         # Sample outgoing direction from projected position
         d_out, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
-        bs.wo[is_bssrdf] = d_out
-        # TODO: Apply absorption probability
-        # TODO: Apply Frenel's low
+        # Apply absorption probability
+        throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_recon, Spectrum(1))
         ################################
         
 
