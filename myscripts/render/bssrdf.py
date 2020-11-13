@@ -55,7 +55,7 @@ class BSSRDF:
 
         Return:
             recon_pos: estimated outgoing position (Vector3f)
-            recon_abs: estimated absorption probability (Float)
+            recon_abs: estimated absorption probability (Spectrum)
         """
 
         n_sample, _, _, _ = im.shape
@@ -77,7 +77,7 @@ class BSSRDF:
         # Convert from tensor to Vector3f and Float
         recon_pos = Vector3f(recon_pos)
         recon_abs[torch.isnan(recon_abs)] = 0
-        abs_prob = Float(recon_abs.view(1,-1).squeeze())
+        abs_prob = Spectrum(recon_abs.view(1,-1).squeeze())
 
         # Reconstruct real scale position in mesh local coordinates
         pos += ek.select(active, sigma_n * recon_pos, 0)
