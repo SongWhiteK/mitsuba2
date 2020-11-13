@@ -209,8 +209,6 @@ def render_sample(scene, sampler, rays, bdata):
 
         cnt = ek.select(is_bssrdf, UInt32(1), UInt32(0))
         cnt = int(ek.hsum(cnt)[0])
-        print(cnt)
-
 
         ###### Process for BSSRDF ######
         mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
