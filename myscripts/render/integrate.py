@@ -151,7 +151,6 @@ def render_sample(scene, sampler, rays, bdata):
 
     while(True):
         depth += 1
-        print(depth)
 
         ##### Interaction with emitters #####
         result += ek.select(active,
@@ -258,11 +257,11 @@ def render_sample(scene, sampler, rays, bdata):
         d_out_local, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
         # Apply absorption probability
         throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_recon, Spectrum(1))
+        # Replace interactions by sampled ones from BSSRDF
+        si_bsdf = SurfaceInteraction3f().masked_si(si_bsdf, projected_si, is_bssrdf)
         ################################
         
 
-        # Replace interactions by sampled ones from BSSRDF
-        si_bsdf = SurfaceInteraction3f().masked_si(si_bsdf, projected_si, is_bssrdf)
 
         # Determine probability of having sampled that same
         # direction using emitter sampling
