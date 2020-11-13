@@ -135,7 +135,7 @@ def render_sample(scene, sampler, rays, bdata):
     channel = UInt32(ek.min(sampler.next_1d(active) * n_channels, n_channels - 1))
 
     bssrdf = BSSRDF(config.model_name)
-    d_out = Vector3f().zero()
+    d_out_local = Vector3f().zero()
     d_out_pdf = Float(0)
 
     while(True):
@@ -187,7 +187,7 @@ def render_sample(scene, sampler, rays, bdata):
         
         ##### BSSRDF replacing #####
         # Replace bsdf samples by ones of BSSRDF
-        bs.wo[is_bssrdf] = d_out
+        bs.wo[is_bssrdf] = d_out_local
         bs.pdf[is_bssrdf] = d_out_pdf
         bs.sampled_component[is_bssrdf] = UInt32(1)
         bs.sampled_type[is_bssrdf] = UInt32(+BSDFFlags.DeltaTransmission)
@@ -237,7 +237,7 @@ def render_sample(scene, sampler, rays, bdata):
             result[(is_bssrdf & (~proj_suc))] += Spectrum([100, 0, 0])
 
         # Sample outgoing direction from projected position
-        d_out, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
+        d_out_local, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
         # Apply absorption probability
         throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_recon, Spectrum(1))
         ################################
