@@ -118,6 +118,7 @@ def render_sample(scene, sampler, rays, bdata):
     throughput = Spectrum(1.0)
     result = Spectrum(0.0)
     active = True
+    is_bssrdf = False
 
     ##### First interaction #####
     si = scene.ray_intersect(rays, active)
@@ -134,6 +135,8 @@ def render_sample(scene, sampler, rays, bdata):
     channel = UInt32(ek.min(sampler.next_1d(active) * n_channels, n_channels - 1))
 
     bssrdf = BSSRDF(config.model_name)
+    d_out = Vector3f().zero()
+    d_out_pdf = Float(0)
 
     while(True):
         depth += 1
@@ -181,6 +184,17 @@ def render_sample(scene, sampler, rays, bdata):
         ##### BSDF sampling #####
         bs, bsdf_val = BSDF.sample_vec(bsdf, ctx, si, sampler.next_1d(active),
                                        sampler.next_2d(active), active)
+        
+        ##### BSSRDF replacing #####
+        # Replace bsdf samples by ones of BSSRDF
+        bs.wo[is_bssrdf] = d_out
+        bs.pdf[is_bssrdf] = d_out_pdf
+        bs.sampled_component[is_bssrdf] = UInt32(1)
+        bs.sampled_type[is_bssrdf] = UInt32(+BSDFFlags.DeltaTransmission)
+
+        # Replace bsdf weight by square of eta
+        bsdf_val[is_bssrdf] = ek.sqr(bs.eta)
+        ############################
         
         throughput = throughput * bsdf_val
         active &= ek.any(ek.neq(throughput, 0))
