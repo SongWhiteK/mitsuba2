@@ -196,14 +196,15 @@ def render_sample(scene, sampler, rays, bdata):
                                        sampler.next_2d(active), active)
         
         ##### BSSRDF replacing #####
-        # Replace bsdf samples by ones of BSSRDF
-        bs.wo[is_bssrdf] = d_out_local
-        bs.pdf[is_bssrdf] = d_out_pdf
-        bs.sampled_component[is_bssrdf] = UInt32(1)
-        bs.sampled_type[is_bssrdf] = UInt32(+BSDFFlags.DeltaTransmission)
+        if(config.enable_bssrdf):
+            # Replace bsdf samples by ones of BSSRDF
+            bs.wo[is_bssrdf] = d_out_local
+            bs.pdf[is_bssrdf] = d_out_pdf
+            bs.sampled_component[is_bssrdf] = UInt32(1)
+            bs.sampled_type[is_bssrdf] = UInt32(+BSDFFlags.DeltaTransmission)
 
-        # Replace bsdf weight by square of eta
-        bsdf_val[is_bssrdf] = ek.sqr(bs.eta)
+            # Replace bsdf weight by square of eta
+            bsdf_val[is_bssrdf] = ek.sqr(bs.eta)
         ############################
         
         throughput = throughput * bsdf_val
@@ -215,50 +216,51 @@ def render_sample(scene, sampler, rays, bdata):
         rays = RayDifferential3f(si.spawn_ray(si.to_world(bs.wo)))
         si_bsdf = scene.ray_intersect(rays, active)
 
-        # Whether the BSDF is BSSRDF or not?
-        is_bssrdf = (active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
-                     & (Frame3f.cos_theta(bs.wo) < Float(0.0))
-                     & (Frame3f.cos_theta(si.wi) > Float(0.0)))
 
-        # Decide whether we should use 0-scattering or multiple scattering
-        is_zero_scatter = utils_render.check_zero_scatter(sampler, si_bsdf, bs, channel, is_bssrdf)
-        is_bssrdf = is_bssrdf & ~is_zero_scatter
+        ##### Checking BSSRDF #####
+        if(config.enable_bssrdf):
+            # Whether the BSDF is BSS   RDF or not?
+            is_bssrdf = (active & has_flag(BSDF.flags_vec(bsdf), BSDFFlags.BSSRDF)
+                            & (Frame3f.cos_theta(bs.wo) < Float(0.0))
+                            & (Frame3f.cos_theta(si.wi) > Float(0.0)))
 
-        cnt = ek.select(is_bssrdf, UInt32(1), UInt32(0))
-        cnt = int(ek.hsum(cnt)[0])
+            # Decide whether we should use 0-scattering or multiple scattering
+            is_zero_scatter = utils_render.check_zero_scatter(sampler, si_bsdf, bs, channel, is_bssrdf)
+            is_bssrdf = is_bssrdf & ~is_zero_scatter
+        ###########################
 
         ###### Process for BSSRDF ######
-        mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
-        print(mesh_id)
-        # Convert incident position into local coordinates of mesh of interested as tensor
-        in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
+        if(config.enable_bssrdf):
+            mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
+            # Convert incident position into local coordinates of mesh of interested as tensor
+            in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
 
 
-        # Get properties, e.g., medium params and incident angle as tensor
-        props, sigma_n = get_props(bs, si, channel)
+            # Get properties, e.g., medium params and incident angle as tensor
+            props, sigma_n = get_props(bs, si, channel)
 
-        # Get height map around incident position as tensor
-        im = bdata.get_height_map(in_pos, mesh_id)
+            # Get height map around incident position as tensor
+            im = bdata.get_height_map(in_pos, mesh_id)
 
-        # Estimate position and absorption probability with VAE as mitsuba types
-        recon_pos_local, abs_recon = bssrdf.estimate(in_pos.torch(), im, props, sigma_n, is_bssrdf)
+            # Estimate position and absorption probability with VAE as mitsuba types
+            recon_pos_local, abs_recon = bssrdf.estimate(in_pos.torch(), im, props, sigma_n, is_bssrdf)
 
-        # Convert from mesh coordinates to world coordinates
-        recon_pos_world = si.to_mesh_world(bs, recon_pos_local)
+            # Convert from mesh coordinates to world coordinates
+            recon_pos_world = si.to_mesh_world(bs, recon_pos_local)
 
-        # Project estimated position onto nearest mesh
-        projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, is_bssrdf)
+            # Project estimated position onto nearest mesh
+            projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, is_bssrdf)
 
-        if config.visualize_invalid_sample:
-            active = active & (~is_bssrdf | proj_suc)
-            result[(is_bssrdf & (~proj_suc))] += Spectrum([100, 0, 0])
+            if config.visualize_invalid_sample:
+                active = active & (~is_bssrdf | proj_suc)
+                result[(is_bssrdf & (~proj_suc))] += Spectrum([100, 0, 0])
 
-        # Sample outgoing direction from projected position
-        d_out_local, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
-        # Apply absorption probability
-        throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_recon, Spectrum(1))
-        # Replace interactions by sampled ones from BSSRDF
-        si_bsdf = SurfaceInteraction3f().masked_si(si_bsdf, projected_si, is_bssrdf)
+            # Sample outgoing direction from projected position
+            d_out_local, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
+            # Apply absorption probability
+            throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_recon, Spectrum(1))
+            # Replace interactions by sampled ones from BSSRDF
+            si_bsdf = SurfaceInteraction3f().masked_si(si_bsdf, projected_si, is_bssrdf)
         ################################
         
 
