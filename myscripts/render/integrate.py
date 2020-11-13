@@ -102,6 +102,8 @@ def render(scene, spp, sample_per_pass, bdata):
 
         block.put(pos_ite, aovs)
         sampler.advance()
+        cnt += sample_per_pass
+        print(f"done {cnt} / {total_sample_count}")
 
     xyzaw_np = np.array(block.data()).reshape([film_size[1], film_size[0], 5])
 
