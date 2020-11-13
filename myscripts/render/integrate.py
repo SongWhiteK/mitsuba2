@@ -210,6 +210,9 @@ def render_sample(scene, sampler, rays, bdata):
                      & (Frame3f.cos_theta(bs.wo) < Float(0.0))
                      & (Frame3f.cos_theta(si.wi) > Float(0.0)))
 
+        # Decide whether we should use 0-scattering or multiple scattering
+        is_zero_scatter = utils_render.check_zero_scatter(sampler, si_bsdf, bs, channel, is_bssrdf)
+        is_bssrdf = is_bssrdf & ~is_zero_scatter
 
         cnt = ek.select(is_bssrdf, UInt32(1), UInt32(0))
         cnt = int(ek.hsum(cnt)[0])
