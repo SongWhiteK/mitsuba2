@@ -87,6 +87,24 @@ class BSSRDF:
 
 
     def sample_bssrdf(self, scene, bsdf, bs, si, bdata, channel, active):
+        """
+        Get projected sample position and absorption probability form VAE BSSRDF
+
+        Args:
+            scene: rendered scene object
+            bsdf: BSDF information of each ray
+            bs: BSDF Sample object of each ray
+            si: Surface interaction object of each ray
+            bdata: BSSRDF data object in scene data from data_pipeline.py
+            channel: RGB channel of interest
+                TODO: Support multi channel sampling
+            active: Mask data whether a ray needs to process BSSRDF or not
+
+        Returns:
+            projected_si: Projected surface interaction object from BSSRDF
+            proj_suc: Mask data indicating projection succeed or not
+            abs_recon: absorption probability from BSSRDF
+        """
         
         # Get ID of BSSDRF mesh for each sur face interactions
         mesh_id = BSDF.mesh_id_vec(bsdf, active)

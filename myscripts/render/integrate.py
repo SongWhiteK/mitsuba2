@@ -115,6 +115,7 @@ def render(scene, spp, sample_per_pass, bdata):
 def render_sample(scene, sampler, rays, bdata):
     """
     Sample RTE
+    TODO: Support multi channel sampling
 
     Args:
         scene: Target scene object
