@@ -6,7 +6,7 @@ import mitsuba
 import enoki as ek
 import render_config as config
 import utils_render
-from bssrdf import BSSRDF, get_props
+from bssrdf import BSSRDF
 
 mitsuba.set_variant(config.variant)
 
@@ -231,39 +231,22 @@ def render_sample(scene, sampler, rays, bdata):
 
         ###### Process for BSSRDF ######
         if(config.enable_bssrdf):
-            mesh_id = BSDF.mesh_id_vec(bsdf, is_bssrdf)
-            # Convert incident position into local coordinates of mesh of interested as tensor
-            in_pos = ek.select(is_bssrdf, si.to_mesh_local(bs), Vector3f(0))
-
-
-            # Get properties, e.g., medium params and incident angle as tensor
-            props, sigma_n = get_props(bs, si, channel)
-
-            # Get height map around incident position as tensor
-            im = bdata.get_height_map(in_pos, mesh_id)
-
-            # Estimate position and absorption probability with VAE as mitsuba types
-            recon_pos_local, abs_recon = bssrdf.estimate(in_pos.torch(), im, props, sigma_n, is_bssrdf)
-
-            # Convert from mesh coordinates to world coordinates
-            recon_pos_world = si.to_mesh_world(bs, recon_pos_local)
-
-            # Project estimated position onto nearest mesh
-            projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, is_bssrdf)
+            # Get projected samples from BSSRDF
+            projected_si, project_suc, abs_prob = bssrdf.sample_bssrdf(scene, bsdf, bs, si, bdata, 
+                                                                       channel, is_bssrdf)
 
             if config.visualize_invalid_sample:
-                active = active & (~is_bssrdf | proj_suc)
-                result[(is_bssrdf & (~proj_suc))] += Spectrum([100, 0, 0])
+                active = active & (~is_bssrdf | project_suc)
+                result[(is_bssrdf & (~project_suc))] += Spectrum([100, 0, 0])
 
             # Sample outgoing direction from projected position
             d_out_local, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
             # Apply absorption probability
-            throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_recon, Spectrum(1))
+            throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_prob, Spectrum(1))
             # Replace interactions by sampled ones from BSSRDF
             si_bsdf = SurfaceInteraction3f().masked_si(si_bsdf, projected_si, is_bssrdf)
         ################################
         
-
 
         # Determine probability of having sampled that same
         # direction using emitter sampling

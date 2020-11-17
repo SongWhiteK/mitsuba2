@@ -16,6 +16,7 @@ from utils_render import index_spectrum
 mitsuba.set_variant(render_config.variant)
 
 from mitsuba.core import (Vector3f, Float, Spectrum)
+from mitsuba.render import (BSDF)
 from vae import VAE
 
 
@@ -85,7 +86,30 @@ class BSSRDF:
         return pos, abs_prob
 
 
-    
+    def sample_bssrdf(self, scene, bsdf, bs, si, bdata, channel, active):
+        
+        # Get ID of BSSDRF mesh for each sur face interactions
+        mesh_id = BSDF.mesh_id_vec(bsdf, active)
+
+        # Convert incident position into local coordinates of mesh of interested as tensor
+        in_pos = ek.select(active, si.to_mesh_local(bs), Vector3f(0))
+
+        # Get properties, e.g., medium params and incident angle as tensor
+        props, sigma_n = get_props(bs, si, channel)
+
+        # Get height map around incident position as tensor
+        im = bdata.get_height_map(in_pos, mesh_id)
+
+        # Estimate position and absorption probability with VAE as mitsuba types
+        recon_pos_local, abs_recon = self.estimate(in_pos.torch(), im, props, sigma_n, active)
+
+        # Convert from mesh coordinates to world coordinates
+        recon_pos_world = si.to_mesh_world(bs, recon_pos_local)
+
+        # Project estimated position onto nearest mesh
+        projected_si, proj_suc = si.project_to_mesh_normal(scene, recon_pos_world, bs, channel, active)
+
+        return projected_si, proj_suc, abs_recon
 
 
 def get_props(bs, si, channel):
@@ -127,8 +151,4 @@ def get_props(bs, si, channel):
     props = torch.cat([eff_albedo, g, eta, d_in, height_max], 1)
 
     return props, sigma_n
-    
-
-
-
 
