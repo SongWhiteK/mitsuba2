@@ -231,7 +231,7 @@ def render_sample(scene, sampler, rays, bdata):
         ###########################
 
         ###### Process for BSSRDF ######
-        if(config.enable_bssrdf):
+        if(config.enable_bssrdf and not ek.none(is_bssrdf)):
             # Get projected samples from BSSRDF
             projected_si, project_suc, abs_prob = bssrdf.sample_bssrdf(scene, bsdf, bs, si, bdata, 
                                                                        channel, is_bssrdf)
