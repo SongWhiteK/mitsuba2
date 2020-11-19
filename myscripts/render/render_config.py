@@ -15,4 +15,5 @@ model_name = "best_model"
 
 enable_bssrdf = True
 visualize_invalid_sample = True
+multi_process = False
 

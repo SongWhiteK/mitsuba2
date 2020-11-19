@@ -16,7 +16,9 @@ from mitsuba.core import Thread
 from mitsuba.core.xml import load_file, load_dict
 
 if __name__ == "__main__":
-    freeze_support()
+    if config.multi_process:
+        freeze_support()
+        
     ##### Setting scene #####
     bdata = data_pipeline.BSSRDF_Data()
     mesh = meshes_leather(0)
