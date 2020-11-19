@@ -164,6 +164,7 @@ class BSSRDF_Data:
         time1 = time()
         print("get map start")
         idx_objects = range(len(mesh_id))
+        idx_valid_path = [i for i in idx_objects if mesh_id[i] != 0]
         self.mesh_id = mesh_id.torch().cpu()
         self.in_pos = in_pos.torch().cpu()
 
@@ -175,7 +176,7 @@ class BSSRDF_Data:
             result = result.reshape([-1, 1, 255, 255])
         else:
             result = torch.zeros([len(mesh_id), 1, 255, 255])
-            for i in num_objects:
+            for i in idx_valid_path:
                 result[i, 0, :, :] = torch.tensor(self.call_map(i))
 
         print(f"took {time() - time1}s")
