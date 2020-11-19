@@ -163,13 +163,13 @@ class BSSRDF_Data:
     def get_height_map(self, in_pos, mesh_id):
         time1 = time()
         print("get map start")
-        num_objects = range(len(mesh_id))
+        idx_objects = range(len(mesh_id))
         self.mesh_id = mesh_id.torch().cpu()
         self.in_pos = in_pos.torch().cpu()
 
         if config.multi_process:
             with Pool(processes=8) as p:
-                result = p.map(func=self.call_map, iterable=num_objects)
+                result = p.map(func=self.call_map, iterable=idx_objects)
 
             result = torch.tensor(result)
             result = result.reshape([-1, 1, 255, 255])
