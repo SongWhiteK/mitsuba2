@@ -101,33 +101,13 @@ myscripts/train_paths/
 
 myscripts/height_map/
 
-myscripts/train_data/train_images/
-
-myscripts/train_data/sample_files/
-
-myscripts/train_data/train_paths/
-
 myscripts/log/
 
 myscripts/render/cbox/
 
-myscripts/train_data/train_images_mini/
-
-myscripts/train_data/train_paths_mini/
-
-myscripts/train_data/test_paths/
-
-myscripts/train_data/test_images/
-
-myscripts/train_data/height_map_plane/
-
-myscripts/train_data/train_images_plane/
-
-myscripts/train_data/train_paths_plane/
+myscripts/train_data
 
 myscripts/vae/model/
-
-myscripts/train_data/train_paths_simple/
 
 debug.log
 
