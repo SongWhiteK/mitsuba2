@@ -84,7 +84,7 @@ class DataHandler:
             for row in data.itertuples():
                 if(row.id % 10000 == 0):
                     file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
-                    os.mkdir(file_path)
+                    os.makedirs(file_path)
 
                 image = gen_train_image(row, height_map, self.debug)
 
