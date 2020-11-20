@@ -19,6 +19,10 @@ def conv5x5(in_ch, out_ch, stride=1):
     """3x3 convolution"""
     return nn.Conv2d(in_ch, out_ch, 5, stride)
 
+def conv3x3(in_ch, out_ch, stride=1):
+    """3x3 convolution"""
+    return nn.Conv2d(in_ch, out_ch, 3, stride)
+
 
 class VAE(nn.Module):
     """
