@@ -110,7 +110,7 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         out_pos = sample["out_pos"].to(device)
         abs_prob = sample["abs"].to(device)
 
-        im = image_generate(im_path)
+        im = image_generate(im_path, config.im_size)
         
         optimizer.zero_grad()
         recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
@@ -164,7 +164,7 @@ def test(epoch, config, model, device, test_loader, writer):
             abs_prob = sample["abs"].to(device)
 
 
-            im = image_generate(im_path)
+            im = image_generate(im_path, config.im_size)
 
             recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
 
@@ -204,10 +204,10 @@ def test(epoch, config, model, device, test_loader, writer):
     print(f"{day_time} -- Test End")
 
 
-def image_generate(im_path):
+def image_generate(im_path, im_size):
     batch_size = len(im_path)
 
-    im = np.zeros([batch_size, 1, 255, 255])
+    im = np.zeros([batch_size, 1, im_size, im_size])
 
     for i, path in enumerate(im_path):
         im[i, 0, :, :] = Image.open(path)
