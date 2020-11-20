@@ -1,5 +1,8 @@
 import numpy as np
+import mitsuba
 import enoki as ek
+
+mitsuba.set_variant("gpu_rgb")
 
 from traindata_config import TrainDataConfiguration
 
