@@ -51,6 +51,7 @@ class TrainDataConfiguration:
                     "p_out_x", "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z",
                     "abs_prob", "height_max", "model_id", "id"]
         self.coeff_range = 6
+        self.im_size = 127
 
 
 config = TrainDataConfiguration()

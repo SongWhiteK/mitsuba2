@@ -15,6 +15,7 @@ film_height = 256
 seed = 4
 
 model_name = "best_model"
+im_size = 127
 
 enable_bssrdf = True
 visualize_invalid_sample = False

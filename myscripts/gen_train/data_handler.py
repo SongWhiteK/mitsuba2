@@ -27,6 +27,7 @@ class DataHandler:
         self.train_sample_dir_path = f"{config.TRAIN_DIR}"
         self.debug = config.DEBUG
         self.tag = config.tag
+        self.im_size = config.im_size
 
     def list_update(self):
         self.sample_list = glob.glob(f"{self.sample_path}\\*")
@@ -86,7 +87,7 @@ class DataHandler:
                     file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
                     os.makedirs(file_path)
 
-                image = gen_train_image(row, height_map, self.debug)
+                image = gen_train_image(row, height_map, self.im_size, self.debug)
 
                 # Save height map image with id
                 cv2.imwrite(f"{file_path}\\train_image{row.id:08}.png", image)
@@ -180,7 +181,7 @@ def join_model_id(path, model_id):
     data.to_csv(path, index=False)
 
 
-def gen_train_image(data, height_map, debug):
+def gen_train_image(data, height_map, im_size, debug):
     """
     Generate training image data from path sample data and entire height map.
     Generated image is centered by incident location.
@@ -218,9 +219,9 @@ def gen_train_image(data, height_map, debug):
     # Scale height map with scale factors as sampling
     map_scaled = cv2.resize(height_map, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_AREA)
 
-    return clip_scaled_map(map_scaled, [x_in, y_in], medium, x_range, y_range, x_min, y_max)
+    return clip_scaled_map(map_scaled, [x_in, y_in], medium, x_range, y_range, x_min, y_max, im_size)
 
-def clip_scaled_map(map_scaled, pos_in, medium, x_range, y_range, x_min, y_max):
+def clip_scaled_map(map_scaled, pos_in, medium, x_range, y_range, x_min, y_max, im_size):
     height_scaled, width_scaled = map_scaled.shape
 
     x_in = pos_in[0]
@@ -236,7 +237,7 @@ def clip_scaled_map(map_scaled, pos_in, medium, x_range, y_range, x_min, y_max):
     u_c = int((y_max - y_in) * height_scaled / y_range)
     v_c = int((x_in - x_min) * width_scaled / x_range)
 
-    # Clip map_full_scaled in 255*255 from incident position
+    # Clip map_full_scaled in specified range from incident position
     distance_u_n = np.min([r_px_range, u_c])              # distance of u for negative direction
     distance_u_p = np.max([np.min([r_px_range, height_scaled - u_c - 1]), 0]) # distance of u for positive direction
     distance_v_n = np.min([r_px_range, v_c])              # distance of v for negative direction
@@ -248,14 +249,14 @@ def clip_scaled_map(map_scaled, pos_in, medium, x_range, y_range, x_min, y_max):
 
     height_clip, width_clip = map_clip.shape
 
-    scale_map = 255 / (12 * sigma_n / px_len)
+    scale_map = im_size / (12 * sigma_n / px_len)
     map_clip = cv2.resize(map_clip, None, fx=scale_map, fy=scale_map, interpolation=cv2.INTER_AREA)
     height_clip, width_clip = map_clip.shape
 
     u_c = int(height_clip * distance_u_n / (distance_u_n + distance_u_p))
     v_c = int(width_clip * distance_v_n / (distance_v_n + distance_v_p))
 
-    r_px = 127
+    r_px = im_size // 2
 
     distance_u_n = np.min([r_px, u_c])              
     distance_u_p = np.max([np.min([r_px, height_clip - u_c - 1]), 0])

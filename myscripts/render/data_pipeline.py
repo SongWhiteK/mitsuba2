@@ -194,6 +194,6 @@ class BSSRDF_Data:
         x_range, y_range = self.mesh_range[ref_id]
         x_min, y_max = self.mesh_minmax[ref_id]
 
-        height_map = clip_scaled_map(mesh_map, ref_in, medium, x_range, y_range, x_min, y_max)
+        height_map = clip_scaled_map(mesh_map, ref_in, medium, x_range, y_range, x_min, y_max, config.im_size)
 
         return height_map
