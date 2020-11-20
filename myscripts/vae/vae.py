@@ -33,11 +33,11 @@ class VAE(nn.Module):
         super(VAE, self).__init__()
 
         ###### CONV #####
-        # Input: 256x256 image
-        # Output: 512x1 vector
+        # Input: 127x127 image
+        # Output: 128x1 vector
         self.conv1 = conv5x5(1, config.ch1, config.stride)
-        self.conv2 = conv5x5(config.ch1, config.ch2)
-        self.conv3 = conv5x5(config.ch2, config.ch3)
+        self.conv2 = conv3x3(config.ch1, config.ch2)
+        self.conv3 = conv3x3(config.ch2, config.ch3)
         self.drop = nn.Dropout2d()
         self.pool = config.pool
 
@@ -56,17 +56,17 @@ class VAE(nn.Module):
         self.enc22 = nn.Linear(config.n_enc, 4)
 
         ##### Scatter Network #####
-        # Input: 532x1 (528 + 4) feature vector and random numbers from normal distribution
+        # Input: 148x1 (144 + 4) feature vector and random numbers from normal distribution
         # Output: outgoing position (xyz vector)
-        self.scatter1 = nn.Linear(532, config.n_dec1)
+        self.scatter1 = nn.Linear(148, config.n_dec1)
         self.scatter2 = nn.Linear(config.n_dec1, config.n_dec1)
         self.scatter3 = nn.Linear(config.n_dec1, config.n_dec2)
         self.scatter4 = nn.Linear(config.n_dec2, 3)
 
         ##### Absorption Network #####
-        # Input: 528x1 feature vector
+        # Input: 144x1 feature vector
         # Output: scalar absorption
-        self.abs1 = nn.Linear(528, config.n_dec1)
+        self.abs1 = nn.Linear(144, config.n_dec1)
         self.abs2 = nn.Linear(config.n_dec1, 1)
         self.sigmoid = nn.Sigmoid()
 
@@ -77,7 +77,7 @@ class VAE(nn.Module):
         im_feature = F.relu(F.max_pool2d(self.conv1(im), self.pool))
         im_feature = F.relu(F.max_pool2d(self.conv2(im_feature), self.pool))
         im_feature = F.relu(F.max_pool2d(self.drop(self.conv3(im_feature)), self.pool))
-        im_feature = im_feature.view(-1, 512)
+        im_feature = im_feature.view(-1, 128)
 
         ##### Feature conversion #####
         feature = F.relu(self.fn1(props))
