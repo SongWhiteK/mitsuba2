@@ -199,13 +199,13 @@ def render_sample(scene, sampler, rays, bdata):
         ##### BSSRDF replacing #####
         if(config.enable_bssrdf):
             # Replace bsdf samples by ones of BSSRDF
-            bs.wo[is_bssrdf] = d_out_local
-            bs.pdf[is_bssrdf] = d_out_pdf
-            bs.sampled_component[is_bssrdf] = UInt32(1)
-            bs.sampled_type[is_bssrdf] = UInt32(+BSDFFlags.DeltaTransmission)
+            bs.wo = ek.select(is_bssrdf, d_out_local, bs.wo)
+            bs.pdf = ek.select(is_bssrdf, d_out_pdf, bs.pdf)
+            bs.sampled_component = ek.select(is_bssrdf, UInt32(1), bs.sampled_component)
+            bs.sampled_type = ek.select(is_bssrdf, UInt32(+BSDFFlags.DeltaTransmission), bs.sampled_type)
 
             # Replace bsdf weight by square of eta
-            bsdf_val[is_bssrdf] = ek.sqr(bs.eta)
+            bsdf_val = ek.select(is_bssrdf, ek.sqr(bs.eta), bsdf_val)
         ############################
         
         throughput = throughput * bsdf_val
