@@ -184,7 +184,7 @@ if __name__ == "__main__":
     # Visualize network in Tensorboard
     # model.eval()
     # writer = SummaryWriter(config.LOG_DIR)
-    # im = np.random.randint(0, 255, [1, 1, 255, 255]).astype(np.float32)
+    # im = np.random.randint(0, 255, [1, 1, 127, 127]).astype(np.float32)
     # im = torch.tensor(im).to(device)
 
     # props = torch.randn([1, 7]).to(device)
