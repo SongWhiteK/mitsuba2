@@ -29,14 +29,15 @@ class TrainDataConfiguration:
         self.SERIALIZED_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\serialized"
 
         self.SAMPLE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\sample_files"
-        self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_mini"
+        self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_127"
         self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\height_map"
-        self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
+        self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_127"
 
         self.plane = [False, False, False, True]
 
         ############## ITERATION NUMBERS ##############
-        self.itr_per_shape = 1000
+        self.itr_per_shape = 10
+        self.num_per_subdir = 10000
         if(self.scale_fix):
             self.scene_batch_size = 1
         else:

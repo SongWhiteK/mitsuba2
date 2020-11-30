@@ -28,6 +28,8 @@ class DataHandler:
         self.debug = config.DEBUG
         self.tag = config.tag
         self.im_size = config.im_size
+        self.plane = config.plane
+        self.num_per_subdir = config.num_per_subdir
 
     def list_update(self):
         self.sample_list = glob.glob(f"{self.sample_path}\\*")
@@ -83,7 +85,7 @@ class DataHandler:
         
             # Process with each training data
             for row in data.itertuples():
-                if(row.id % 10000 == 0):
+                if(row.id % config.num_per_subdir == 0):
                     file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
                     os.makedirs(file_path)
 
