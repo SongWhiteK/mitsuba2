@@ -25,8 +25,9 @@ class VAEConfiguration:
         self.loss_weight_abs    = 400
         self.loss_weight_latent = 50000
 
+
         ##### Trainer #####
-        self.data = "mini"
+        self.data = "train"
         if(self.data == "test"):
             self.n_per_subdir = 250
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
@@ -41,14 +42,14 @@ class VAEConfiguration:
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_plane"
         else:
             self.n_per_subdir = 10000
-            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
-            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
+            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_127\\train_path.csv"
+            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_127"
             
 
         self.seed = 1
-        self.epoch = 20
-        self.loader_args = {"batch_size": 128, "shuffle": True}
-        self.lr = 1*1e-4
+        self.epoch = 10
+        self.loader_args = {"batch_size": 256, "shuffle": True}
+        self.lr = 1*1e-3
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
         self.MODEL_DIR = "C:\\User\\mineg\\mitsuba2\\myscripts\\vae\\model"
