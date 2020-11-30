@@ -20,7 +20,7 @@ def index_spectrum(spec, idx):
     return m
 
 
-def resample_wo(si, sampler, active):
+def resample_wo(sampler, active):
     d_out_local = warp.square_to_cosine_hemisphere(sampler.next_2d(active))
     d_out_pdf = warp.square_to_cosine_hemisphere_pdf(d_out_local)
 

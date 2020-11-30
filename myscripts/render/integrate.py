@@ -241,7 +241,7 @@ def render_sample(scene, sampler, rays, bdata):
                 result[(is_bssrdf & (~project_suc))] += Spectrum([100, 0, 0])
 
             # Sample outgoing direction from projected position
-            d_out_local, d_out_pdf = utils_render.resample_wo(si, sampler, is_bssrdf)
+            d_out_local, d_out_pdf = utils_render.resample_wo(sampler, is_bssrdf)
             # Apply absorption probability
             throughput *= ek.select(is_bssrdf, Spectrum(1) - abs_prob, Spectrum(1))
             # Replace interactions by sampled ones from BSSRDF
