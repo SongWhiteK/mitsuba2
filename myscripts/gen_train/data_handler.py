@@ -2,6 +2,7 @@
 Processing trainingdata
 """
 import os
+from os import makedirs
 import shutil
 import glob
 import datetime
@@ -55,6 +56,7 @@ class DataHandler:
                 key_input = input()
                 if(key_input == "y"):
                     shutil.rmtree(self.train_image_dir_path)
+                    time.sleep(3)
                     os.mkdir(self.train_image_dir_path)
                     break
                 elif(key_input == "n"):
@@ -131,6 +133,8 @@ class DataHandler:
         df["p_out_z"] = df["p_out_z"] / df["sigma_n"]
 
         df = df[self.tag]
+        if(not os.path.exists(f"{self.train_sample_dir_path}")):
+            os.makedirs(f"{self.train_sample_dir_path}")
         df.to_csv(f"{self.train_sample_dir_path}\\train_path.csv",
                   index=False, float_format="%.6g")
 
