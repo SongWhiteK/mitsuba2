@@ -3,7 +3,6 @@
 import sys
 sys.path.append("myscripts/gen_train")
 
-import utils
 import mitsuba
 import enoki as ek
 import torch
@@ -37,3 +36,5 @@ def check_zero_scatter(sampler, si, bs, channel, active):
 
     return is_zero_scatter
 
+def reduced_albedo_to_effective_albedo(reduced_albedo):
+    return -ek.log(1.0 - reduced_albedo * (1.0 - ek.exp(-8.0))) / 8.0
