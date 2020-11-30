@@ -11,7 +11,7 @@ import vae_config
 import mitsuba
 import enoki as ek
 import utils
-from utils_render import index_spectrum
+from utils_render import index_spectrum, reduced_albedo_to_effective_albedo
 
 mitsuba.set_variant(render_config.variant)
 
@@ -156,7 +156,7 @@ def get_props(bs, si, channel):
     medium["g"] = g
     medium["sigma_t"] = sigma_t
     sigma_n = utils.get_sigman(medium)
-    eff_albedo = utils.reduced_albedo_to_effective_albedo(
+    eff_albedo = reduced_albedo_to_effective_albedo(
         utils.get_reduced_albedo(albedo, g, sigma_t)
         ).torch().view(-1, 1)
 
