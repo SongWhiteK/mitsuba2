@@ -76,10 +76,10 @@ def get_reduced_sigmat(albedo, g, sigmat):
     return (1 - g) * sigmas + sigmaa
 
 def effective_albedo_2_reduced_albedo(effective_albedo):
-    return (1 - ek.exp(-8 * effective_albedo)) / (1 - ek.exp(-8))
+    return (1 - np.exp(-8 * effective_albedo)) / (1 - np.exp(-8))
 
 def reduced_albedo_to_effective_albedo(reduced_albedo):
-    return -ek.log(1.0 - reduced_albedo * (1.0 - ek.exp(-8.0))) / 8.0
+    return -np.log(1.0 - reduced_albedo * (1.0 - np.exp(-8.0))) / 8.0
 
 def get_sigman(medium):
     """
