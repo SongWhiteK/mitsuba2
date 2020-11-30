@@ -49,11 +49,13 @@ class VAE(nn.Module):
         self.fn3 = nn.Linear(config.n_fn, config.n_fn)
 
         ##### Encoder #####
-        # Input: outgoing position (xyz vector)
+        # Input: feature vector and outgoing position (147 vector)
         # Output: 4x1 normal distribution vector
-        self.enc1 = nn.Linear(3, config.n_enc)
-        self.enc21 = nn.Linear(config.n_enc, 4)
-        self.enc22 = nn.Linear(config.n_enc, 4)
+        self.enc1 = nn.Linear(147, config.n_dec1)
+        self.enc2 = nn.Linear(config.n_dec1, config.n_dec1)
+        self.enc3 = nn.Linear(config.n_dec1, config.n_dec2)
+        self.enc41 = nn.Linear(config.n_dec2, 4)
+        self.enc42 = nn.Linear(config.n_dec2, 4)
 
         ##### Scatter Network #####
         # Input: 148x1 (144 + 4) feature vector and random numbers from normal distribution
@@ -89,10 +91,15 @@ class VAE(nn.Module):
 
 
 
-    def encode(self, x):
+    def encode(self, feature, x):
         """Encoding from outgoing position to average and standard deviation of normal distribution"""
-        x = F.relu(self.enc1(x))
-        return self.enc21(x), self.enc22(x)
+        # Concat converted feature vector(144 dim) and outgoing position(3 dim)
+        feature = torch.cat([feature, x], dim=1)
+
+        feature = F.relu(self.enc1(feature))
+        feature = F.relu(self.enc2(feature))
+        feature = F.relu(self.enc3(feature))
+        return self.enc41(feature), self.enc42(feature)
 
     def reparameterize(self, mu, logvar):
         """Reparametarization trick for VAE"""
@@ -137,7 +144,7 @@ class VAE(nn.Module):
         feature = self.feature_conversion(im, props)
 
         # Encode from position difference to latent variables
-        mu, logvar = self.encode(diff_pos)
+        mu, logvar = self.encode(feature, diff_pos)
         z = self.reparameterize(mu, logvar)
 
         # Decode from latent variables and feature vector to reconstructed position
