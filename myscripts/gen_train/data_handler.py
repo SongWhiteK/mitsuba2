@@ -70,6 +70,9 @@ class DataHandler:
             data["id"] = data.index + id_data + offset
             df_model_id = pd.DataFrame(np.ones([len(data), 1]) * i, columns=["model_id"])
             data["model_id"] = df_model_id["model_id"]
+            if(self.plane[i]):
+                df_scale_z = pd.DataFrame(np.zeros([len(data), 1]), columns=["scale_z"])
+                data["scale_z"] = df_scale_z["scale_z"]
 
             # join train data into one file
             df_all = df_all.append(data)

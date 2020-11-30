@@ -125,7 +125,7 @@ def render(itr, config):
         for i in range(itr // config.scene_batch_size):
             if (not config.scale_fix):
                 # Sample scaling matrix and set
-                scale_rec_v = scene_gen.random_set_transform_matrix(config, plane=config.plane[i])
+                scale_rec_v = scene_gen.random_set_transform_matrix(config, plane=config.plane[model_id])
                 scale_rec[config.scene_batch_size * i:config.scene_batch_size * i + config.scene_batch_size] *= scale_rec_v
 
             
