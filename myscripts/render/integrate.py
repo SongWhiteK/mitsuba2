@@ -110,6 +110,8 @@ def render(scene, spp, sample_per_pass, bdata):
     bmp = Bitmap(xyzaw_np, Bitmap.PixelFormat.XYZAW)
     bmp = bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.Float32, srgb_gamma=False)
     bmp.write('result.exr')
+    bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8, srgb_gamma=True).write('result.jpg')
+
 
 
 def render_sample(scene, sampler, rays, bdata):
