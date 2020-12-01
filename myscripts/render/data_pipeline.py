@@ -173,9 +173,9 @@ class BSSRDF_Data:
                 result = p.map(func=self.call_map, iterable=idx_objects)
 
             result = torch.tensor(result)
-            result = result.reshape([-1, 1, 255, 255])
+            result = result.reshape([-1, 1, config.im_size, config.im_size])
         else:
-            result = torch.zeros([len(mesh_id), 1, 255, 255])
+            result = torch.zeros([len(mesh_id), 1, config.im_size, config.im_size])
             for i in idx_valid_path:
                 result[i, 0, :, :] = torch.tensor(self.call_map(i))
 
@@ -186,7 +186,7 @@ class BSSRDF_Data:
         ref_id = int(self.mesh_id[i])
 
         if(ref_id == 0):
-            return np.zeros([255, 255])
+            return np.zeros([config.im_size, config.im_size])
 
         mesh_map = self.mesh_map[ref_id]
         medium = self.get_medium_dict(ref_id)
