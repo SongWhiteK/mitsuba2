@@ -6,8 +6,8 @@ from os import truncate
 variant = "gpu_rgb"
 rr_depth = 5
 max_depth = 10
-spp = 32
-sample_per_pass = 2048
+spp = 4
+sample_per_pass = 4096
 
 film_width = 256
 film_height = 256
