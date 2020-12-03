@@ -9,9 +9,9 @@ class TrainDataConfiguration:
     def __init__(self):
         ############## EXECUTION MODES ##############
         self.DEBUG = False
-        self.mode = "sample" # visualizing medium appearance
-        self.medium_fix = False # generating fixed medium parameters
-        self.scale_fix = False # no scale shape objects
+        self.mode = "visual" # visualizing medium appearance
+        self.medium_fix = True # generating fixed medium parameters
+        self.scale_fix = True # no scale shape objects
 
         ############## FILE PATHS ##############
         if (self.mode is "visual"):
@@ -36,7 +36,7 @@ class TrainDataConfiguration:
         self.plane = [True]
 
         ############## ITERATION NUMBERS ##############
-        self.itr_per_shape = 10
+        self.itr_per_shape = 1
         self.num_per_subdir = 10000
         if(self.scale_fix):
             self.scene_batch_size = 1
@@ -48,7 +48,7 @@ class TrainDataConfiguration:
 
 
         ############## TAIN DATA TAG ##############
-        self.tag = ["eff_albedo", "albedo", "g", "eta", "p_in_x", "p_in_y", "p_in_z",
+        self.tag = ["eff_albedo", "albedo", "g", "eta", "sigma_n", "p_in_x", "p_in_y", "p_in_z",
                     "p_out_x", "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z",
                     "abs_prob", "height_max", "model_id", "id"]
         self.coeff_range = 6

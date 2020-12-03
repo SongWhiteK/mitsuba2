@@ -45,6 +45,11 @@ class VAEDatasets(Dataset):
         abs_prob = abs_prob.astype(np.float32)
         abs_prob = torch.tensor(abs_prob)
 
+        idx_sigma_n = ["sigma_n"]
+        sigma_n = pd.Series(data=data, index=idx_sigma_n).values
+        sigma_n = sigma_n.astype(np.float32)
+        sigma_n = torch.tensor(sigma_n)
+
         sample_id = int(data["id"])
         model_id = int(data["model_id"])
 
@@ -57,6 +62,7 @@ class VAEDatasets(Dataset):
         sample["in_pos"] = in_pos
         sample["out_pos"] = out_pos
         sample["abs"] = abs_prob
+        sample["sigma_n"] = sigma_n
 
         return im_path, sample
 
@@ -109,11 +115,16 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         in_pos = sample["in_pos"].to(device)
         out_pos = sample["out_pos"].to(device)
         abs_prob = sample["abs"].to(device)
+        sigma_n = sample["sigma_n"].to(device)
+
+        in_pos_scaled = in_pos / sigma_n
+        out_pos_scaled = out_pos / sigma_n
 
         im = image_generate(im_path, config.im_size)
         
         optimizer.zero_grad()
-        recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
+        recon_pos_scaled, recon_abs, mu, logvar = model(props, im.to(device), in_pos_scaled, out_pos_scaled)
+        recon_pos = recon_pos_scaled * sigma_n
         loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
 
         loss_total.backward()
@@ -162,12 +173,15 @@ def test(epoch, config, model, device, test_loader, writer):
             in_pos = sample["in_pos"].to(device)
             out_pos = sample["out_pos"].to(device)
             abs_prob = sample["abs"].to(device)
+            sigma_n = sample["sigma_n"].to(device)
 
+            in_pos_scaled = in_pos / sigma_n
+            out_pos_scaled = out_pos / sigma_n
 
             im = image_generate(im_path, config.im_size)
 
-            recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
-
+            recon_pos_scaled, recon_abs, mu, logvar = model(props, im.to(device), in_pos_scaled, out_pos_scaled)
+            recon_pos = recon_pos_scaled * sigma_n
             loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
 
             test_loss_total += loss_total

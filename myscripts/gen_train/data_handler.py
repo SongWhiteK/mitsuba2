@@ -124,14 +124,6 @@ class DataHandler:
         df["height_max"] = df["scale_z"]
         df["sigma_n"] = utils.get_sigman(df)
 
-        # Scale incident and outgoing position with sigma n
-        df["p_in_x"] = df["p_in_x"] / df["sigma_n"]
-        df["p_in_y"] = df["p_in_y"] / df["sigma_n"]
-        df["p_in_z"] = df["p_in_z"] / df["sigma_n"]
-        df["p_out_x"] = df["p_out_x"] / df["sigma_n"]
-        df["p_out_y"] = df["p_out_y"] / df["sigma_n"]
-        df["p_out_z"] = df["p_out_z"] / df["sigma_n"]
-
         df = df[self.tag]
         if(not os.path.exists(f"{self.train_sample_dir_path}")):
             os.makedirs(f"{self.train_sample_dir_path}")
