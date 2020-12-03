@@ -1,8 +1,5 @@
 import numpy as np
-import mitsuba
-import enoki as ek
 
-mitsuba.set_variant("gpu_rgb")
 
 from traindata_config import TrainDataConfiguration
 
@@ -56,13 +53,13 @@ class FixedParamGenerator(ParamGenerator):
     """
 
     def get_albedo(self):
-        return 0.99
+        return 0.5
 
     def get_eta(self):
         return 1.5
 
     def get_g(self):
-        return 0.5
+        return 0.25
 
 
 def get_reduced_albedo(albedo, g, sigmat):
