@@ -24,8 +24,8 @@ class VAEConfiguration:
         self.n_dec2 = 64
 
         self.loss_weight_pos    = 1
-        self.loss_weight_abs    = 1
-        self.loss_weight_latent = 1
+        self.loss_weight_abs    = 1000
+        self.loss_weight_latent = 10
 
 
         ##### Trainer #####
