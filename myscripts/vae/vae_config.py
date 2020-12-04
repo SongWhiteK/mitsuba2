@@ -7,7 +7,7 @@ class VAEConfiguration:
         ##### Network #####
         self.use_dropout = True
 
-        self.im_size = 127
+        self.im_size = 63
         self.ch1    = 32
         self.ch2    = 64
         self.ch3    = 128
@@ -20,7 +20,7 @@ class VAEConfiguration:
 
         self.n_fn   = 16
         self.n_enc  = 16
-        self.n_dec1 = 256
+        self.n_dec1 = 64
         self.n_dec2 = 64
 
         self.loss_weight_pos    = 1

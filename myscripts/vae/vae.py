@@ -35,7 +35,7 @@ class VAE(nn.Module):
         ###### CONV #####
         # Input: 127x127 image
         # Output: 128x1 vector
-        self.conv1 = conv5x5(1, config.ch1, config.stride)
+        self.conv1 = conv3x3(1, config.ch1)
         self.conv2 = conv3x3(config.ch1, config.ch2)
         self.conv3 = conv3x3(config.ch2, config.ch3)
         self.drop = nn.Dropout2d()

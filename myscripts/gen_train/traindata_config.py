@@ -29,9 +29,9 @@ class TrainDataConfiguration:
         self.SERIALIZED_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\serialized"
 
         self.SAMPLE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\sample_files"
-        self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_127plane"
+        self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_63plane"
         self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\height_map_plane"
-        self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_127plane"
+        self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_63plane"
 
         self.plane = [True]
 
@@ -52,7 +52,7 @@ class TrainDataConfiguration:
                     "p_out_x", "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z",
                     "abs_prob", "height_max", "model_id", "id"]
         self.coeff_range = 6
-        self.im_size = 127
+        self.im_size = 63
 
 
 config = TrainDataConfiguration()
