@@ -92,8 +92,11 @@ class VAE(nn.Module):
 
 
 
-    def encode(self, feature, x):
+    def encode(self, feature, x, is_training=False):
         """Encoding from outgoing position to average and standard deviation of normal distribution"""
+        if is_training:
+            x += (torch.fmod(torch.randn(x.size()),2) * 0.01).to(device)
+
         # Concat converted feature vector(144 dim) and outgoing position(3 dim)
         feature = torch.cat([feature, x], dim=1)
 
@@ -135,7 +138,7 @@ class VAE(nn.Module):
         return scatter, absorption
 
 
-    def forward(self, props, im, in_pos, out_pos):
+    def forward(self, props, im, in_pos, out_pos, is_training=False):
         # position difference between incident and outgoing
         diff_pos = out_pos - in_pos
 
@@ -145,7 +148,7 @@ class VAE(nn.Module):
         feature = self.feature_conversion(im, props)
 
         # Encode from position difference to latent variables
-        mu, logvar = self.encode(feature, diff_pos)
+        mu, logvar = self.encode(feature, diff_pos, is_training)
         z = self.reparameterize(mu, logvar)
 
         # Decode from latent variables and feature vector to reconstructed position

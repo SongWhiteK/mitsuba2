@@ -123,7 +123,7 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         im = image_generate(im_path, config.im_size)
         
         optimizer.zero_grad()
-        recon_pos_scaled, recon_abs, mu, logvar = model(props, im.to(device), in_pos_scaled, out_pos_scaled)
+        recon_pos_scaled, recon_abs, mu, logvar = model(props, im.to(device), in_pos_scaled, out_pos_scaled, is_training=True)
         recon_pos = recon_pos_scaled * sigma_n
         loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
 
