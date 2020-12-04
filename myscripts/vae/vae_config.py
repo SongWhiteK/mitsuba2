@@ -16,6 +16,8 @@ class VAEConfiguration:
 
         self.pool   = 3
 
+        self.n_latent = 4
+
         self.n_fn   = 16
         self.n_enc  = 16
         self.n_dec1 = 256

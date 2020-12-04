@@ -54,8 +54,9 @@ class VAE(nn.Module):
         self.enc1 = nn.Linear(147, config.n_dec1)
         self.enc2 = nn.Linear(config.n_dec1, config.n_dec1)
         self.enc3 = nn.Linear(config.n_dec1, config.n_dec2)
-        self.enc41 = nn.Linear(config.n_dec2, 4)
-        self.enc42 = nn.Linear(config.n_dec2, 4)
+        self.enc41 = nn.Linear(config.n_dec2, config.n_latent)
+        self.enc42 = nn.Linear(config.n_dec2, config.n_latent)
+        self.n_latent = config.n_latent
 
         ##### Scatter Network #####
         # Input: 148x1 (144 + 4) feature vector and random numbers from normal distribution
