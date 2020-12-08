@@ -52,6 +52,10 @@ def render(scene, spp, sample_per_pass, bdata):
     block.clear()
 
     result = 0
+
+    if(config.enable_bssrdf):
+        bssrdf = BSSRDF(config.model_name)
+
     
 
     # The number of iteration for gpu rendering
@@ -93,7 +97,7 @@ def render(scene, spp, sample_per_pass, bdata):
             sample3=0
         )
 
-        result, valid_rays = render_sample(scene, sampler, rays, bdata)
+        result, valid_rays = render_sample(scene, sampler, rays, bdata, bssrdf)
         result = weights * result
         xyz = Color3f(srgb_to_xyz(result))
         aovs = [xyz[0], xyz[1], xyz[2],
@@ -114,7 +118,7 @@ def render(scene, spp, sample_per_pass, bdata):
 
 
 
-def render_sample(scene, sampler, rays, bdata):
+def render_sample(scene, sampler, rays, bdata, bssrdf=None):
     """
     Sample RTE
     TODO: Support multi channel sampling
@@ -148,7 +152,6 @@ def render_sample(scene, sampler, rays, bdata):
     n_channels = 3
     channel = UInt32(ek.min(sampler.next_1d(active) * n_channels, n_channels - 1))
 
-    bssrdf = BSSRDF(config.model_name)
     d_out_local = Vector3f().zero()
     d_out_pdf = Float(0)
 
