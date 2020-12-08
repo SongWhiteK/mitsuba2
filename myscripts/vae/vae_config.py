@@ -49,12 +49,12 @@ class VAEConfiguration:
             
 
         self.seed = 1
-        self.epoch = 10
+        self.epoch = 20
         self.loader_args = {"batch_size": 512, "shuffle": True}
         self.lr = 2*1e-3
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
-        self.MODEL_DIR = "C:\\User\\mineg\\mitsuba2\\myscripts\\vae\\model"
+        self.MODEL_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\vae\\model"
 
         
 

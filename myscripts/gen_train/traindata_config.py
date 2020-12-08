@@ -55,6 +55,5 @@ class TrainDataConfiguration:
         self.im_size = 63
 
 
-config = TrainDataConfiguration()
-if(config.DEBUG):
-    print("\033[31m" + "This execution is in DEBUG mode" + "\033[0m")
+        if(self.DEBUG):
+            print("\033[31m" + "This execution is in DEBUG mode" + "\033[0m")
