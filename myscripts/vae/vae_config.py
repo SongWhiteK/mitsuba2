@@ -7,7 +7,7 @@ class VAEConfiguration:
         ##### Network #####
         self.use_dropout = True
 
-        self.im_size = 127
+        self.im_size = 63
         self.ch1    = 32
         self.ch2    = 64
         self.ch3    = 128
@@ -20,7 +20,7 @@ class VAEConfiguration:
 
         self.n_fn   = 16
         self.n_enc  = 16
-        self.n_dec1 = 256
+        self.n_dec1 = 64
         self.n_dec2 = 64
 
         self.loss_weight_pos    = 1
@@ -40,8 +40,8 @@ class VAEConfiguration:
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
         elif(self.data == "plane"):
             self.n_per_subdir = 10000
-            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_127plane\\train_path.csv"
-            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_127plane"
+            self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_63plane\\train_path.csv"
+            self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_63plane"
         else:
             self.n_per_subdir = 10000
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_127\\train_path.csv"
