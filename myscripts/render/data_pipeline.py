@@ -29,9 +29,9 @@ class BSSRDF_Data:
     def __init__(self):
         self.bssrdf = {}
         self.mesh = {}
-        self.mesh_map = {}
-        self.mesh_range = {}
-        self.mesh_minmax = {}
+        self.mesh_map = []
+        self.mesh_range = []
+        self.mesh_minmax = []
         self.sigma_n = []
 
     def register_medium(self, mesh_id, ior=1.5, scale=1.0,
@@ -73,7 +73,7 @@ class BSSRDF_Data:
 
         self.sigma_n.append(utils.get_sigman(self.bssrdf[mesh_id]))
         
-    def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, range,
+    def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, mesh_range,
                       minmax, filename=None, translate=[0,0,0],
                       rotate={"axis": "x", "angle": 0.0}, scale=[1,1,1]):
         """
@@ -88,9 +88,9 @@ class BSSRDF_Data:
             "height_max": height_max
         }
 
-        self.mesh_map[mesh_id] = mesh_map
-        self.mesh_range[mesh_id] = range
-        self.mesh_minmax[mesh_id] = minmax
+        self.mesh_map.append(mesh_map)
+        self.mesh_range.append(mesh_range)
+        self.mesh_minmax.append(minmax)
 
     def add_object(self, scene_dict):
         """
@@ -190,8 +190,10 @@ class BSSRDF_Data:
         if(ref_id == 0):
             return np.zeros([config.im_size, config.im_size])
 
+        ref_id -= 1
+
         mesh_map = self.mesh_map[ref_id]
-        sigma_n = self.sigma_n[ref_id-1]
+        sigma_n = self.sigma_n[ref_id]
         ref_in = self.in_pos[i, :]
         x_range, y_range = self.mesh_range[ref_id]
         x_min, y_max = self.mesh_minmax[ref_id]
