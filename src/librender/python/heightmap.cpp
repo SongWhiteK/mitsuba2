@@ -4,38 +4,46 @@
 #include <pybind11/numpy.h>
 #include <time.h>
 
-template<typename T>
 class HeightMap {
+    using array_i = py::array_t<int32_t>;
+    using array_f = py::array_t<float>;
 private:
-    py::array_t<T> m_data;
+    array_i m_data;
     ssize_t m_im_size;
+    array_f m_x_range, m_y_range, m_x_min, m_y_max, m_sigma_n;
+
 
 public:
-    HeightMap(py::array_t<T> map_list, ssize_t im_size){
+    HeightMap(array_i map_list, ssize_t im_size, array_f x_range,
+              array_f y_range, array_f sigma_n, array_f x_min, array_f y_max){
         m_data = map_list;
         m_im_size = im_size;
+        m_x_range = x_range;
+        m_y_range = y_range;
+        m_sigma_n = sigma_n;
+        m_x_min = x_min;
+        m_y_max = y_max;
     }
 
-    auto print_size(){
-        const auto &buff_info = m_data.request();
-        const auto &shape = buff_info.shape;
-        const auto &ndim = buff_info.ndim;
+    auto get_height_map(array_f in_pos, array_i mesh_id){
 
-        py::array_t<T> y{shape};
-
-
-        return y;
-    }
-
-    auto get_height_map(py::array_t<T> in_pos, py::array_t<T> mesh_id){
         clock_t start = clock();
         std::cout << "get_map_start" << std::endl;
+
         const auto &buff_id = mesh_id.request();
         ssize_t n_sample = buff_id.shape[0];
 
-        std::vector<ssize_t> shape_result{n_sample, m_im_size, m_im_size};
+        std::vector<ssize_t> shape_result{n_sample, 1, m_im_size, m_im_size};
 
-        py::array_t<T> result{shape_result};
+        array_i result{shape_result};
+
+        for(int i = 0; i < n_sample; i++){
+            for(int j = 0; j < m_im_size; j++){
+                for(int k = 0; k < m_im_size; k++){
+
+                }
+            }
+        }
 
         return result;
     }
@@ -45,12 +53,14 @@ public:
 
 
 PYBIND11_PLUGIN(heightmap) {
+    using array_i = py::array_t<int32_t>;
+    using array_f = py::array_t<float>;
     py::module m("heightmap", "test docs");
 
-    py::class_<HeightMap<int32_t>>(m, "HeightMap")
-        .def(py::init<py::array_t<int32_t>, ssize_t>())
-        .def("print_size", &HeightMap<int32_t>::print_size)
-        .def("get_height_map", &HeightMap<int32_t>::get_height_map);
+    py::class_<HeightMap>(m, "HeightMap")
+        .def(py::init<array_i, ssize_t, array_f,
+             array_f, array_f, array_f, array_f>())
+        .def("get_height_map", &HeightMap::get_height_map);
 
     return m.ptr();
 }
