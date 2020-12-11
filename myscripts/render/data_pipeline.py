@@ -157,6 +157,23 @@ class BSSRDF_Data:
 
         return scene_dict
 
+    def get_heightmap_pybind(self):
+        """Generate HeightMap instance from this and return it"""
+
+        x_range = self.mesh_xrange
+        y_range = self.mesh_yrange
+        sigma_n = self.sigma_n
+        x_min = self.mesh_xmin
+        y_max = self.mesh_ymax
+
+        heightmap = HeightMap(self.mesh_map, config.im_size, x_range, y_range,
+                              sigma_n, x_min, y_max)
+
+        return heightmap
+
+
+        
+
     def get_medium_dict(self, mesh_id):
         medium = {}
         medium["sigma_t"] = self.bssrdf[mesh_id]["sigma_t"]
