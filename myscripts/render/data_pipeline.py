@@ -30,8 +30,10 @@ class BSSRDF_Data:
         self.bssrdf = {}
         self.mesh = {}
         self.mesh_map = []
-        self.mesh_range = []
-        self.mesh_minmax = []
+        self.mesh_xrange = []
+        self.mesh_yrange = []
+        self.mesh_xmin = []
+        self.mesh_ymax = []
         self.sigma_n = []
 
     def register_medium(self, mesh_id, ior=1.5, scale=1.0,
@@ -89,8 +91,10 @@ class BSSRDF_Data:
         }
 
         self.mesh_map.append(mesh_map)
-        self.mesh_range.append(mesh_range)
-        self.mesh_minmax.append(minmax)
+        self.mesh_xrange.append(mesh_range[0])
+        self.mesh_yrange.append(mesh_range[1])
+        self.mesh_xmin.append(minmax[0])
+        self.mesh_ymax.append(minmax[1])
 
     def add_object(self, scene_dict):
         """
@@ -195,8 +199,10 @@ class BSSRDF_Data:
         mesh_map = self.mesh_map[ref_id]
         sigma_n = self.sigma_n[ref_id]
         ref_in = self.in_pos[i, :]
-        x_range, y_range = self.mesh_range[ref_id]
-        x_min, y_max = self.mesh_minmax[ref_id]
+        x_range = self.mesh_xrange[ref_id]
+        y_range = self.mesh_yrange[ref_id]
+        x_min = self.mesh_xmin[ref_id]
+        y_max = self.mesh_ymax[ref_id]
 
         height_map = clip_scaled_map(mesh_map, ref_in, sigma_n, x_range, y_range, x_min, y_max, config.im_size)
 
