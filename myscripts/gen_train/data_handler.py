@@ -220,16 +220,16 @@ def gen_train_image(data, height_map, im_size, debug):
     # Scale height map with scale factors as sampling
     map_scaled = cv2.resize(height_map, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_AREA)
 
-    return clip_scaled_map(map_scaled, [x_in, y_in], medium, x_range, y_range, x_min, y_max, im_size)
+    sigma_n = utils.get_sigman(medium)
 
-def clip_scaled_map(map_scaled, pos_in, medium, x_range, y_range, x_min, y_max, im_size):
+    return clip_scaled_map(map_scaled, [x_in, y_in], sigma_n, x_range, y_range, x_min, y_max, im_size)
+
+def clip_scaled_map(map_scaled, pos_in, sigma_n, x_range, y_range, x_min, y_max, im_size):
     height_scaled, width_scaled = map_scaled.shape
 
     x_in = pos_in[0]
     y_in = pos_in[1]
 
-    # sigma_n of target meidum. sigma_n defines the range
-    sigma_n = utils.get_sigman(medium)
     # Length of a pixel edge
     px_len = x_range / width_scaled
     # The number of pixels in 6 sigma_n

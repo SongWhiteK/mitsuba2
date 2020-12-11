@@ -14,6 +14,7 @@ import render_config as config
 import numpy as np
 from multiprocessing import Pool
 from data_handler import clip_scaled_map
+import utils
 
 
 
@@ -31,6 +32,7 @@ class BSSRDF_Data:
         self.mesh_map = {}
         self.mesh_range = {}
         self.mesh_minmax = {}
+        self.sigma_n = []
 
     def register_medium(self, mesh_id, ior=1.5, scale=1.0,
                         sigma_t=1.0, albedo=0.5, g=0.25):
@@ -69,8 +71,8 @@ class BSSRDF_Data:
             "mesh_id": mesh_id
             }
 
+        self.sigma_n.append(utils.get_sigman(self.bssrdf[mesh_id]))
         
-
     def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, range,
                       minmax, filename=None, translate=[0,0,0],
                       rotate={"axis": "x", "angle": 0.0}, scale=[1,1,1]):
@@ -189,11 +191,11 @@ class BSSRDF_Data:
             return np.zeros([config.im_size, config.im_size])
 
         mesh_map = self.mesh_map[ref_id]
-        medium = self.get_medium_dict(ref_id)
+        sigma_n = self.sigma_n[ref_id-1]
         ref_in = self.in_pos[i, :]
         x_range, y_range = self.mesh_range[ref_id]
         x_min, y_max = self.mesh_minmax[ref_id]
 
-        height_map = clip_scaled_map(mesh_map, ref_in, medium, x_range, y_range, x_min, y_max, config.im_size)
+        height_map = clip_scaled_map(mesh_map, ref_in, sigma_n, x_range, y_range, x_min, y_max, config.im_size)
 
         return height_map
