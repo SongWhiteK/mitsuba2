@@ -58,4 +58,6 @@ add_mitsuba_python_library(render_ext
   spiral.cpp
 )
 
+pybind11_add_module(heightmap heightmap.cpp)
+
 target_link_libraries(render_ext PRIVATE mitsuba-core mitsuba-render tbb)
