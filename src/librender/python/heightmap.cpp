@@ -8,13 +8,13 @@ class HeightMap {
     using array_i = py::array_t<int32_t>;
     using array_f = py::array_t<float>;
 private:
-    array_i m_data;
+    std::vector<array_i> m_data;
     ssize_t m_im_size;
     array_f m_x_range, m_y_range, m_x_min, m_y_max, m_sigma_n;
 
 
 public:
-    HeightMap(array_i map_list, ssize_t im_size, array_f x_range,
+    HeightMap(std::vector<array_i> map_list, ssize_t im_size, array_f x_range,
               array_f y_range, array_f sigma_n, array_f x_min, array_f y_max){
         m_data = map_list;
         m_im_size = im_size;
@@ -58,7 +58,7 @@ PYBIND11_PLUGIN(heightmap) {
     py::module m("heightmap", "test docs");
 
     py::class_<HeightMap>(m, "HeightMap")
-        .def(py::init<array_i, ssize_t, array_f,
+        .def(py::init<std::vector<array_i>, ssize_t, array_f,
              array_f, array_f, array_f, array_f>())
         .def("get_height_map", &HeightMap::get_height_map);
 
