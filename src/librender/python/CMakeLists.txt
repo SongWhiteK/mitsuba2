@@ -59,5 +59,6 @@ add_mitsuba_python_library(render_ext
 )
 
 pybind11_add_module(heightmap heightmap.cpp)
+add_dist(python/mitsuba/heightmap)
 
 target_link_libraries(render_ext PRIVATE mitsuba-core mitsuba-render tbb)
