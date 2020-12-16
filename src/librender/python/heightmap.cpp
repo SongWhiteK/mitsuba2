@@ -6,7 +6,7 @@
 
 class HeightMap {
     using array_i = py::array_t<int32_t>;
-    using array_f = py::array_t<float>;
+    using array_f = std::vector<float>;
 private:
     std::vector<array_i> m_data;
     ssize_t m_im_size;
@@ -25,17 +25,17 @@ public:
         m_y_max = y_max;
     }
 
-    auto get_height_map(array_f in_pos, array_i mesh_id){
+    auto get_height_map(py::array_t<float> in_pos, array_i mesh_id){
 
         clock_t start = clock();
         std::cout << "get_map_start" << std::endl;
 
-        const auto &buff_id = mesh_id.request();
-        ssize_t n_sample = buff_id.shape[0];
+        ssize_t n_sample = mesh_id.size();
 
-        std::vector<ssize_t> shape_result{n_sample, 1, m_im_size, m_im_size};
+        std::vector<array_i> result(n_sample);
 
-        array_i result{shape_result};
+        std::cout << "shape: " << result.size() << ", " << m_shape_result[0] << ", "
+                  << m_shape_result[1] << ", " << m_shape_result[2] << std::endl;
 
         for(int i = 0; i < n_sample; i++){
             for(int j = 0; j < m_im_size; j++){
@@ -54,7 +54,7 @@ public:
 
 PYBIND11_PLUGIN(heightmap) {
     using array_i = py::array_t<int32_t>;
-    using array_f = py::array_t<float>;
+    using array_f = std::vector<float>;
     py::module m("heightmap", "test docs");
 
     py::class_<HeightMap>(m, "HeightMap")
