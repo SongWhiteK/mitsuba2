@@ -10,6 +10,7 @@ sys.path.append("./myscripts/gen_train")
 from time import time
 import torch
 import mitsuba
+from mitsuba.heightmap import HeightMap
 import render_config as config
 import numpy as np
 from multiprocessing import Pool
