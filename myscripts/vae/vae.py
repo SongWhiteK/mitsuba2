@@ -193,17 +193,18 @@ if __name__ == "__main__":
     dataset = VAEDatasets(config, ToTensor())
 
     # Visualize network in Tensorboard
-    # model.eval()
-    # writer = SummaryWriter(config.LOG_DIR)
-    # im = np.random.randint(0, 255, [1, 1, 127, 127]).astype(np.float32)
-    # im = torch.tensor(im).to(device)
+    if config.visualize_net:
+        model.eval()
+        writer = SummaryWriter(config.LOG_DIR)
+        im = np.random.randint(0, 255, [1, 1, 127, 127]).astype(np.float32)
+        im = torch.tensor(im).to(device)
 
-    # props = torch.randn([1, 7]).to(device)
-    # in_pos = torch.randn([1, 3]).to(device)
-    # out_pos = torch.randn([1, 3]).to(device)
+        props = torch.randn([1, 7]).to(device)
+        in_pos = torch.randn([1, 3]).to(device)
+        out_pos = torch.randn([1, 3]).to(device)
 
-    # writer.add_graph(model, (props, im, in_pos, out_pos))
-    # writer.close()
+        writer.add_graph(model, (props, im, in_pos, out_pos))
+        writer.close()
 
     train(config, model, device, dataset)
     print(time.time() - time1)

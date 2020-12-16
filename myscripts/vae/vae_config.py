@@ -56,6 +56,7 @@ class VAEConfiguration:
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
         self.MODEL_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\vae\\model"
 
+        self.visualize_net = False
         
 
 
