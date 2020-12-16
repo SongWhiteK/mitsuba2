@@ -11,6 +11,7 @@ private:
     std::vector<array_i> m_data;
     ssize_t m_im_size;
     array_f m_x_range, m_y_range, m_x_min, m_y_max, m_sigma_n;
+    std::vector<ssize_t> m_shape_result;
 
 
 public:
@@ -23,6 +24,7 @@ public:
         m_sigma_n = sigma_n;
         m_x_min = x_min;
         m_y_max = y_max;
+        m_shape_result = std::vector<ssize_t>{1, im_size, im_size};
     }
 
     auto get_height_map(py::array_t<float> in_pos, array_i mesh_id){
