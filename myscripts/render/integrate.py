@@ -84,6 +84,8 @@ def render(scene, spp, sample_per_pass, bdata):
     sampler.seed(0, sample_per_pass)
     cnt = 0
 
+    heightmap_pybind = bdata.get_heightmap_pybind()
+
     for ite in range(n_ite):
         # Get position for this iteration
         pos_ite = Vector2f(pos_x[ite*sample_per_pass:ite*sample_per_pass+sample_per_pass],
@@ -97,7 +99,7 @@ def render(scene, spp, sample_per_pass, bdata):
             sample3=0
         )
 
-        result, valid_rays = render_sample(scene, sampler, rays, bdata, bssrdf)
+        result, valid_rays = render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf)
         result = weights * result
         xyz = Color3f(srgb_to_xyz(result))
         aovs = [xyz[0], xyz[1], xyz[2],
@@ -118,7 +120,7 @@ def render(scene, spp, sample_per_pass, bdata):
 
 
 
-def render_sample(scene, sampler, rays, bdata, bssrdf=None):
+def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
     """
     Sample RTE
     TODO: Support multi channel sampling
@@ -239,7 +241,7 @@ def render_sample(scene, sampler, rays, bdata, bssrdf=None):
         if(config.enable_bssrdf and not ek.none(is_bssrdf)):
             # Get projected samples from BSSRDF
             projected_si, project_suc, abs_prob = bssrdf.sample_bssrdf(scene, bsdf, bs, si, bdata, 
-                                                                       channel, is_bssrdf)
+                                                                       heightmap_pybind, channel, is_bssrdf)
 
             if config.visualize_invalid_sample:
                 active = active & (~is_bssrdf | project_suc)
