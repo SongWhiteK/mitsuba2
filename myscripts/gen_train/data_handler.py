@@ -227,7 +227,7 @@ def gen_train_image(data, height_map, im_size, debug, pybind=None):
     sigma_n = utils.get_sigman(medium)
 
     if(pybind != None):
-        return pybind.clip_scaled_map(map_scaled, x_in, y_in, sigma_n, x_range, y_range, x_min, y_max)[0,:,:]
+        return pybind.clip_scaled_map(map_scaled, x_in, y_in, sigma_n, x_range, y_range, x_min, y_max)
 
     return clip_scaled_map(map_scaled, [x_in, y_in], sigma_n, x_range, y_range, x_min, y_max, im_size)
 

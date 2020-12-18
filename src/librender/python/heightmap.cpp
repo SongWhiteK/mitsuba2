@@ -23,14 +23,14 @@ public:
         m_sigma_n = sigma_n;
         m_x_min = x_min;
         m_y_max = y_max;
-        m_shape_result = std::vector<ssize_t>{1, im_size, im_size};
+        m_shape_image = std::vector<ssize_t>{im_size, im_size};
         m_interpolation = interpolation;
 
-        m_init_map = Image{m_shape_result};
+        m_init_map = Image{m_shape_image};
     }
 
     HeightMap(ssize_t im_size, Interpolation interpolation=NEAREST){
-        m_shape_result = std::vector<ssize_t>{1, im_size, im_size};
+        m_shape_image = std::vector<ssize_t>{im_size, im_size};
         m_interpolation = interpolation;
         m_im_size = im_size;
     }
@@ -68,7 +68,7 @@ public:
     Image clip_scaled_map(Image map_scaled, float x_in, float y_in, float sigma_n,
                           float x_range, float y_range, float x_min, float y_max){
         
-        Image map_cliped{m_shape_result};
+        Image map_cliped{m_shape_image};
         const auto map_buf = map_scaled.request();
         const auto map_shape = map_buf.shape;
 
@@ -105,14 +105,14 @@ public:
 
                 // if the pixel is out of range 6 sigma_n, fill 0
                 if (dist_u * dist_u + dist_v * dist_v > r*r){
-                    *map_cliped.mutable_data(0, i, j) = 0;
+                    *map_cliped.mutable_data(i, j) = 0;
                 }else{
                     if (px_u >= 0 && px_v >= 0 && px_u < height && px_v < width){
-                        *map_cliped.mutable_data(0, i, j) = pick_pxl(map_scaled, px_u,
+                        *map_cliped.mutable_data(i, j) = pick_pxl(map_scaled, px_u,
                                                                     px_v, m_interpolation);
                     }else{
                         // if the pixel if out of map_scaled, fill 31
-                        *map_cliped.mutable_data(0, i, j) = 31;
+                        *map_cliped.mutable_data(i, j) = 31;
                     }
                 }
             }
@@ -127,7 +127,7 @@ private:
     std::vector<Image> m_data;
     ssize_t m_im_size;
     array_f m_x_range, m_y_range, m_x_min, m_y_max, m_sigma_n;
-    std::vector<ssize_t> m_shape_result;
+    std::vector<ssize_t> m_shape_image;
     Interpolation m_interpolation;
     Image m_init_map;
     
