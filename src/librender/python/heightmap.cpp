@@ -25,12 +25,16 @@ public:
         m_y_max = y_max;
         m_shape_image = std::vector<ssize_t>{im_size, im_size};
         m_interpolation = interpolation;
+        m_r_sqr = (im_size / 2) * (im_size / 2);
+        m_center_uv = im_size / 2;
     }
 
     HeightMap(ssize_t im_size, Interpolation interpolation=NEAREST){
         m_shape_image = std::vector<ssize_t>{im_size, im_size};
         m_interpolation = interpolation;
         m_im_size = im_size;
+        m_r_sqr = (im_size / 2) * (im_size / 2);
+        m_center_uv = im_size / 2;
     }
 
     ~HeightMap(){};
@@ -89,22 +93,20 @@ public:
         float u_c = (y_max - y_in) / y_range * height;
         float v_c = (x_in - x_min) / x_range * width;
 
-        int r = m_im_size / 2;
-        int center_uv = r;
         // roop of u (= y)
         for (int i = 0; i < m_im_size; i++){
-            int dist_u = i - center_uv;
+            int dist_u = i - m_center_uv;
             // u position of a pixel of interested in map_scaled
             float px_u = u_c + dist_u * ratio_px;
 
             // roop of v (= x) 
             for(int j = 0; j < m_im_size; j++){
-                int dist_v = j - center_uv;
+                int dist_v = j - m_center_uv;
                 // v position of a pixel of interested in map_scaled
                 float px_v = v_c + dist_v * ratio_px;
 
                 // if the pixel is out of range 6 sigma_n, fill 0
-                if (dist_u * dist_u + dist_v * dist_v > r*r){
+                if (dist_u * dist_u + dist_v * dist_v > m_r_sqr){
                     *map_cliped.mutable_data(i, j) = 0;
                 }else{
                     if (px_u >= 0 && px_v >= 0 && px_u < height && px_v < width){
@@ -134,6 +136,8 @@ private:
     array_f m_x_range, m_y_range, m_x_min, m_y_max, m_sigma_n;
     std::vector<ssize_t> m_shape_image;
     Interpolation m_interpolation;
+
+    int m_r_sqr, m_center_uv;
     
 
     int32_t pick_pxl(Image map, float u_px, float v_px, Interpolation interpolation){
