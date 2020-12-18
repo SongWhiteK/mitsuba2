@@ -59,7 +59,7 @@ public:
 
             id_i -= 1;
 
-            clip_scaled_map(result, m_data[id_i], *in_pos.data(i, 0), *in_pos.data(i, 1),
+            clip_scaled_map(result, i,  m_data[id_i], *in_pos.data(i, 0), *in_pos.data(i, 1),
                             m_sigma_n[id_i], m_x_range[id_i], m_y_range[id_i],
                             m_x_min[id_i], m_y_max[id_i]);
         }
@@ -123,9 +123,57 @@ public:
         return map_cliped;
     }
 
-    void clip_scaled_map(Image &map_list ,Image map_scaled, float x_in, float y_in, float sigma_n,
+    void clip_scaled_map(Image &map_list, int num ,Image map_scaled, float x_in, float y_in, float sigma_n,
                          float x_range, float y_range, float x_min, float y_max){
-        std::cout << "A" << std::endl;
+        
+        Image map_cliped{m_shape_image};
+        const auto map_buf = map_scaled.request();
+        const auto map_shape = map_buf.shape;
+
+        int height = map_shape[0];
+        int width = map_shape[1];
+
+        // Length of a pixel edge in map_scaled
+        float px_len = x_range / float(width);
+
+        // The number of pixels in the range of 12 sigma_n
+        float scale_px = 12 * sigma_n / px_len;
+
+        // Ratio of pixel between map_scaled and map_cliped
+        // This means the number of pixels of map_scaled in a pixel of map_cliped 
+        float ratio_px = scale_px / (float)m_im_size;
+
+        // uv position of center of map_cliped
+        float u_c = (y_max - y_in) / y_range * height;
+        float v_c = (x_in - x_min) / x_range * width;
+
+        // roop of u (= y)
+        for (int i = 0; i < m_im_size; i++){
+            int dist_u = i - m_center_uv;
+            // u position of a pixel of interested in map_scaled
+            float px_u = u_c + dist_u * ratio_px;
+
+            // roop of v (= x) 
+            for(int j = 0; j < m_im_size; j++){
+                int dist_v = j - m_center_uv;
+                // v position of a pixel of interested in map_scaled
+                float px_v = v_c + dist_v * ratio_px;
+
+                // if the pixel is out of range 6 sigma_n, fill 0
+                if (dist_u * dist_u + dist_v * dist_v > m_r_sqr){
+                    *map_list.mutable_data(num, 0, i, j) = 0;
+                }else{
+                    if (px_u >= 0 && px_v >= 0 && px_u < height && px_v < width){
+                        *map_list.mutable_data(num, 0, i, j) = pick_pxl(map_scaled, px_u,
+                                                                        px_v, m_interpolation);
+                    }else{
+                        // if the pixel if out of map_scaled, fill 31
+                        *map_list.mutable_data(num, 0, i, j) = 31;
+                    }
+                }
+            }
+        }
+
     }
 
 private:
