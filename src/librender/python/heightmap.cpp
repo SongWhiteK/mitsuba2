@@ -167,7 +167,10 @@ PYBIND11_PLUGIN(heightmap) {
                   array_f, array_f, array_f, array_f>())
             .def(py::init<ssize_t>())
             .def("get_height_map", &HeightMap::get_height_map)
-            .def("clip_scaled_map", &HeightMap::clip_scaled_map);
+            .def("clip_scaled_map",
+                static_cast<Image (HeightMap::*)(Image, float, float, float,float,
+                                                float, float, float)>(&HeightMap::clip_scaled_map),
+                "Clip Height map image by given parameters");
 
     py::enum_<HeightMap::Interpolation>(heightmap, "Interpolation")
         .value("NEAREST", HeightMap::Interpolation::NEAREST)
