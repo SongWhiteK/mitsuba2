@@ -29,6 +29,12 @@ public:
         m_init_map = Image{m_shape_result};
     }
 
+    HeightMap(ssize_t im_size, Interpolation interpolation=NEAREST){
+        m_shape_result = std::vector<ssize_t>{1, im_size, im_size};
+        m_interpolation = interpolation;
+        m_im_size = im_size;
+    }
+
     ~HeightMap(){};
 
     auto get_height_map(py::array_t<float> in_pos, py::array_t<int32_t> mesh_id){
@@ -156,6 +162,7 @@ PYBIND11_PLUGIN(heightmap) {
 
     heightmap.def(py::init<std::vector<Image>, ssize_t, array_f,
                   array_f, array_f, array_f, array_f>())
+            .def(py::init<ssize_t>())
             .def("get_height_map", &HeightMap::get_height_map)
             .def("clip_scaled_map", &HeightMap::clip_scaled_map);
 
