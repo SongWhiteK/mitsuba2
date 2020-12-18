@@ -14,6 +14,7 @@ import utils
 import matplotlib.pyplot as plt
 from traindata_config import TrainDataConfiguration
 
+from mitsuba.heightmap import HeightMap
 
 class DataHandler:
     """
@@ -64,6 +65,9 @@ class DataHandler:
                 print("Please input valid letter")
         else:
             os.makedirs(self.train_image_dir_path)
+
+        # Instantiate HeitMap class
+        heightmap_pybind = HeightMap(self.im_size)
         
         # Process with given csv files
         for i, file_name in enumerate(self.sample_list):
@@ -94,7 +98,7 @@ class DataHandler:
                     file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
                     os.makedirs(file_path)
 
-                image = gen_train_image(row, height_map, self.im_size, self.debug)
+                image = gen_train_image(row, height_map, self.im_size, self.debug, pybind=heightmap_pybind)
 
                 # Save height map image with id
                 cv2.imwrite(f"{file_path}\\train_image{row.id:08}.png", image)
@@ -182,7 +186,7 @@ def join_model_id(path, model_id):
     data.to_csv(path, index=False)
 
 
-def gen_train_image(data, height_map, im_size, debug):
+def gen_train_image(data, height_map, im_size, debug, pybind=None):
     """
     Generate training image data from path sample data and entire height map.
     Generated image is centered by incident location.
@@ -221,6 +225,9 @@ def gen_train_image(data, height_map, im_size, debug):
     map_scaled = cv2.resize(height_map, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_AREA)
 
     sigma_n = utils.get_sigman(medium)
+
+    if(pybind != None):
+        return pybind.clip_scaled_map(map_scaled, x_in, y_in, sigma_n, x_range, y_range, x_min, y_max)[0,:,:]
 
     return clip_scaled_map(map_scaled, [x_in, y_in], sigma_n, x_range, y_range, x_min, y_max, im_size)
 
