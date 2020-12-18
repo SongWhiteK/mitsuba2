@@ -55,14 +55,15 @@ public:
 
             id_i -= 1;
 
-            result[i] = clip_scaled_map(m_data[id_i], *in_pos.data(i, 0), *in_pos.data(i, 1),
-                                        m_sigma_n[id_i], m_x_range[id_i], m_y_range[id_i],
-                                        m_x_min[id_i], m_y_max[id_i]);
+            clip_scaled_map(result, m_data[id_i], *in_pos.data(i, 0), *in_pos.data(i, 1),
+                            m_sigma_n[id_i], m_x_range[id_i], m_y_range[id_i],
+                            m_x_min[id_i], m_y_max[id_i]);
         }
 
         std::cout << "get_map_end (took " << (double)(clock() - start) / CLOCKS_PER_SEC << " s)" << std::endl;
         return result;
     }
+
 
     Image clip_scaled_map(Image map_scaled, float x_in, float y_in, float sigma_n,
                           float x_range, float y_range, float x_min, float y_max){
@@ -118,6 +119,11 @@ public:
         }
 
         return map_cliped;
+    }
+
+    void clip_scaled_map(Image &map_list ,Image map_scaled, float x_in, float y_in, float sigma_n,
+                         float x_range, float y_range, float x_min, float y_max){
+        std::cout << "A" << std::endl;
     }
 
 private:
