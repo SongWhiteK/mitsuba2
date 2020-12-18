@@ -117,10 +117,8 @@ class BSSRDF:
         props, sigma_n = get_props(bs, si, channel)
 
         # Get height map around incident position as tensor
-        im = bdata.get_height_map(in_pos, mesh_id)
-
         im_bind = heightmap_pybind.get_height_map(in_pos.torch().cpu(), mesh_id.torch().cpu())
-        im_bind = torch.tensor(im_bind)
+        im = torch.tensor(im_bind)
 
         # Estimate position and absorption probability with VAE as mitsuba types
         recon_pos_local, abs_recon = self.estimate(in_pos.torch(), im, props, sigma_n, active)
