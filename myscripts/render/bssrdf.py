@@ -5,7 +5,6 @@ sys.path.append("./myscripts/vae")
 sys.path.append("./myscripts/gen_train")
 
 import torch
-from torch._C import device
 import render_config
 import vae_config
 import mitsuba
@@ -88,7 +87,7 @@ class BSSRDF:
         return pos, abs_prob
 
 
-    def sample_bssrdf(self, scene, bsdf, bs, si, bdata, channel, active):
+    def sample_bssrdf(self, scene, bsdf, bs, si, bdata, heightmap_pybind, channel, active):
         """
         Get projected sample position and absorption probability form VAE BSSRDF
 
@@ -119,6 +118,9 @@ class BSSRDF:
 
         # Get height map around incident position as tensor
         im = bdata.get_height_map(in_pos, mesh_id)
+
+        im_bind = heightmap_pybind.get_height_map(in_pos.torch().cpu(), mesh_id.torch().cpu())
+        im_bind = torch.tensor(im_bind)
 
         # Estimate position and absorption probability with VAE as mitsuba types
         recon_pos_local, abs_recon = self.estimate(in_pos.torch(), im, props, sigma_n, active)

@@ -10,10 +10,12 @@ sys.path.append("./myscripts/gen_train")
 from time import time
 import torch
 import mitsuba
+from mitsuba.heightmap import HeightMap
 import render_config as config
 import numpy as np
 from multiprocessing import Pool
 from data_handler import clip_scaled_map
+import utils
 
 
 
@@ -28,9 +30,12 @@ class BSSRDF_Data:
     def __init__(self):
         self.bssrdf = {}
         self.mesh = {}
-        self.mesh_map = {}
-        self.mesh_range = {}
-        self.mesh_minmax = {}
+        self.mesh_map = []
+        self.mesh_xrange = []
+        self.mesh_yrange = []
+        self.mesh_xmin = []
+        self.mesh_ymax = []
+        self.sigma_n = []
 
     def register_medium(self, mesh_id, ior=1.5, scale=1.0,
                         sigma_t=1.0, albedo=0.5, g=0.25):
@@ -69,9 +74,9 @@ class BSSRDF_Data:
             "mesh_id": mesh_id
             }
 
+        self.sigma_n.append(utils.get_sigman(self.bssrdf[mesh_id]))
         
-
-    def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, range,
+    def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, mesh_range,
                       minmax, filename=None, translate=[0,0,0],
                       rotate={"axis": "x", "angle": 0.0}, scale=[1,1,1]):
         """
@@ -86,9 +91,11 @@ class BSSRDF_Data:
             "height_max": height_max
         }
 
-        self.mesh_map[mesh_id] = mesh_map
-        self.mesh_range[mesh_id] = range
-        self.mesh_minmax[mesh_id] = minmax
+        self.mesh_map.append(mesh_map)
+        self.mesh_xrange.append(mesh_range[0])
+        self.mesh_yrange.append(mesh_range[1])
+        self.mesh_xmin.append(minmax[0])
+        self.mesh_ymax.append(minmax[1])
 
     def add_object(self, scene_dict):
         """
@@ -151,6 +158,23 @@ class BSSRDF_Data:
 
         return scene_dict
 
+    def get_heightmap_pybind(self):
+        """Generate HeightMap instance from this and return it"""
+
+        x_range = self.mesh_xrange
+        y_range = self.mesh_yrange
+        sigma_n = self.sigma_n
+        x_min = self.mesh_xmin
+        y_max = self.mesh_ymax
+
+        heightmap = HeightMap(self.mesh_map, config.im_size, x_range, y_range,
+                              sigma_n, x_min, y_max)
+
+        return heightmap
+
+
+        
+
     def get_medium_dict(self, mesh_id):
         medium = {}
         medium["sigma_t"] = self.bssrdf[mesh_id]["sigma_t"]
@@ -188,12 +212,16 @@ class BSSRDF_Data:
         if(ref_id == 0):
             return np.zeros([config.im_size, config.im_size])
 
-        mesh_map = self.mesh_map[ref_id]
-        medium = self.get_medium_dict(ref_id)
-        ref_in = self.in_pos[i, :]
-        x_range, y_range = self.mesh_range[ref_id]
-        x_min, y_max = self.mesh_minmax[ref_id]
+        ref_id -= 1
 
-        height_map = clip_scaled_map(mesh_map, ref_in, medium, x_range, y_range, x_min, y_max, config.im_size)
+        mesh_map = self.mesh_map[ref_id]
+        sigma_n = self.sigma_n[ref_id]
+        ref_in = self.in_pos[i, :]
+        x_range = self.mesh_xrange[ref_id]
+        y_range = self.mesh_yrange[ref_id]
+        x_min = self.mesh_xmin[ref_id]
+        y_max = self.mesh_ymax[ref_id]
+
+        height_map = clip_scaled_map(mesh_map, ref_in, sigma_n, x_range, y_range, x_min, y_max, config.im_size)
 
         return height_map
