@@ -58,7 +58,7 @@ public:
 
             result[i] = clip_scaled_map(m_data[id_i], *in_pos.data(i, 0), *in_pos.data(i, 1),
                                         m_sigma_n[id_i], m_x_range[id_i], m_y_range[id_i],
-                                        m_x_min[id_i], m_y_max[id_i], m_im_size, m_interpolation);
+                                        m_x_min[id_i], m_y_max[id_i]);
         }
 
         std::cout << "get_map_end (took " << (double)(clock() - start) / CLOCKS_PER_SEC << " s)" << std::endl;
@@ -66,8 +66,7 @@ public:
     }
 
     Image clip_scaled_map(Image map_scaled, float x_in, float y_in, float sigma_n,
-                          float x_range, float y_range, float x_min, float y_max, ssize_t im_size,
-                          Interpolation interpolation = NEAREST){
+                          float x_range, float y_range, float x_min, float y_max){
         
         Image map_cliped{m_shape_result};
         const auto map_buf = map_scaled.request();
@@ -84,13 +83,13 @@ public:
 
         // Ratio of pixel between map_scaled and map_cliped
         // This means the number of pixels of map_scaled in a pixel of map_cliped 
-        float ratio_px = scale_px / (float)im_size;
+        float ratio_px = scale_px / (float)m_im_size;
 
         // uv position of center of map_cliped
         float u_c = (y_max - y_in) / y_range * height;
         float v_c = (x_in - x_min) / x_range * width;
 
-        int r = im_size / 2;
+        int r = m_im_size / 2;
         int center_uv = r;
         // roop of u (= y)
         for (int i = 0; i < m_im_size; i++){
@@ -110,7 +109,7 @@ public:
                 }else{
                     if (px_u >= 0 && px_v >= 0 && px_u < height && px_v < width){
                         *map_cliped.mutable_data(0, i, j) = pick_pxl(map_scaled, px_u,
-                                                                    px_v, interpolation);
+                                                                    px_v, m_interpolation);
                     }else{
                         // if the pixel if out of map_scaled, fill 31
                         *map_cliped.mutable_data(0, i, j) = 31;
