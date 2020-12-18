@@ -78,7 +78,6 @@ class BSSRDF:
 
         # Convert from tensor to Vector3f and Float
         recon_pos = Vector3f(recon_pos)
-        recon_abs[torch.isnan(recon_abs)] = 0
         abs_prob = Spectrum(recon_abs.view(1,-1).squeeze())
 
         # Reconstruct real scale position in mesh local coordinates

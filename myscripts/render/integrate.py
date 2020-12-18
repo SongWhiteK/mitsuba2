@@ -53,6 +53,7 @@ def render(scene, spp, sample_per_pass, bdata):
 
     result = 0
 
+    bssrdf = None
     if(config.enable_bssrdf):
         bssrdf = BSSRDF(config.model_name)
 
