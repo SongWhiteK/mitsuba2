@@ -44,7 +44,9 @@ public:
 
         ssize_t n_sample = mesh_id.size();
 
-        std::vector<Image> result(n_sample);
+        std::vector<ssize_t> shape_result{n_sample, 1, m_im_size, m_im_size};
+
+        Image result{shape_result};
 
         // Roop of sampling for each ray
         for (int i = 0; i < n_sample; i++){
