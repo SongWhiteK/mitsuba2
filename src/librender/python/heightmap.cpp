@@ -25,8 +25,6 @@ public:
         m_y_max = y_max;
         m_shape_image = std::vector<ssize_t>{im_size, im_size};
         m_interpolation = interpolation;
-
-        m_init_map = Image{m_shape_image};
     }
 
     HeightMap(ssize_t im_size, Interpolation interpolation=NEAREST){
@@ -52,7 +50,6 @@ public:
         for (int i = 0; i < n_sample; i++){
             int32_t id_i = *mesh_id.data(i);
             if(id_i == 0){
-                result[i] = m_init_map;
                 continue;
             }
 
@@ -131,7 +128,6 @@ private:
     array_f m_x_range, m_y_range, m_x_min, m_y_max, m_sigma_n;
     std::vector<ssize_t> m_shape_image;
     Interpolation m_interpolation;
-    Image m_init_map;
     
 
     int32_t pick_pxl(Image map, float u_px, float v_px, Interpolation interpolation){
