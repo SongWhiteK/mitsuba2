@@ -10,7 +10,8 @@ class HeightMap {
 
 public:
     enum Interpolation{
-        NEAREST = 0
+        NEAREST  = 0,
+        BILINEAR = 1
     };
 
     HeightMap(std::vector<Image> map_list, ssize_t im_size, array_f x_range,
@@ -226,6 +227,7 @@ PYBIND11_PLUGIN(heightmap) {
 
     py::enum_<HeightMap::Interpolation>(heightmap, "Interpolation")
         .value("NEAREST", HeightMap::Interpolation::NEAREST)
+        .value("BILINEAR", HeightMap::Interpolation::BILINEAR)
         .export_values();
 
     return m.ptr();
