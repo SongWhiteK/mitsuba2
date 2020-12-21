@@ -168,7 +168,7 @@ class BSSRDF_Data:
         y_max = self.mesh_ymax
 
         heightmap = HeightMap(self.mesh_map, config.im_size, x_range, y_range,
-                              sigma_n, x_min, y_max, interpolation=HeightMap.Interpolation.BILINEAR)
+                              sigma_n, x_min, y_max, interpolation=HeightMap.Interpolation.NEAREST)
 
         return heightmap
 
