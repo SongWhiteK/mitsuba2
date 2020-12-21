@@ -193,8 +193,8 @@ private:
 
         switch (interpolation) {
             case NEAREST:
-                {int u = int(u_px);
-                int v = int(v_px);
+                {int u = int(u_px + 0.5);
+                int v = int(v_px + 0.5);
                 px_value = *map.data(u, v);}
                 break;
             default:
