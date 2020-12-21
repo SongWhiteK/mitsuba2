@@ -164,7 +164,7 @@ public:
                 if (dist_u * dist_u + dist_v * dist_v > m_r_sqr){
                     *map_list.mutable_data(num, 0, i, j) = 0;
                 }else{
-                    if (px_u >= 0 && px_v >= 0 && px_u < height && px_v < width){
+                    if (px_u >= 0 && px_v >= 0 && px_u < height-1 && px_v < width-1){
                         *map_list.mutable_data(num, 0, i, j) = pick_pxl(map_scaled, px_u,
                                                                         px_v, m_interpolation);
                     }else{
