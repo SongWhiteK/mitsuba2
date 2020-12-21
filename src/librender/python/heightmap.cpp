@@ -110,7 +110,7 @@ public:
                 if (dist_u * dist_u + dist_v * dist_v > m_r_sqr){
                     *map_cliped.mutable_data(i, j) = 0;
                 }else{
-                    if (px_u >= 0 && px_v >= 0 && px_u < height && px_v < width){
+                    if (px_u >= 0 && px_v >= 0 && px_u < height-1 && px_v < width-1){
                         *map_cliped.mutable_data(i, j) = pick_pxl(map_scaled, px_u,
                                                                     px_v, m_interpolation);
                     }else{
@@ -199,6 +199,7 @@ private:
                 px_value = *map.data(u, v);}
                 break;
             case BILINEAR:
+                {
                 int fu = int(u_px);
                 int fv = int(v_px);
                 float a1 = (fv + 1 - v_px) * (fu + 1 - u_px);
@@ -208,6 +209,8 @@ private:
 
                 px_value = a1 * *map.data(fu, fv) + a2 * *map.data(fu+1, fv)
                            + a3 * *map.data(fu, fv+1) + a4 * *map.data(fu+1, fv+1);
+                }
+                break;
             default:
                 std::cout << "Interpolation is not specified or invalid!" << std::endl;
                 break;
