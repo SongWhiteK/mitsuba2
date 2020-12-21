@@ -67,7 +67,7 @@ class DataHandler:
             os.makedirs(self.train_image_dir_path)
 
         # Instantiate HeitMap class
-        heightmap_pybind = HeightMap(self.im_size)
+        heightmap_pybind = HeightMap(self.im_size, interpolation=HeightMap.Interpolation.BILINEAR)
         
         # Process with given csv files
         for i, file_name in enumerate(self.sample_list):
