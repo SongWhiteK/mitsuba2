@@ -226,19 +226,23 @@ PYBIND11_PLUGIN(heightmap) {
 
     py::class_<HeightMap> heightmap(m, "HeightMap");
 
+    py::enum_<HeightMap::Interpolation>(heightmap, "Interpolation")
+        .value("NEAREST", HeightMap::Interpolation::NEAREST)
+        .value("BILINEAR", HeightMap::Interpolation::BILINEAR)
+        .export_values();
+
     heightmap.def(py::init<std::vector<Image>, ssize_t, array_f,
-                  array_f, array_f, array_f, array_f>())
-            .def(py::init<ssize_t>())
+                  array_f, array_f, array_f, array_f, HeightMap::Interpolation>(),
+                  "map_list"_a, "im_size"_a, "x_range"_a, "y_range"_a,
+                  "sigma_n"_a, "x_min"_a, "y_max"_a,
+                  "interpolation"_a = HeightMap::Interpolation::NEAREST)
+            .def(py::init<ssize_t, HeightMap::Interpolation>(), "im_size"_a, "interpolation"_a = HeightMap::Interpolation::NEAREST)
             .def("get_height_map", &HeightMap::get_height_map)
             .def("clip_scaled_map",
                 static_cast<Image (HeightMap::*)(Image, float, float, float,float,
                                                 float, float, float)>(&HeightMap::clip_scaled_map),
                 "Clip Height map image by given parameters");
 
-    py::enum_<HeightMap::Interpolation>(heightmap, "Interpolation")
-        .value("NEAREST", HeightMap::Interpolation::NEAREST)
-        .value("BILINEAR", HeightMap::Interpolation::BILINEAR)
-        .export_values();
 
     return m.ptr();
 }
