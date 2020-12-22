@@ -2,7 +2,6 @@
 #include <mitsuba/python/python.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-#include <time.h>
 
 class HeightMap {
     using Image = py::array_t<int32_t>;
@@ -42,9 +41,6 @@ public:
 
     auto get_height_map(py::array_t<float> in_pos, py::array_t<int32_t> mesh_id){
 
-        clock_t start = clock();
-        std::cout << "get_map_start" << std::endl;
-
         ssize_t n_sample = mesh_id.size();
 
         std::vector<ssize_t> shape_result{n_sample, 1, m_im_size, m_im_size};
@@ -65,7 +61,6 @@ public:
                             m_x_min[id_i], m_y_max[id_i]);
         }
 
-        std::cout << "get_map_end (took " << (double)(clock() - start) / CLOCKS_PER_SEC << " s)" << std::endl;
         return result;
     }
 
