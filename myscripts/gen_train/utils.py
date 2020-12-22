@@ -53,13 +53,13 @@ class FixedParamGenerator(ParamGenerator):
     """
 
     def get_albedo(self):
-        return 0.5
+        return 0.9
 
     def get_eta(self):
         return 1.5
 
     def get_g(self):
-        return 0.25
+        return 0.0
 
 
 def get_reduced_albedo(albedo, g, sigmat):

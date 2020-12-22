@@ -21,13 +21,14 @@ if __name__ == "__main__":
         
     ##### Setting scene #####
     bdata = data_pipeline.BSSRDF_Data()
-    mesh = meshes_leather(0)
+    mesh = meshes_cube()
 
-    mesh.register_params(bdata)
+    mesh.register_params(bdata, ior=1.5, scale=1.0, sigma_t = 1.0, albedo = 0.9, g = 0.0)
 
     mesh.register_all_mesh(bdata)
 
     scene_dict = bdata.add_object(scene_dict)
+    print(scene_dict)
     scene = load_dict(scene_dict)
 
     # Rendering settings

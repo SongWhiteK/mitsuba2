@@ -42,8 +42,8 @@ scene_handler.render(itr, config)
 process_time = time.time() - start
 print("Sampling end (took {} s)".format(process_time))
 
-print("Process with result data")
-d_handler.generate_train_data()
+# print("Process with result data")
+# d_handler.generate_train_data()
 
 
 
