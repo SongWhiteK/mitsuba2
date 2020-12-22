@@ -109,8 +109,10 @@ public:
             // record the target medium
             medium = si_sample.target_medium(ray_sample_xy.d);
         } else {
-            ray.o = Vector3f(0, 0, bbox.max[2]+1);
-            ray.d    = Vector3f(0, 0, -1); 
+            Vector3f d(0, 0, 1);
+            d = normalize(d);
+            ray.o = Vector3f(0, 0, bbox.max[2]) + d;
+            ray.d    = -d; 
             ray.mint = math::RayEpsilon<Float>;
             ray.maxt = math::Infinity<Float>;
             ray.update();
