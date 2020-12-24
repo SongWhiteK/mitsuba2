@@ -124,8 +124,7 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         
         optimizer.zero_grad()
         recon_pos_scaled, recon_abs, mu, logvar = model(props, im.to(device), in_pos_scaled, out_pos_scaled, is_training=True)
-        recon_pos = recon_pos_scaled * sigma_n
-        loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
+        loss_total, losses = loss_function(recon_pos_scaled, out_pos_scaled, recon_abs, abs_prob, mu, logvar, config)
 
         loss_total.backward()
         optimizer.step()
