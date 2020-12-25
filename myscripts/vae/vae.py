@@ -160,15 +160,16 @@ class VAE(nn.Module):
         return recon_pos, recon_abs, mu, logvar
 
 def loss_function(recon_pos, ref_pos, recon_abs, ref_abs, mu, logvar, config):
+    n_batch = len(mu)
+
     # Latent loss
     loss_latent = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), 1))
 
     # Outgoing position loss
-    loss_position = F.smooth_l1_loss(recon_pos, ref_pos, reduction="mean")
+    loss_position = F.smooth_l1_loss(recon_pos, ref_pos, reduction="sum") / n_batch
 
     # Absorption loss
-
-    loss_absorption = F.mse_loss(recon_abs, ref_abs, reduction="mean")
+    loss_absorption = F.mse_loss(recon_abs, ref_abs, reduction="sum") / n_batch
 
     losses = {}
     losses["latent"] = loss_latent
