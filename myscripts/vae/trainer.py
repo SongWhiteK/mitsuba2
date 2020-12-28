@@ -188,7 +188,7 @@ def test(epoch, config, model, device, test_loader, writer):
             test_loss_pos += losses["pos"]
             test_loss_abs += losses["abs"]
 
-            cnt_test += len(im_path)
+            cnt_test += 1
 
             if(im_show):
                 print("recon pos diff: " + str(recon_pos[0:5, :] - in_pos[0:5, :]))
@@ -202,14 +202,14 @@ def test(epoch, config, model, device, test_loader, writer):
     test_loss_abs /= cnt_test
 
     writer.add_scalar("test/total_loss", test_loss_total, epoch)
-    writer.add_scalars("test/loss",
+    writer.add_scalars("test/loss_weighted",
                        {
                            "latent": test_loss_latent * config.loss_weight_latent,
                            "position": test_loss_pos * config.loss_weight_pos,
                            "absorption": test_loss_abs * config.loss_weight_abs
                        },
                        epoch)
-    writer.add_scalars("test/loss_average",
+    writer.add_scalars("test/loss",
                        {
                            "latent": (test_loss_latent),
                            "position": (test_loss_pos),

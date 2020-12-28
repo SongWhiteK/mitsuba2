@@ -28,7 +28,6 @@ if __name__ == "__main__":
     mesh.register_all_mesh(bdata)
 
     scene_dict = bdata.add_object(scene_dict)
-    print(scene_dict)
     scene = load_dict(scene_dict)
 
     # Rendering settings
