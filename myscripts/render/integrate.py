@@ -211,12 +211,9 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
             bs.pdf = ek.select(is_bssrdf, d_out_pdf, bs.pdf)
             bs.sampled_component = ek.select(is_bssrdf, UInt32(1), bs.sampled_component)
             bs.sampled_type = ek.select(is_bssrdf, UInt32(+BSDFFlags.DeltaTransmission), bs.sampled_type)
-
-            # Replace bsdf weight by square of eta
-            bsdf_val = ek.select(is_bssrdf, ek.sqr(bs.eta), bsdf_val)
         ############################
         
-        throughput = throughput * bsdf_val
+        throughput *= ek.select(is_bssrdf, Float(1.0), bsdf_val)
         active &= ek.any(ek.neq(throughput, 0))
 
         eta *= bs.eta
@@ -236,6 +233,8 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
             # Decide whether we should use 0-scattering or multiple scattering
             is_zero_scatter = utils_render.check_zero_scatter(sampler, si_bsdf, bs, channel, is_bssrdf)
             is_bssrdf = is_bssrdf & ~is_zero_scatter
+
+            throughput *= ek.select(is_bssrdf, ek.sqr(bs.eta), Float(1.0))
         ###########################
 
         ###### Process for BSSRDF ######
