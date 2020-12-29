@@ -102,12 +102,8 @@ def render(scene, spp, sample_per_pass, bdata):
         cnt += sample_per_pass
         print(f"done {cnt} / {total_sample_count}")
 
-    xyzaw_np = np.array(block.data()).reshape([film_size[1], film_size[0], 5])
+    utils_render.imaging(blocks, film_size)
 
-    bmp = Bitmap(xyzaw_np, Bitmap.PixelFormat.XYZAW)
-    bmp = bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.Float32, srgb_gamma=False)
-    bmp.write('result.exr')
-    bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8, srgb_gamma=True).write('result.jpg')
 
 
 

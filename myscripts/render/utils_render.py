@@ -3,6 +3,7 @@
 import sys
 sys.path.append("myscripts/gen_train")
 
+import numpy as np
 import mitsuba
 import enoki as ek
 import torch
@@ -10,6 +11,7 @@ import torch
 mitsuba.set_variant("gpu_rgb")
 
 from mitsuba.core import Float, warp, Color3f, srgb_to_xyz
+from mitsuba.core import Bitmap, Struct
 from mitsuba.render import ImageBlock
 
 def index_spectrum(spec, idx):
@@ -104,6 +106,19 @@ def postprocess_render(results, weights, blocks, pos):
     block.put(pos, aovs)
     block_scatter.put(pos, aovs_scatter)
     block_nonscatter.put(pos, aovs_nonscatter)
+
+
+def imaging(blocks, film_size):
+
+    label = ['result', 'scatter', 'non_scatter']
+
+    for i in range(3):
+        xyzaw_np = np.array(blocks[i].data()).reshape([film_size[1], film_size[0], 5])
+
+        bmp = Bitmap(xyzaw_np, Bitmap.PixelFormat.XYZAW)
+        bmp = bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.Float32, srgb_gamma=False)
+        bmp.write(label[i] + '.exr')
+        bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8, srgb_gamma=True).write(label[i] + '.jpg')
 
 
 
