@@ -50,8 +50,6 @@ def render(scene, spp, sample_per_pass, bdata):
              border=False
     )
 
-    result = 0
-
     bssrdf = None
     if(config.enable_bssrdf):
         bssrdf = BSSRDF(config.model_name)
@@ -97,14 +95,9 @@ def render(scene, spp, sample_per_pass, bdata):
             sample3=0
         )
 
-        result, valid_rays = render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf)
-        result = weights * result
-        xyz = Color3f(srgb_to_xyz(result))
-        aovs = [xyz[0], xyz[1], xyz[2],
-                ek.select(valid_rays, Float(1.0), Float(0.0)),
-                1.0]
+        results = render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf)
 
-        block.put(pos_ite, aovs)
+        utils_render.postprocess_render(results, weights, blocks, pos_ite)
         sampler.advance()
         cnt += sample_per_pass
         print(f"done {cnt} / {total_sample_count}")
