@@ -10,6 +10,7 @@ import torch
 mitsuba.set_variant("gpu_rgb")
 
 from mitsuba.core import Float, warp
+from mitsuba.render import ImageBlock
 
 def index_spectrum(spec, idx):
     m = spec[0]
@@ -38,3 +39,35 @@ def check_zero_scatter(sampler, si, bs, channel, active):
 
 def reduced_albedo_to_effective_albedo(reduced_albedo):
     return -ek.log(1.0 - reduced_albedo * (1.0 - ek.exp(-8.0))) / 8.0
+
+
+def gen_blocks(crop_size, channel_count=5,
+               filter=film.reconstruction_filter(), border=False):
+
+    block = ImageBlock(
+            crop_size,
+            channel_count=channel_count,
+            filter=filter,
+            border=border
+    )
+    block.clear()
+
+    block_scatter = ImageBlock(
+            crop_size,
+            channel_count=channel_count,
+            filter=filter,
+            border=border
+    )
+    block_scatter.clear()
+
+    block_nonscatter = ImageBlock(
+            crop_size,
+            channel_count=channel_count,
+            filter=filter,
+            border=border
+    )
+    block_nonscatter.clear()
+
+    blocks = [block, block_scatter, block_nonscatter]
+
+    return blocks
