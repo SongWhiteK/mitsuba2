@@ -45,8 +45,8 @@ def render(scene, spp, sample_per_pass, bdata):
     film_size = film.crop_size()
     blocks = utils_render.gen_blocks(
              film.crop_size(),
+             film.reconstruction_filter(),
              channel_count=5,
-             filter=film.reconstruction_filter(),
              border=False
     )
 

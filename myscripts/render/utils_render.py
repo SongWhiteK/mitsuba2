@@ -41,8 +41,7 @@ def reduced_albedo_to_effective_albedo(reduced_albedo):
     return -ek.log(1.0 - reduced_albedo * (1.0 - ek.exp(-8.0))) / 8.0
 
 
-def gen_blocks(crop_size, channel_count=5,
-               filter=film.reconstruction_filter(), border=False):
+def gen_blocks(crop_size, filter, channel_count=5, border=False):
 
     block = ImageBlock(
             crop_size,
