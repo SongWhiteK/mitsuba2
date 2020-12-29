@@ -43,13 +43,12 @@ def render(scene, spp, sample_per_pass, bdata):
     film = sensor.film()
     sampler = sensor.sampler()
     film_size = film.crop_size()
-    block = ImageBlock(
-            film.crop_size(),
-            channel_count=5,
-            filter=film.reconstruction_filter(),
-            border=False
+    blocks = utils_render.gen_blocks(
+             film.crop_size(),
+             channel_count=5,
+             filter=film.reconstruction_filter(),
+             border=False
     )
-    block.clear()
 
     result = 0
 
