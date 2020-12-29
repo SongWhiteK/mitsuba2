@@ -67,8 +67,8 @@ def render(scene, spp, sample_per_pass, bdata):
     n_ite = int(total_sample_count / sample_per_pass)
 
     # Seed the sampler
-    if sampler.wavefront_size() != total_sample_count:
-        sampler.seed(0, total_sample_count)
+    if sampler.wavefront_size() != sample_per_pass:
+        sampler.seed(0, sample_per_pass)
 
     # pos = ek.arange(UInt32, total_sample_count)
     pos = np.arange(total_sample_count, dtype=np.uint32)
@@ -81,7 +81,6 @@ def render(scene, spp, sample_per_pass, bdata):
     pos_y = (pos // int(film_size[0])).astype(np.float)
     pos_y += np.random.rand(total_sample_count)
 
-    sampler.seed(0, sample_per_pass)
     cnt = 0
 
     heightmap_pybind = bdata.get_heightmap_pybind()
