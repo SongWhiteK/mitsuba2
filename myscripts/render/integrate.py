@@ -10,7 +10,7 @@ from bssrdf import BSSRDF
 
 mitsuba.set_variant(config.variant)
 
-from mitsuba.core import (Spectrum, Float, UInt32, Vector2f, Vector3f,
+from mitsuba.core import (Spectrum, Float, UInt32, Vector2f, Vector3f, Mask,
                           Frame3f, Color3f, RayDifferential3f, srgb_to_xyz)
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file
@@ -146,15 +146,18 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
     d_out_local = Vector3f().zero()
     d_out_pdf = Float(0)
 
+    sss = Mask(False)
+
     while(True):
         depth += 1
+        sss |= is_bssrdf
 
         ##### Interaction with emitters #####
         emission_val = emission_weight * throughput * Emitter.eval_vec(emitter, si, active)
         
         result += ek.select(active, emission_val, Spectrum(0.0))
-        scatter += ek.select(active & is_bssrdf, emission_val, Spectrum(0.0))
-        non_scatter += ek.select(active & ~is_bssrdf, emission_val, Spectrum(0.0))
+        scatter += ek.select(active & sss, emission_val, Spectrum(0.0))
+        non_scatter += ek.select(active & ~sss, emission_val, Spectrum(0.0))
 
         active = active & si.is_valid()
 
@@ -190,8 +193,8 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
         emission_val = mis * throughput * bsdf_val * emitter_val
 
         result += ek.select(active, emission_val, Spectrum(0.0))
-        scatter += ek.select(active & is_bssrdf, emission_val, Spectrum(0.0))
-        non_scatter += ek.select(active & ~is_bssrdf, emission_val, Spectrum(0.0))
+        scatter += ek.select(active & sss, emission_val, Spectrum(0.0))
+        non_scatter += ek.select(active & ~sss, emission_val, Spectrum(0.0))
 
         ##### BSDF sampling #####
         bs, bsdf_val = BSDF.sample_vec(bsdf, ctx, si, sampler.next_1d(active),
