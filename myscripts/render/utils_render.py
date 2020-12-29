@@ -9,7 +9,7 @@ import torch
 
 mitsuba.set_variant("gpu_rgb")
 
-from mitsuba.core import Float, warp
+from mitsuba.core import Float, warp, Color3f, srgb_to_xyz
 from mitsuba.render import ImageBlock
 
 def index_spectrum(spec, idx):
@@ -70,3 +70,41 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False):
     blocks = [block, block_scatter, block_nonscatter]
 
     return blocks
+
+
+def postprocess_render(results, weights, blocks, pos):
+
+    result = results[0]
+    valid_rays = results[1]
+    scatter = results[2]
+    non_scatter = results[3]
+
+    result *= weights
+    scatter *= weights
+    non_scatter *= weights
+
+    xyz = Color3f(srgb_to_xyz(result))
+    xyz_scatter = Color3f(srgb_to_xyz(scatter))
+    xyz_nonscatter = Color3f(srgb_to_xyz(non_scatter))
+
+    aovs = [xyz[0], xyz[1], xyz[2],
+            ek.select(valid_rays, Float(1.0), Float(0.0)),
+            1.0]
+    aovs_scatter = [xyz_scatter[0], xyz_scatter[1], xyz_scatter[2],
+            ek.select(valid_rays, Float(1.0), Float(0.0)),
+            1.0]
+    aovs_nonscatter = [xyz_nonscatter[0], xyz_nonscatter[1], xyz_nonscatter[2],
+            ek.select(valid_rays, Float(1.0), Float(0.0)),
+            1.0]
+
+    block = blocks[0]
+    block_scatter = blocks[1]
+    block_nonscatter = blocks[2]
+
+    block.put(pos, aovs)
+    block_scatter.put(pos, aovs_scatter)
+    block_nonscatter.put(pos, aovs_nonscatter)
+
+
+
+
