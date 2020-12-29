@@ -135,6 +135,8 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
     emission_weight = Float(1.0)
     throughput = Spectrum(1.0)
     result = Spectrum(0.0)
+    scatter = Spectrum(0.0)
+    non_scatter = Spectrum(0.0)
     active = True
     is_bssrdf = False
 
@@ -159,9 +161,11 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
         depth += 1
 
         ##### Interaction with emitters #####
-        result += ek.select(active,
-                            emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
-                            Spectrum(0.0))
+        emission_val = emission_weight * throughput * Emitter.eval_vec(emitter, si, active)
+        
+        result += ek.select(active, emission_val, Spectrum(0.0))
+        scatter += ek.select(active & is_bssrdf, emission_val, Spectrum(0.0))
+        non_scatter += ek.select(active & ~is_bssrdf, emission_val, Spectrum(0.0))
 
         active = active & si.is_valid()
 
@@ -193,9 +197,12 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
         bsdf_pdf = BSDF.pdf_vec(bsdf, ctx, si, wo, active_e)
 
         mis = ek.select(ds.delta, Float(1), mis_weight(ds.pdf, bsdf_pdf))
-        result += ek.select(active_e,
-                            mis * throughput * bsdf_val * emitter_val,
-                            Spectrum(0.0))
+
+        emission_val = mis * throughput * bsdf_val * emitter_val
+
+        result += ek.select(active, emission_val, Spectrum(0.0))
+        scatter += ek.select(active & is_bssrdf, emission_val, Spectrum(0.0))
+        non_scatter += ek.select(active & ~is_bssrdf, emission_val, Spectrum(0.0))
 
         ##### BSDF sampling #####
         bs, bsdf_val = BSDF.sample_vec(bsdf, ctx, si, sampler.next_1d(active),
@@ -266,4 +273,4 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
 
         si = si_bsdf
 
-    return result, valid_rays
+    return result, valid_rays, scatter, non_scatter
