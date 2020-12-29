@@ -57,12 +57,10 @@ def render(scene, spp, sample_per_pass, bdata):
     if(config.enable_bssrdf):
         bssrdf = BSSRDF(config.model_name)
 
-    
-
-    # The number of iteration for gpu rendering
+    np.random.seed(seed=config.seed)
 
     # The number of samples in one gpu rendering
-    total_sample_count = ek.hprod(film_size) * spp
+    total_sample_count = int(ek.hprod(film_size) * spp)
 
     if total_sample_count % sample_per_pass != 0:
         sys.exit("total_sample_count is not multilple of sample_per_pass")
@@ -72,15 +70,16 @@ def render(scene, spp, sample_per_pass, bdata):
     if sampler.wavefront_size() != total_sample_count:
         sampler.seed(0, total_sample_count)
 
-    pos = ek.arange(UInt32, total_sample_count)
+    # pos = ek.arange(UInt32, total_sample_count)
+    pos = np.arange(total_sample_count, dtype=np.uint32)
 
     pos //= spp
     scale = Vector2f(1.0 / film_size[0], 1.0 / film_size[1])
 
-    pos_x = Float(pos % int(film_size[0]))
-    pos_x += sampler.next_1d()
-    pos_y = Float(pos // int(film_size[0]))
-    pos_y += sampler.next_1d()
+    pos_x = (pos % int(film_size[0])).astype(np.float)
+    pos_x += np.random.rand(total_sample_count)
+    pos_y = (pos // int(film_size[0])).astype(np.float)
+    pos_y += np.random.rand(total_sample_count)
 
     sampler.seed(0, sample_per_pass)
     cnt = 0
