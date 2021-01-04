@@ -47,7 +47,8 @@ def render(scene, spp, sample_per_pass, bdata):
              film.crop_size(),
              film.reconstruction_filter(),
              channel_count=5,
-             border=False
+             border=False,
+             aovs=config.aovs
     )
 
     bssrdf = None

@@ -43,7 +43,9 @@ def reduced_albedo_to_effective_albedo(reduced_albedo):
     return -ek.log(1.0 - reduced_albedo * (1.0 - ek.exp(-8.0))) / 8.0
 
 
-def gen_blocks(crop_size, filter, channel_count=5, border=False):
+def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
+
+    blocks = []
 
     block = ImageBlock(
             crop_size,
@@ -52,24 +54,26 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False):
             border=border
     )
     block.clear()
+    blocks.append(block)
 
-    block_scatter = ImageBlock(
-            crop_size,
-            channel_count=channel_count,
-            filter=filter,
-            border=border
-    )
-    block_scatter.clear()
+    if aovs:
+        block_scatter = ImageBlock(
+                crop_size,
+                channel_count=channel_count,
+                filter=filter,
+                border=border
+        )
+        block_scatter.clear()
+        blocks.append(block_scatter)
 
-    block_nonscatter = ImageBlock(
-            crop_size,
-            channel_count=channel_count,
-            filter=filter,
-            border=border
-    )
-    block_nonscatter.clear()
-
-    blocks = [block, block_scatter, block_nonscatter]
+        block_nonscatter = ImageBlock(
+                crop_size,
+                channel_count=channel_count,
+                filter=filter,
+                border=border
+        )
+        block_nonscatter.clear()
+        blocks.append(block_nonscatter)
 
     return blocks
 
