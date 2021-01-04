@@ -85,11 +85,11 @@ def postprocess_render(results, weights, blocks, pos, aovs=False):
 
     result *= weights
     xyz = Color3f(srgb_to_xyz(result))
-    aovs = [xyz[0], xyz[1], xyz[2],
+    aovs_result = [xyz[0], xyz[1], xyz[2],
             ek.select(valid_rays, Float(1.0), Float(0.0)),
             1.0]
     block = blocks[0]
-    block.put(pos, aovs)
+    block.put(pos, aovs_result)
 
     if aovs:
         scatter = results[2]
