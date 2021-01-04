@@ -122,7 +122,7 @@ class BSSRDF_Data:
             angle = mesh["rotate"]["angle"]
 
 
-            if self.mesh[i]["type"] == "rectangle":
+            if mesh["type"] == "rectangle":
                 scene_dict[str(i)] = {
                     "type": mesh["type"],
                     "to_world": ScalarTransform4f.translate(mesh["translate"])
