@@ -98,7 +98,7 @@ def render(scene, spp, sample_per_pass, bdata):
 
         results = render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf)
 
-        utils_render.postprocess_render(results, weights, blocks, pos_ite)
+        utils_render.postprocess_render(results, weights, blocks, pos_ite, aovs=config.aovs)
         sampler.advance()
         cnt += sample_per_pass
         print(f"done {cnt} / {total_sample_count}")
