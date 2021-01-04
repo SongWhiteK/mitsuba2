@@ -69,6 +69,7 @@
 		<transform name="to_world">
 			<matrix value="$mat"/>
 			<scale value="1.2, 1.2, 3"/>
+			<translate value="0, 0, 0.01"/>
 		</transform>
 		<ref id="part_medium" name="interior"/>
 		<ref id="medium_bsdf"/>

@@ -18,7 +18,7 @@ from mitsuba.core import ScalarTransform4f, ScalarVector3f
 class meshes:
     """Super class for BSSRDF meshes"""
 
-    def __init__(self):
+    def __init__(self, obj_id):
         self.n_mesh = 6
         self.type = [None for i in range(self.n_mesh)]
         self.filename = [None for i in range(self.n_mesh)]
@@ -29,12 +29,13 @@ class meshes:
         self.map = [None for i in range(self.n_mesh)]
         self.range = [None for i in range(self.n_mesh)]
         self.minmax = [None for i in range(self.n_mesh)] 
+        self.obj_id = obj_id
 
     def register_all_mesh(self, bdata):
         """Register whole meshes in this class to BSSRDF_Data"""
 
         for i in range(self.n_mesh):
-            bdata.register_mesh(i+1, self.type[i], self.height_max[i], self.map[i], self.range[i],
+            bdata.register_mesh(i+1, self.obj_id, self.type[i], self.height_max[i], self.map[i], self.range[i],
                                 self.minmax[i], filename=self.filename[i],
                                 translate=self.translate[i], rotate=self.rotate[i],
                                 scale=self.scale[i]
@@ -62,8 +63,8 @@ class meshes_cube(meshes):
     6: top
     """
 
-    def __init__(self):
-        super(meshes_cube, self).__init__()
+    def __init__(self, obj_id):
+        super(meshes_cube, self).__init__(obj_id)
         self.n_mesh = 6
         self.translate = [
             [0, 0, 0.01],
@@ -96,9 +97,9 @@ class meshes_leather(meshes_cube):
     Details are almost same as meshes_cube.
     """
 
-    def __init__(self, leather_num):
+    def __init__(self, obj_id, leather_num):
         """Only top mesh is replaced by leather serialized model"""
-        super(meshes_leather, self).__init__()
+        super(meshes_leather, self).__init__(obj_id)
         self.type[5] = "serialized"
         self.scale[5] = 1
         self.height_max[5] = 1

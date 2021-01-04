@@ -209,6 +209,11 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
     project_to_mesh_normal(const Scene *scene, const Vector3f &sampled_pos,
                                     const BSDFSample3f &bs, const UInt32 &channel, Mask active = true) const;
 
+    std::pair<SurfaceInteraction3f, Mask>
+    mesh_projection(const Vector3f &dx, const Vector3f &dy, const Vector3f &dz,
+                const Scene *scene, const Vector3f &sampled_pos,
+                const Float kernelEps, Mask active) const;
+
 
     Float get_kernelEps(const BSDFSample3f &bs, const UInt32 &channel) const {
 

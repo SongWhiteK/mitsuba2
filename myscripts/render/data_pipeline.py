@@ -30,6 +30,7 @@ class BSSRDF_Data:
     def __init__(self):
         self.bssrdf = {}
         self.mesh = {}
+        self.bssrdf_obj = {}
         self.mesh_map = []
         self.mesh_xrange = []
         self.mesh_yrange = []
@@ -76,7 +77,7 @@ class BSSRDF_Data:
 
         self.sigma_n.append(utils.get_sigman(self.bssrdf[mesh_id]))
         
-    def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, mesh_range,
+    def register_mesh(self, mesh_id, obj_id, mesh_type, height_max, mesh_map, mesh_range,
                       minmax, filename=None, translate=[0,0,0],
                       rotate={"axis": "x", "angle": 0.0}, scale=[1,1,1]):
         """
@@ -97,6 +98,11 @@ class BSSRDF_Data:
         self.mesh_xmin.append(minmax[0])
         self.mesh_ymax.append(minmax[1])
 
+        if obj_id in self.bssrdf_obj:
+            self.bssrdf_obj[obj_id].append(mesh_id)
+        else:
+            self.bssrdf_obj[obj_id] = [mesh_id]
+
     def add_object(self, scene_dict):
         """
         Add registered meshes to given scene file format
@@ -105,9 +111,17 @@ class BSSRDF_Data:
         if len(self.bssrdf) != len(self.mesh):
             exit("The number of registerd mesh and bssrdf are different!")
 
-        num_obj = len(self.bssrdf)
+        num_mesh = len(self.bssrdf)
+        num_obj = len(self.bssrdf_obj)
 
         for i in range(num_obj):
+            i += 1
+
+            scene_dict["obj_" + str(i)] = {
+                "type": "shapegroup"
+            }
+
+        for i in range(num_mesh):
             i += 1
             bssrdf = self.bssrdf[i]
             mesh = self.mesh[i]
@@ -122,8 +136,8 @@ class BSSRDF_Data:
             angle = mesh["rotate"]["angle"]
 
 
-            if self.mesh[i]["type"] == "rectangle":
-                scene_dict[str(i)] = {
+            if mesh["type"] == "rectangle":
+                shape = {
                     "type": mesh["type"],
                     "to_world": ScalarTransform4f.translate(mesh["translate"])
                                 * ScalarTransform4f.rotate(axis, angle)
@@ -131,7 +145,7 @@ class BSSRDF_Data:
                 }
         
             else:
-                scene_dict[str(i)] = {
+                shape = {
                     "type": mesh["type"],
                     "filename": mesh["filename"],
                     "to_world": ScalarTransform4f.translate(mesh["translate"])
@@ -153,8 +167,23 @@ class BSSRDF_Data:
                 "bsdf_" + str(i): bssrdf
             }
 
-            scene_dict[str(i)].update(bsdf)
+            shape.update(bsdf)
             
+            for j in range(num_obj):
+                j += 1
+
+                if i in self.bssrdf_obj[j]:
+                    scene_dict["obj_" + str(j)][str(i)] = shape
+
+        for i in range(num_obj):
+            i += 1
+            scene_dict["instance_" + str(i)] = {
+                "type": "instance",
+                "group":{
+                    "type": "ref",
+                    "id": "obj_" + str(i)
+                }
+            }
 
         return scene_dict
 
