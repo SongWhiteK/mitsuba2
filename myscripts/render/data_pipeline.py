@@ -112,6 +112,14 @@ class BSSRDF_Data:
             exit("The number of registerd mesh and bssrdf are different!")
 
         num_mesh = len(self.bssrdf)
+        num_obj = len(self.bssrdf_obj)
+
+        for i in range(num_obj):
+            i += 1
+
+            scene_dict["obj_" + str(i)] = {
+                "type": "shapegroup"
+            }
 
         for i in range(num_mesh):
             i += 1
@@ -129,7 +137,7 @@ class BSSRDF_Data:
 
 
             if mesh["type"] == "rectangle":
-                scene_dict[str(i)] = {
+                shape = {
                     "type": mesh["type"],
                     "to_world": ScalarTransform4f.translate(mesh["translate"])
                                 * ScalarTransform4f.rotate(axis, angle)
@@ -137,7 +145,7 @@ class BSSRDF_Data:
                 }
         
             else:
-                scene_dict[str(i)] = {
+                shape = {
                     "type": mesh["type"],
                     "filename": mesh["filename"],
                     "to_world": ScalarTransform4f.translate(mesh["translate"])
@@ -159,8 +167,23 @@ class BSSRDF_Data:
                 "bsdf_" + str(i): bssrdf
             }
 
-            scene_dict[str(i)].update(bsdf)
+            shape.update(bsdf)
             
+            for j in range(num_obj):
+                j += 1
+
+                if i in self.bssrdf_obj[j]:
+                    scene_dict["obj_" + str(j)][str(i)] = shape
+
+        for i in range(num_obj):
+            i += 1
+            scene_dict["instance_" + str(i)] = {
+                "type": "instance",
+                "group":{
+                    "type": "ref",
+                    "id": "obj_" + str(i)
+                }
+            }
 
         return scene_dict
 
