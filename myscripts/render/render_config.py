@@ -20,4 +20,5 @@ im_size = 63
 enable_bssrdf = True
 visualize_invalid_sample = False
 multi_process = False
+aovs = True
 
