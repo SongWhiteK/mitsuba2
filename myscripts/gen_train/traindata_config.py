@@ -16,7 +16,7 @@ class TrainDataConfiguration:
         ############## FILE PATHS ##############
         if (self.mode is "visual"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\visual_template.xml"
-            self.spp = 64
+            self.spp = 1024
         elif(self.mode is "sample"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\sample_template.xml"
             self.spp = 1024
