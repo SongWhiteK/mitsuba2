@@ -30,6 +30,7 @@ class BSSRDF_Data:
     def __init__(self):
         self.bssrdf = {}
         self.mesh = {}
+        self.bssrdf_obj = {}
         self.mesh_map = []
         self.mesh_xrange = []
         self.mesh_yrange = []
@@ -76,7 +77,7 @@ class BSSRDF_Data:
 
         self.sigma_n.append(utils.get_sigman(self.bssrdf[mesh_id]))
         
-    def register_mesh(self, mesh_id, mesh_type, height_max, mesh_map, mesh_range,
+    def register_mesh(self, mesh_id, obj_id, mesh_type, height_max, mesh_map, mesh_range,
                       minmax, filename=None, translate=[0,0,0],
                       rotate={"axis": "x", "angle": 0.0}, scale=[1,1,1]):
         """
@@ -96,6 +97,11 @@ class BSSRDF_Data:
         self.mesh_yrange.append(mesh_range[1])
         self.mesh_xmin.append(minmax[0])
         self.mesh_ymax.append(minmax[1])
+
+        if obj_id in self.bssrdf_obj:
+            self.bssrdf_obj[obj_id].append(mesh_id)
+        else:
+            self.bssrdf_obj[obj_id] = [mesh_id]
 
     def add_object(self, scene_dict):
         """
