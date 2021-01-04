@@ -115,11 +115,14 @@ def postprocess_render(results, weights, blocks, pos, aovs=False):
         block_nonscatter.put(pos, aovs_nonscatter)
 
 
-def imaging(blocks, film_size):
+def imaging(blocks, film_size, aovs=False):
 
     label = ['result', 'scatter', 'non_scatter']
+    n_im = 1
+    if aovs:
+        n_im = 3
 
-    for i in range(3):
+    for i in range(n_im):
         xyzaw_np = np.array(blocks[i].data()).reshape([film_size[1], film_size[0], 5])
 
         bmp = Bitmap(xyzaw_np, Bitmap.PixelFormat.XYZAW)

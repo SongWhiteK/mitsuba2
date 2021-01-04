@@ -103,7 +103,7 @@ def render(scene, spp, sample_per_pass, bdata):
         cnt += sample_per_pass
         print(f"done {cnt} / {total_sample_count}")
 
-    utils_render.imaging(blocks, film_size)
+    utils_render.imaging(blocks, film_size, aovs=config.aovs)
 
 
 
