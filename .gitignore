@@ -112,3 +112,13 @@ myscripts/vae/model/
 debug.log
 
 result.exr
+
+non_scatter.exr
+
+non_scatter.jpg
+
+result.jpg
+
+scatter.exr
+
+scatter.jpg
