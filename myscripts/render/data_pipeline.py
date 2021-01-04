@@ -111,9 +111,9 @@ class BSSRDF_Data:
         if len(self.bssrdf) != len(self.mesh):
             exit("The number of registerd mesh and bssrdf are different!")
 
-        num_obj = len(self.bssrdf)
+        num_mesh = len(self.bssrdf)
 
-        for i in range(num_obj):
+        for i in range(num_mesh):
             i += 1
             bssrdf = self.bssrdf[i]
             mesh = self.mesh[i]
