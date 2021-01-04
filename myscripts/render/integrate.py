@@ -10,7 +10,7 @@ from bssrdf import BSSRDF
 
 mitsuba.set_variant(config.variant)
 
-from mitsuba.core import (Spectrum, Float, UInt32, Vector2f, Vector3f,
+from mitsuba.core import (Spectrum, Float, UInt32, Vector2f, Vector3f, Mask,
                           Frame3f, Color3f, RayDifferential3f, srgb_to_xyz)
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file
@@ -43,15 +43,13 @@ def render(scene, spp, sample_per_pass, bdata):
     film = sensor.film()
     sampler = sensor.sampler()
     film_size = film.crop_size()
-    block = ImageBlock(
-            film.crop_size(),
-            channel_count=5,
-            filter=film.reconstruction_filter(),
-            border=False
+    blocks = utils_render.gen_blocks(
+             film.crop_size(),
+             film.reconstruction_filter(),
+             channel_count=5,
+             border=False,
+             aovs=config.aovs
     )
-    block.clear()
-
-    result = 0
 
     bssrdf = None
     if(config.enable_bssrdf):
@@ -98,24 +96,15 @@ def render(scene, spp, sample_per_pass, bdata):
             sample3=0
         )
 
-        result, valid_rays = render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf)
-        result = weights * result
-        xyz = Color3f(srgb_to_xyz(result))
-        aovs = [xyz[0], xyz[1], xyz[2],
-                ek.select(valid_rays, Float(1.0), Float(0.0)),
-                1.0]
+        results = render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf)
 
-        block.put(pos_ite, aovs)
+        utils_render.postprocess_render(results, weights, blocks, pos_ite, aovs=config.aovs)
         sampler.advance()
         cnt += sample_per_pass
         print(f"done {cnt} / {total_sample_count}")
 
-    xyzaw_np = np.array(block.data()).reshape([film_size[1], film_size[0], 5])
+    utils_render.imaging(blocks, film_size, aovs=config.aovs)
 
-    bmp = Bitmap(xyzaw_np, Bitmap.PixelFormat.XYZAW)
-    bmp = bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.Float32, srgb_gamma=False)
-    bmp.write('result.exr')
-    bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8, srgb_gamma=True).write('result.jpg')
 
 
 
@@ -136,6 +125,8 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
     emission_weight = Float(1.0)
     throughput = Spectrum(1.0)
     result = Spectrum(0.0)
+    scatter = Spectrum(0.0)
+    non_scatter = Spectrum(0.0)
     active = True
     is_bssrdf = False
 
@@ -156,13 +147,18 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
     d_out_local = Vector3f().zero()
     d_out_pdf = Float(0)
 
+    sss = Mask(False)
+
     while(True):
         depth += 1
+        sss |= is_bssrdf
 
         ##### Interaction with emitters #####
-        result += ek.select(active,
-                            emission_weight * throughput * Emitter.eval_vec(emitter, si, active),
-                            Spectrum(0.0))
+        emission_val = emission_weight * throughput * Emitter.eval_vec(emitter, si, active)
+        
+        result += ek.select(active, emission_val, Spectrum(0.0))
+        scatter += ek.select(active & sss, emission_val, Spectrum(0.0))
+        non_scatter += ek.select(active & ~sss, emission_val, Spectrum(0.0))
 
         active = active & si.is_valid()
 
@@ -194,9 +190,12 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
         bsdf_pdf = BSDF.pdf_vec(bsdf, ctx, si, wo, active_e)
 
         mis = ek.select(ds.delta, Float(1), mis_weight(ds.pdf, bsdf_pdf))
-        result += ek.select(active_e,
-                            mis * throughput * bsdf_val * emitter_val,
-                            Spectrum(0.0))
+
+        emission_val = mis * throughput * bsdf_val * emitter_val
+
+        result += ek.select(active, emission_val, Spectrum(0.0))
+        scatter += ek.select(active & sss, emission_val, Spectrum(0.0))
+        non_scatter += ek.select(active & ~sss, emission_val, Spectrum(0.0))
 
         ##### BSDF sampling #####
         bs, bsdf_val = BSDF.sample_vec(bsdf, ctx, si, sampler.next_1d(active),
@@ -267,4 +266,4 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
 
         si = si_bsdf
 
-    return result, valid_rays
+    return result, valid_rays, scatter, non_scatter
