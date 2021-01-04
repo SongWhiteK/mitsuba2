@@ -240,7 +240,7 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
             projected_si, project_suc, abs_prob = bssrdf.sample_bssrdf(scene, bsdf, bs, si, bdata, 
                                                                        heightmap_pybind, channel, is_bssrdf)
 
-            if config.visualize_invalid_sample:
+            if config.visualize_invalid_sample and (depth <= 1):
                 active = active & (~is_bssrdf | project_suc)
                 result[(is_bssrdf & (~project_suc))] += Spectrum([100, 0, 0])
 
