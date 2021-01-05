@@ -43,7 +43,7 @@ def reduced_albedo_to_effective_albedo(reduced_albedo):
     return -ek.log(1.0 - reduced_albedo * (1.0 - ek.exp(-8.0))) / 8.0
 
 
-def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
+def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False, invalid_sample=False):
 
 
     blocks = {}
@@ -56,6 +56,9 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
     )
     block.clear()
     blocks["result"] = block
+
+    if not aovs and not invalid_sample:
+        return block
 
     if aovs:
         block_scatter = ImageBlock(
@@ -76,11 +79,21 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
         block_nonscatter.clear()
         blocks["non_scatter"] = block_nonscatter
 
+    if invalid_sample:
+        block_invalid = ImageBlock(
+                crop_size,
+                channel_count=channel_count,
+                filter=filter,
+                border=border
+        )
+        block_invalid.clear()
+        blocks["invalid"] = block_invalid
+
     return blocks
 
 
-def postprocess_render(results, weights, blocks, pos, aovs=False):
-
+def postprocess_render(results, weights, blocks, pos, aovs=False, invalid_sample=False):
+    
     result = results[0]
     valid_rays = results[1]
 
@@ -90,6 +103,9 @@ def postprocess_render(results, weights, blocks, pos, aovs=False):
             ek.select(valid_rays, Float(1.0), Float(0.0)),
             1.0]
     
+    if not aovs and not invalid_sample:
+        block = blocks
+    else:
         block = blocks["result"]
 
     block.put(pos, aovs_result)
@@ -105,11 +121,11 @@ def postprocess_render(results, weights, blocks, pos, aovs=False):
         xyz_nonscatter = Color3f(srgb_to_xyz(non_scatter))
 
         aovs_scatter = [xyz_scatter[0], xyz_scatter[1], xyz_scatter[2],
-                ek.select(valid_rays, Float(1.0), Float(0.0)),
-                1.0]
+                        ek.select(valid_rays, Float(1.0), Float(0.0)),
+                        1.0]
         aovs_nonscatter = [xyz_nonscatter[0], xyz_nonscatter[1], xyz_nonscatter[2],
-                ek.select(valid_rays, Float(1.0), Float(0.0)),
-                1.0]
+                           ek.select(valid_rays, Float(1.0), Float(0.0)),
+                           1.0]
 
         block_scatter = blocks["scatter"]
         block_nonscatter = blocks["non_scatter"]
@@ -117,21 +133,40 @@ def postprocess_render(results, weights, blocks, pos, aovs=False):
         block_scatter.put(pos, aovs_scatter)
         block_nonscatter.put(pos, aovs_nonscatter)
 
+    if invalid_sample:
+        invalid = results[4]
 
-def imaging(blocks, film_size, aovs=False):
+        invalid *= weights
 
-    label = ['result', 'scatter', 'non_scatter']
-    n_im = 1
+        xyz_invalid = Color3f(srgb_to_xyz(invalid))
+
+        aovs_invalid = [xyz_invalid[0], xyz_invalid[1], xyz_invalid[2],
+                        ek.select(valid_rays, Float(1.0), Float(0.0)),
+                        1.0]
+
+        block_invalid = blocks["invalid"]
+
+        block_invalid.put(pos, aovs_invalid)
+        
+
+
+def imaging(blocks, film_size, aovs=False, invalid_sample=False):
+
+    label = ['result']
     if aovs:
-        n_im = 3
+        label.append('scatter')
+        label.append('non_scatter')
+    
+    if invalid_sample:
+        label.append('invalid')
 
-    for i in range(n_im):
+    for i in label:
         xyzaw_np = np.array(blocks[i].data()).reshape([film_size[1], film_size[0], 5])
 
         bmp = Bitmap(xyzaw_np, Bitmap.PixelFormat.XYZAW)
         bmp = bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.Float32, srgb_gamma=False)
-        bmp.write(label[i] + '.exr')
-        bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8, srgb_gamma=True).write(label[i] + '.jpg')
+        bmp.write(i + '.exr')
+        bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8, srgb_gamma=True).write(i + '.jpg')
 
 
 
