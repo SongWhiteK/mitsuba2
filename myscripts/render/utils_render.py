@@ -45,7 +45,8 @@ def reduced_albedo_to_effective_albedo(reduced_albedo):
 
 def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
 
-    blocks = []
+
+    blocks = {}
 
     block = ImageBlock(
             crop_size,
@@ -54,7 +55,7 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
             border=border
     )
     block.clear()
-    blocks.append(block)
+    blocks["result"] = block
 
     if aovs:
         block_scatter = ImageBlock(
@@ -64,7 +65,7 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
                 border=border
         )
         block_scatter.clear()
-        blocks.append(block_scatter)
+        blocks["scatter"] = block_scatter
 
         block_nonscatter = ImageBlock(
                 crop_size,
@@ -73,7 +74,7 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False):
                 border=border
         )
         block_nonscatter.clear()
-        blocks.append(block_nonscatter)
+        blocks["non_scatter"] = block_nonscatter
 
     return blocks
 
@@ -88,7 +89,9 @@ def postprocess_render(results, weights, blocks, pos, aovs=False):
     aovs_result = [xyz[0], xyz[1], xyz[2],
             ek.select(valid_rays, Float(1.0), Float(0.0)),
             1.0]
-    block = blocks[0]
+    
+        block = blocks["result"]
+
     block.put(pos, aovs_result)
 
     if aovs:
@@ -108,8 +111,8 @@ def postprocess_render(results, weights, blocks, pos, aovs=False):
                 ek.select(valid_rays, Float(1.0), Float(0.0)),
                 1.0]
 
-        block_scatter = blocks[1]
-        block_nonscatter = blocks[2]
+        block_scatter = blocks["scatter"]
+        block_nonscatter = blocks["non_scatter"]
 
         block_scatter.put(pos, aovs_scatter)
         block_nonscatter.put(pos, aovs_nonscatter)
