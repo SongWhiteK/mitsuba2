@@ -48,7 +48,8 @@ def render(scene, spp, sample_per_pass, bdata):
              film.reconstruction_filter(),
              channel_count=5,
              border=False,
-             aovs=config.aovs
+             aovs=config.aovs,
+             invalid_sample=config.visualize_invalid_sample
     )
 
     bssrdf = None
@@ -98,12 +99,19 @@ def render(scene, spp, sample_per_pass, bdata):
 
         results = render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf)
 
-        utils_render.postprocess_render(results, weights, blocks, pos_ite, aovs=config.aovs)
+        utils_render.postprocess_render(results,weights,
+                                        blocks,
+                                        pos_ite,
+                                        aovs=config.aovs,
+                                        invalid_sample=config.visualize_invalid_sample)
         sampler.advance()
         cnt += sample_per_pass
         print(f"done {cnt} / {total_sample_count}")
 
-    utils_render.imaging(blocks, film_size, aovs=config.aovs)
+    utils_render.imaging(blocks,
+                         film_size,
+                         aovs=config.aovs,
+                         invalid_sample=config.visualize_invalid_sample)
 
 
 
@@ -127,6 +135,7 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
     result = Spectrum(0.0)
     scatter = Spectrum(0.0)
     non_scatter = Spectrum(0.0)
+    invalid_sample = Spectrum(0.0)
     active = True
     is_bssrdf = False
 
@@ -157,6 +166,7 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
         emission_val = emission_weight * throughput * Emitter.eval_vec(emitter, si, active)
         
         result += ek.select(active, emission_val, Spectrum(0.0))
+        invalid_sample += ek.select(active, emission_val, Spectrum(0.0))
         scatter += ek.select(active & sss, emission_val, Spectrum(0.0))
         non_scatter += ek.select(active & ~sss, emission_val, Spectrum(0.0))
 
@@ -194,6 +204,7 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
         emission_val = mis * throughput * bsdf_val * emitter_val
 
         result += ek.select(active, emission_val, Spectrum(0.0))
+        invalid_sample += ek.select(active, emission_val, Spectrum(0.0))
         scatter += ek.select(active & sss, emission_val, Spectrum(0.0))
         non_scatter += ek.select(active & ~sss, emission_val, Spectrum(0.0))
 
@@ -242,7 +253,9 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
 
             if config.visualize_invalid_sample and (depth <= 1):
                 active = active & (~is_bssrdf | project_suc)
-                result[(is_bssrdf & (~project_suc))] += Spectrum([100, 0, 0])
+                invalid_sample += ek.select((is_bssrdf & (~project_suc)),
+                                            Spectrum([100, 0, 0]),
+                                            Spectrum(0.0))
 
             # Sample outgoing direction from projected position
             d_out_local, d_out_pdf = utils_render.resample_wo(sampler, is_bssrdf)
@@ -266,4 +279,4 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
 
         si = si_bsdf
 
-    return result, valid_rays, scatter, non_scatter
+    return result, valid_rays, scatter, non_scatter, invalid_sample
