@@ -337,7 +337,7 @@ SurfaceInteraction<Float, Spectrum>::mesh_projection(const Vector3f &dx, const V
 
             SurfaceInteraction3f si1 = scene->ray_intersect(ray1, active);
             if(any_or<true>(si_found)){
-                Mask si1_valid = eq(shape, si1.shape) && (point_dist < 0 || point_dist > si1.t) && active;
+                Mask si1_valid = eq(instance, si1.instance) && (point_dist < 0 || point_dist > si1.t) && active;
                 si_found |= si1_valid && active;
                 masked(point_dist, si1_valid) = si1.t;
                 masked(si_result, si1_valid) = si1;
@@ -352,7 +352,7 @@ SurfaceInteraction<Float, Spectrum>::mesh_projection(const Vector3f &dx, const V
 
             SurfaceInteraction3f si2 = scene->ray_intersect(ray2, active);
             if(any_or<true>(si2.is_valid())){
-                Mask si2_valid = eq(shape, si2.shape) && (point_dist < 0 || point_dist > si2.t) && active;
+                Mask si2_valid = eq(instance, si2.instance) && (point_dist < 0 || point_dist > si2.t) && active;
                 si_found |= si2_valid && active;
                 masked(point_dist, si2_valid) = si2.t;
                 masked(si_result, si2_valid)  = si2;
