@@ -160,7 +160,8 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
 
     while(True):
         depth += 1
-        sss |= is_bssrdf
+        if config.aovs and depth == 2:
+            sss = is_bssrdf
 
         ##### Interaction with emitters #####
         emission_val = emission_weight * throughput * Emitter.eval_vec(emitter, si, active)
