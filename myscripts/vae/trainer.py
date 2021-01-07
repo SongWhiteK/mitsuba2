@@ -119,7 +119,11 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
 
         in_pos_scaled = in_pos / sigma_n
         out_pos_scaled = out_pos / sigma_n
-
+        print(props[:, 6])
+        print(sigma_n)
+        props[:, 6] = props[:, 6] / sigma_n
+        print(props[:, 6])
+        
         im = image_generate(im_path, config.im_size)
         
         optimizer.zero_grad()
