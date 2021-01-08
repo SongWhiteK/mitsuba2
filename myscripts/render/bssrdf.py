@@ -165,7 +165,8 @@ def get_props(bs, si, channel):
     eta = bs.eta.torch().view(-1, 1)
 
     d_in = si.wi.torch()
-    height_max = bs.height_max.torch().view(-1, 1)
+    height_max = bs.height_max.torch() / sigma_n.torch()
+    height_max = height_max.view(-1, 1)
 
     props = torch.cat([eff_albedo, g, eta, d_in, height_max], 1)
 
