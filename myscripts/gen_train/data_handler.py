@@ -125,8 +125,14 @@ class DataHandler:
         df["eff_albedo"] = utils.reduced_albedo_to_effective_albedo(
             utils.get_reduced_albedo(df["albedo"], df["g"], df["sigma_t"])
             )
-        df["height_max"] = df["scale_z"]
         df["sigma_n"] = utils.get_sigman(df)
+        df["height_max"] = df["scale_z"] / df["sigma_n"]
+        df["p_in_x"] /= df["sigma_n"]
+        df["p_in_y"] /= df["sigma_n"]
+        df["p_in_z"] /= df["sigma_n"]
+        df["p_out_x"] /= df["sigma_n"]
+        df["p_out_y"] /= df["sigma_n"]
+        df["p_out_z"] /= df["sigma_n"]
 
         df = df[self.tag]
         if(not os.path.exists(f"{self.train_sample_dir_path}")):
