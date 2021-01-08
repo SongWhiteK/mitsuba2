@@ -116,19 +116,12 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         out_pos = sample["out_pos"].to(device)
         abs_prob = sample["abs"].to(device)
         sigma_n = sample["sigma_n"].to(device)
-
-        in_pos_scaled = in_pos / sigma_n
-        out_pos_scaled = out_pos / sigma_n
-        print(props[:, 6])
-        print(sigma_n)
-        props[:, 6] = props[:, 6] / sigma_n
-        print(props[:, 6])
         
         im = image_generate(im_path, config.im_size)
         
         optimizer.zero_grad()
-        recon_pos_scaled, recon_abs, mu, logvar = model(props, im.to(device), in_pos_scaled, out_pos_scaled, is_training=True)
-        loss_total, losses = loss_function(recon_pos_scaled, out_pos_scaled, recon_abs, abs_prob, mu, logvar, config)
+        recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos, is_training=True)
+        loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
 
         loss_total.backward()
         optimizer.step()
