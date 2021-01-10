@@ -164,7 +164,7 @@ def get_props(bs, si, channel):
     g = g.torch().view(-1, 1)
     eta = bs.eta.torch().view(-1, 1)
 
-    d_in = si.wi.torch()
+    d_in = si.wi_mesh_local(bs).torch()
     height_max = bs.height_max.torch() / sigma_n.torch()
     height_max = height_max.view(-1, 1)
 
