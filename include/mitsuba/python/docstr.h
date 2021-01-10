@@ -6519,6 +6519,8 @@ static const char *__doc_mitsuba_SurfaceInteraction_to_mesh_local = R"doc()doc";
 
 static const char *__doc_mitsuba_SurfaceInteraction_to_mesh_world = R"doc()doc";
 
+static const char *__doc_mitsuba_SurfaceInteraction_wi_mesh_local = R"doc()doc";
+
 static const char *__doc_mitsuba_SurfaceInteraction_project_to_mesh_effnormal = R"doc()doc";
 
 static const char *__doc_mitsuba_SurfaceInteraction_project_to_mesh_normal = R"doc()doc";

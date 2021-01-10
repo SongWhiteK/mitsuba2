@@ -198,7 +198,16 @@ struct SurfaceInteraction : Interaction<Float_, Spectrum_> {
 
         return mat_mesh_world * p_local;
     }
+    Vector3f wi_mesh_local(const BSDFSample3f &bs) const {
+        Transform4f mat_mesh_world = Transform4f::rotate(Vector3f(1,0,0), bs.x) *
+                                     Transform4f::rotate(Vector3f(0,1,0), bs.y) *
+                                     Transform4f::rotate(Vector3f(0,0,1), bs.z);
+        Transform4f mat_local = mat_mesh_world.inverse();
 
+        Vector3f wi_mesh = mat_local * to_world(wi);
+
+        return wi_mesh;
+    }
 
     std::pair<SurfaceInteraction3f, Mask>
     project_to_mesh_effnormal(const Scene *scene, const Vector3f &sampled_pos,
