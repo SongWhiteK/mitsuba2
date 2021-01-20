@@ -17,9 +17,14 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 
 class VAEDatasets(Dataset):
-    def __init__(self, config, transform=None):
-        self.data = pd.read_csv(config.SAMPLE_PATH)
-        self.im_dir = config.MAP_DIR
+    def __init__(self, config, transform=None, test=False):
+        if test:
+            self.data = pd.read_csv(config.TEST_PATH)
+            self.im_dir = config.TEST_MAP
+        else:
+            self.data = pd.read_csv(config.SAMPLE_PATH)
+            self.im_dir = config.MAP_DIR
+            
         self.transform = transform
         self.n_per_subdir = config.n_per_subdir
 
