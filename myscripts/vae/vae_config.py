@@ -29,25 +29,30 @@ class VAEConfiguration:
 
 
         ##### Trainer #####
-        self.data = "full"
+        self.data = "mini"
         if(self.data == "test"):
             self.n_per_subdir = 250
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_images"
+
         elif(self.data == "mini"):
             self.n_per_subdir = 10
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_mini\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
+            self.TEST_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths_mini\\train_path.csv"
+            self.TEST_MAP = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_images_mini"
+
         elif(self.data == "plane"):
             self.n_per_subdir = 10000
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_63plane\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_63plane"
+
         elif(self.data == "full"):
             self.n_per_subdir = 10000
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
             self.TEST_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
-            self.TEST_MAP = "C:\\Users\\mineg\\mitsuba2\\myscripts\\test_data\\train_images"
+            self.TEST_MAP = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_images"
             
 
         self.seed = 1
