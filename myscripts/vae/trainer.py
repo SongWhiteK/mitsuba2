@@ -1,3 +1,4 @@
+import os
 import glob
 import datetime
 import time
@@ -78,7 +79,10 @@ def train(config, model, device, dataset):
 
     # Input model name at this training
     model_name = input("Input model neme at this training: ")
-    model_path = f"myscripts/vae/model/{model_name}.pt"
+    out_dir = f"myscripts/vae/model/{model_name}"
+
+    # Generate model output directory
+    os.makedirs(out_dir, exist_ok=True)
 
     print(f"{datetime.datetime.now()} -- Data split start")
     train_data, test_data = train_test_split(dataset, test_size=0.2)
@@ -102,9 +106,10 @@ def train(config, model, device, dataset):
                     train_loader, optimizer, writer)
         test(epoch, config, model, device, test_loader, writer)
         scheduler.step()
+        model_path = out_dir + f"/{model_name}_{epoch:02}"
+        torch.save(model.state_dict(), model_path)
 
     writer.close()
-    torch.save(model.state_dict(), model_path)
 
 
 def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
