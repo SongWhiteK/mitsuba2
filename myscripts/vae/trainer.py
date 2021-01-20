@@ -56,7 +56,7 @@ class VAEDatasets(Dataset):
 
         # Get processed height map from index (~= id)
         num_subdir = (sample_id // self.n_per_subdir) * self.n_per_subdir
-        im_path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir+9999}\\train_image{sample_id:08}.png"
+        im_path = f"{self.im_dir}\\map_{model_id:03}\\images{num_subdir}_{num_subdir + self.n_per_subdir - 1}\\train_image{sample_id:08}.png"
 
         sample = {}
         sample["props"] = props
