@@ -35,7 +35,7 @@ class VAEConfiguration:
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_images"
         elif(self.data == "mini"):
-            self.n_per_subdir = 1000
+            self.n_per_subdir = 10
             self.SAMPLE_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_mini\\train_path.csv"
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_mini"
         elif(self.data == "plane"):
