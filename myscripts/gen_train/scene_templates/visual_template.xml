@@ -21,8 +21,8 @@
 		</sampler>
 
 		<film id="Camera-camera_film" type="hdrfilm">
-			<integer name="width" value="256"/>
-			<integer name="height" value="256"/>
+			<integer name="width" value="512"/>
+			<integer name="height" value="512"/>
 			<rfilter type="gaussian"/>
 		</film>
 	</sensor>
@@ -68,7 +68,6 @@
 		<integer name="shape_index" value="0"/>
 		<transform name="to_world">
 			<matrix value="$mat"/>
-			<scale value="1.2, 1.2, 3"/>
 			<translate value="0, 0, 0.01"/>
 		</transform>
 		<ref id="part_medium" name="interior"/>

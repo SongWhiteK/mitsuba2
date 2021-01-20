@@ -103,7 +103,7 @@ class meshes_leather(meshes_cube):
         self.type[5] = "serialized"
         self.scale[5] = 1
         self.height_max[5] = 1
-        self.filename[5] = f"C:/Users/mineg/mitsuba2/myscripts/render/dict/serialized/leather_top0.serialized"
+        self.filename[5] = f"C:/Users/mineg/mitsuba2/myscripts/render/dict/serialized/leather_top{leather_num:02}.serialized"
 
         map_path = f"C:/Users/mineg/mitsuba2/myscripts/train_data/height_map/height_map{leather_num:02}.png"
         self.map[5] = np.array(Image.open(map_path))
