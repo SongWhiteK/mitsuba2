@@ -191,7 +191,11 @@ if __name__ == "__main__":
     model = VAE(config).to(device)
     
     print(f"{datetime.now()} -- Dataset generation")
-    dataset = VAEDatasets(config, ToTensor())
+
+    train_data = VAEDatasets(config, ToTensor())
+    test_data = None
+    if config.data == "full" or config.data == "mini":
+        test_data = VAEDatasets(config, ToTensor(), test = True)
 
     # Visualize network in Tensorboard
     if config.visualize_net:
@@ -207,7 +211,7 @@ if __name__ == "__main__":
         writer.add_graph(model, (props, im, in_pos, out_pos))
         writer.close()
 
-    train(config, model, device, dataset)
+    train(config, model, device, train_data, test_data)
     print(time.time() - time1)
 
     

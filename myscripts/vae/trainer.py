@@ -78,7 +78,7 @@ class VAEDatasets(Dataset):
 from vae import loss_function
 
 
-def train(config, model, device, dataset):
+def train(config, model, device, train_data, test_data):
     torch.manual_seed(config.seed)
     print(f"{datetime.datetime.now()} -- Training Start")
 
@@ -89,9 +89,10 @@ def train(config, model, device, dataset):
     # Generate model output directory
     os.makedirs(out_dir, exist_ok=True)
 
-    print(f"{datetime.datetime.now()} -- Data split start")
-    train_data, test_data = train_test_split(dataset, test_size=0.2)
-    print(f"{datetime.datetime.now()} -- Data split end")
+    if test_data == None:
+        print(f"{datetime.datetime.now()} -- Data split start")
+        train_data, test_data = train_test_split(train_data, test_size=0.2)
+        print(f"{datetime.datetime.now()} -- Data split end")
 
     train_loader = DataLoader(train_data, **config.loader_args)
     test_loader = DataLoader(test_data, **config.loader_args)
