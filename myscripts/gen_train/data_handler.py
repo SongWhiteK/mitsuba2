@@ -95,7 +95,7 @@ class DataHandler:
             # Process with each training data
             for row in data.itertuples():
                 if(row.id % self.num_per_subdir == 0):
-                    file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + 9999}"
+                    file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + self.num_per_subdir-1}"
                     os.makedirs(file_path)
 
                 image = gen_train_image(row, height_map, self.im_size, self.debug, pybind=heightmap_pybind)
@@ -104,7 +104,7 @@ class DataHandler:
                 cv2.imwrite(f"{file_path}\\train_image{row.id:08}.png", image)
                 id_data += 1
 
-                if(row.id % 1000 == 0):
+                if(row.id % 10000 == 0):
                     print(f"{datetime.datetime.now()} -- Log: Processed {row.id}")
 
         # refine and output sampled path data
