@@ -128,7 +128,7 @@ public:
         Mask incident = selected_t & (cos_theta_i > 0);
 
         bs.albedo = m_albedo->eval(si, incident);
-        bs.sigma_t = m_sigmat->eval(si, incident);
+        bs.sigma_t = m_sigmat->eval(si, incident) * m_scale;
 
         bs.g = select(incident, m_g, bs.g);
 
