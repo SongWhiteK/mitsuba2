@@ -19,7 +19,7 @@ template <typename Float, typename Spectrum>
 class VolumetricPathSampler : public PathSampler<Float, Spectrum> {
 
 public:
-    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_random_sample)
+    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_random_sample, m_init_d)
     MTS_IMPORT_TYPES(Scene, Sampler, Emitter, EmitterPtr, BSDF, BSDFPtr,
                      Medium, MediumPtr, PhaseFunctionContext, Shape)
 
@@ -109,16 +109,26 @@ public:
             // record the target medium
             medium = si_sample.target_medium(ray_sample_xy.d);
         } else {
-            Vector3f d(0, 0, 1);
-            d = normalize(d);
-            ray.o = Vector3f(0, 0, bbox.max[2]) + d;
-            ray.d    = -d; 
-            ray.mint = math::RayEpsilon<Float>;
-            ray.maxt = math::Infinity<Float>;
-            ray.update();
+            while(true){
+                Vector3f d = Vector3f(m_init_d) + 0.00001 * Vector3f(sampler->next_1d(), sampler->next_1d(), sampler->next_1d());
+                if(any_or<true>(d[2] <= 0.0)){
+                    d[2] = 0.0001;
+                }
+                d = normalize(d);
+                ray.o = Vector3f(0, 0, bbox.max[2]) + d;
+                ray.d    = -d; 
+                ray.mint = math::RayEpsilon<Float>;
+                ray.maxt = math::Infinity<Float>;
+                ray.update();
 
-            SurfaceInteraction3f si = scene->ray_intersect(ray);
-            medium = si.target_medium(ray.d);
+                SurfaceInteraction3f si = scene->ray_intersect(ray);
+                medium = si.target_medium(ray.d);
+                if(any_or<true>(dot(si.n, si.to_world(si.wi)) < 0)){
+                    Log(Info, "This sampled position and direction are invalid");
+                }else{
+                    break;
+                }
+            }
         }
 
         return { ray, medium };

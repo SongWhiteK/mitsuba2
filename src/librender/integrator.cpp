@@ -345,6 +345,8 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
 
     m_random_sample = props.bool_("random_sample", true);
 
+    m_init_d = props.vector3f("init_d", ScalarVector3f(0, 0, 1));
+
     m_size_train_data_batch = props.int_("data_batch", 1);
 
     m_coeff_sigman = props.int_("coeff_sigman", -1);

@@ -4,6 +4,7 @@
 		<integer name="max_depth" value="128"/>
 		<string name="output_path" value="$out_path"/>
 		<boolean name="random_sample" value="false"/>
+		<vector name="init_d" value="$init_d"/>
 	</integrator>
 
 	<sensor id="Camera-camera" type="perspective">
