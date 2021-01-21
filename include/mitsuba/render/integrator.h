@@ -298,6 +298,8 @@ protected:
 
     int m_coeff_sigman;
 
+    ScalarVector3f m_init_d;
+
     Float get_sigma_n(const Medium *medium);
 
 };

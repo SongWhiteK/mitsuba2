@@ -19,7 +19,7 @@ template <typename Float, typename Spectrum>
 class VolumetricPathSampler : public PathSampler<Float, Spectrum> {
 
 public:
-    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_random_sample)
+    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_random_sample, m_init_d)
     MTS_IMPORT_TYPES(Scene, Sampler, Emitter, EmitterPtr, BSDF, BSDFPtr,
                      Medium, MediumPtr, PhaseFunctionContext, Shape)
 
