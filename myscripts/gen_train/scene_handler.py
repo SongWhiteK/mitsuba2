@@ -36,6 +36,12 @@ class SceneGenerator:
         # set initial transform matrix
         self.mat = utils.scale_mat_2_str(np.eye(4))
 
+        self.init_d = None
+        if(config.mode is "abs"):
+            self.init_d = utils.get_d_in(config.res)
+
+        self.cnt_d = 0
+
     def set_medium(self, medium):
         self.eta = medium["eta"]
         self.g = medium["g"]
@@ -87,10 +93,21 @@ class SceneGenerator:
                               serialized=self.serialized, mat=self.mat)
 
         elif (config.mode is "test"):
+            init_d = config.init_d
             scene = load_file(self.xml_path,
-                              out_path=self.out_path, spp=self.spp, seed=self.seed,
+                              out_path=self.out_path, init_d = init_d, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
                               g=self.g, eta=self.eta)
+
+        elif (config.mode is "abs"):
+            init_d = f"{self.init_d[self.cnt_d, 0]:.5f} {self.init_d[self.cnt_d, 1]:.5f} {self.init_d[self.cnt_d, 2]:.5f}"
+            print(init_d)
+            scene = load_file(self.xml_path,
+                              out_path=self.out_path, init_d = init_d, spp=self.spp, seed=self.seed,
+                              scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
+                              g=self.g, eta=self.eta)
+            
+            self.cnt_d += 1
 
         return scene
 
@@ -161,6 +178,9 @@ def render(itr, config):
         # Join scale factors and model id to the sampled data
         df_scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
         join_scale_factor(scene_gen.out_path, df_scale_rec)
+
+        if config.mode is "abs":
+            break
 
 
 
