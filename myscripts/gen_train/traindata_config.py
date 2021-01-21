@@ -9,9 +9,12 @@ class TrainDataConfiguration:
     def __init__(self):
         ############## EXECUTION MODES ##############
         self.DEBUG = False
-        self.mode = "visual" # visualizing medium appearance
+        self.mode = "abs" # visualizing medium appearance
         self.medium_fix = True # generating fixed medium parameters
         self.scale_fix = True # no scale shape objects
+
+        self.abs_plot = False
+        self.res = 20
 
         ############## FILE PATHS ##############
         if (self.mode is "visual"):
@@ -20,9 +23,14 @@ class TrainDataConfiguration:
         elif(self.mode is "sample"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\sample_template.xml"
             self.spp = 1024
-        elif(self.mode is "test") :
+        elif(self.mode is "test" or self.mode is "abs"):
+            self.init_d = "0, 0, 1"
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\test_template.xml"
             self.spp = 1024
+            if(self.mode is "abs"):
+                self.abs_plot = True
+
+            
         else:
             sys.exit("Specify the execution mode")
 
@@ -37,6 +45,9 @@ class TrainDataConfiguration:
 
         ############## ITERATION NUMBERS ##############
         self.itr_per_shape = 1
+        if self.abs_plot:
+            self.itr_per_shape = (self.res**2) * 2
+
         self.num_per_subdir = 10000
         if(self.scale_fix):
             self.scene_batch_size = 1
