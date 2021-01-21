@@ -347,7 +347,7 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
 
     m_size_train_data_batch = props.int_("data_batch", 1);
 
-    m_coeff_sigman = props.int_("coeff_sigman", 3);
+    m_coeff_sigman = props.int_("coeff_sigman", -1);
 }
 
 
@@ -461,7 +461,7 @@ MTS_VARIANT bool PathSampler<Float, Spectrum>::render(Scene *scene, Sensor *sens
                                     {
                                     case PathSampleResult::EStatus::EValid:
                                         n_valid++;
-                                        if(sigman * coeff_sigman > enoki::norm(r.p_out - r.p_in)){
+                                        if((sigman * coeff_sigman > enoki::norm(r.p_out - r.p_in)) || coeff_sigman < 0){
                                             if(TrainingSamples.size() < size_train_data_batch && r.n_out[2] >= 0){
                                                 s.p_in  = r.p_in;
                                                 s.d_in  = r.d_in;
