@@ -126,7 +126,6 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         in_pos = sample["in_pos"].to(device)
         out_pos = sample["out_pos"].to(device)
         abs_prob = sample["abs"].to(device)
-        sigma_n = sample["sigma_n"].to(device)
         
         im = image_generate(im_path, config.im_size)
         
@@ -180,15 +179,10 @@ def test(epoch, config, model, device, test_loader, writer):
             in_pos = sample["in_pos"].to(device)
             out_pos = sample["out_pos"].to(device)
             abs_prob = sample["abs"].to(device)
-            sigma_n = sample["sigma_n"].to(device)
-
-            in_pos_scaled = in_pos / sigma_n
-            out_pos_scaled = out_pos / sigma_n
 
             im = image_generate(im_path, config.im_size)
 
-            recon_pos_scaled, recon_abs, mu, logvar = model(props, im.to(device), in_pos_scaled, out_pos_scaled)
-            recon_pos = recon_pos_scaled * sigma_n
+            recon_pos, recon_abs, mu, logvar = model(props, im.to(device), in_pos, out_pos)
             loss_total, losses = loss_function(recon_pos, out_pos, recon_abs, abs_prob, mu, logvar, config)
 
             test_loss_total += loss_total
