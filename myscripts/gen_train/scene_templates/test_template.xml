@@ -46,6 +46,15 @@
 		<ref id="part_medium" name="interior"/>
 		<ref id="medium_bsdf"/>
 	</shape>
+	<!-- <shape type="serialized">
+		<string name="filename" value="C:\Users\mineg\mitsuba2\myscripts\data_process\serialized\leather06.serialized"/>
+		<transform name="to_world">
+			<translate x="0" y="0" z="0"/>
+		</transform>
+
+		<ref id="part_medium" name="interior"/>
+		<ref id="medium_bsdf"/>
+	</shape> -->
 
 
 </scene>
