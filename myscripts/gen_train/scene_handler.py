@@ -7,10 +7,11 @@ import numpy as np
 import pandas as pd
 import utils
 import mitsuba
+import enoki as ek
 
 mitsuba.set_variant("scalar_rgb")
 
-from mitsuba.core import Transform4f
+from mitsuba.core import Transform4f, Vector3f
 from mitsuba.core import Bitmap, Struct, Thread
 from mitsuba.core.xml import load_file, load_string
 from mitsuba.python.util import traverse
@@ -93,7 +94,7 @@ class SceneGenerator:
                               serialized=self.serialized, mat=self.mat)
 
         elif (config.mode is "test"):
-            init_d = config.init_d
+            init_d = "0, 0, 1"
             scene = load_file(self.xml_path,
                               out_path=self.out_path, init_d = init_d, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
@@ -101,7 +102,6 @@ class SceneGenerator:
 
         elif (config.mode is "abs"):
             init_d = f"{self.init_d[self.cnt_d, 0]:.5f} {self.init_d[self.cnt_d, 1]:.5f} {self.init_d[self.cnt_d, 2]:.5f}"
-            print(init_d)
             scene = load_file(self.xml_path,
                               out_path=self.out_path, init_d = init_d, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
@@ -179,7 +179,7 @@ def render(itr, config):
         df_scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
         join_scale_factor(scene_gen.out_path, df_scale_rec)
 
-        if config.mode is "abs":
+        if config.mode is "abs" or  config.mode is "test":
             break
 
 
