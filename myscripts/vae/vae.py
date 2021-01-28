@@ -79,7 +79,7 @@ class VAE(nn.Module):
         ##### Height map conversion #####
         im_feature = F.relu(F.max_pool2d(self.conv1(im), self.pool))
         im_feature = F.relu(F.max_pool2d(self.conv2(im_feature), self.pool))
-        im_feature = F.relu(F.max_pool2d(self.drop(self.conv3(im_feature)), self.pool))
+        im_feature = F.relu(F.max_pool2d(self.conv3(im_feature), self.pool))
         im_feature = im_feature.view(-1, 128)
 
         ##### Feature conversion #####
