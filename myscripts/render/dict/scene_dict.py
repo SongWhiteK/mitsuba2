@@ -10,12 +10,13 @@ mitsuba.set_variant(config.variant)
 
 from mitsuba.core import ScalarTransform4f
 
-origin = [54, 162, 216]
-target = [0, 0, 60]
+origin = [35, 70, 130]
+target = [-5, -10, 40]
 up = [0, 0, 1]
 
 if config.zoom:
     origin = [5, 5, 70]
+    target = [0, 0, 60]
 
 scene_dict = {
     "type": "scene",
