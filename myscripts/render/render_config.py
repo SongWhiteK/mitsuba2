@@ -22,3 +22,4 @@ visualize_invalid_sample = False
 multi_process = False
 aovs = True
 
+zoom = True

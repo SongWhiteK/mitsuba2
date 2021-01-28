@@ -10,6 +10,13 @@ mitsuba.set_variant(config.variant)
 
 from mitsuba.core import ScalarTransform4f
 
+origin = [54, 162, 216]
+target = [0, 0, 60]
+up = [0, 0, 1]
+
+if config.zoom:
+    origin = [5, 5, 70]
+
 scene_dict = {
     "type": "scene",
 
@@ -20,9 +27,9 @@ scene_dict = {
         "far_clip": 1000,
         "fov_axis": "smaller",
 
-        "to_world": ScalarTransform4f.look_at(origin=[54, 162, 216],
-                                            target=[0,0,10],
-                                            up=[0,0,1]),
+        "to_world": ScalarTransform4f.look_at(origin=origin,
+                                            target=target,
+                                            up=up),
 
         "sampler": {
             "type": "independent",
