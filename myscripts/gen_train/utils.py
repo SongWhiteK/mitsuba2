@@ -59,7 +59,7 @@ class FixedParamGenerator(ParamGenerator):
         return 1.5
 
     def get_g(self):
-        return 0.0
+        return 0.5
 
 
 def get_reduced_albedo(albedo, g, sigmat):
