@@ -112,7 +112,7 @@ def train(config, model, device, train_data, test_data):
                     train_loader, optimizer, writer)
         test(epoch, config, model, device, test_loader, writer)
         scheduler.step()
-        model_path = out_dir + f"/{model_name}_{epoch:02}"
+        model_path = out_dir + f"/{model_name}_{epoch:02}.pt"
         torch.save(model.state_dict(), model_path)
 
     writer.close()

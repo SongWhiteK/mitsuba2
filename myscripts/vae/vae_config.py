@@ -1,7 +1,7 @@
 """
 Configuration class for VAE
 """
-
+import sys
 class VAEConfiguration:
     def __init__(self):
         ##### Network #####
@@ -53,7 +53,9 @@ class VAEConfiguration:
             self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images"
             self.TEST_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_paths\\train_path.csv"
             self.TEST_MAP = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\test_images"
-            
+
+        else:
+            sys.exit("Specified data is invalid")
 
         self.seed = 1
         self.epoch = 20
