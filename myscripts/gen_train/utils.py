@@ -106,7 +106,7 @@ def scale_mat_2_str(mat):
 def get_d_in(res):
     theta, phi = np.meshgrid(
         np.linspace(0, np.pi/3, res),
-        np.linspace(0, 2*np.pi, 2*res)
+        np.linspace(0, 2*np.pi, 6*res)
     )
     theta = np.ravel(theta)
     phi = np.ravel(phi)

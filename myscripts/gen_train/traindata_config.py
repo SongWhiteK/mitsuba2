@@ -14,7 +14,7 @@ class TrainDataConfiguration:
         self.scale_fix = True # no scale shape objects
 
         self.abs_plot = False
-        self.res = 20
+        self.res = 30
 
         ############## FILE PATHS ##############
         if (self.mode is "visual"):
@@ -48,7 +48,7 @@ class TrainDataConfiguration:
         ############## ITERATION NUMBERS ##############
         self.itr_per_shape = 1
         if self.abs_plot:
-            self.itr_per_shape = (self.res**2) * 2
+            self.itr_per_shape = (self.res**2) * 6
 
         self.num_per_subdir = 10000
         if(self.scale_fix):
