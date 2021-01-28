@@ -130,3 +130,9 @@ invalid.jpg
 myscripts/vae/train_image00000295.png
 
 myscripts/vae/train_image00010240.png
+
+myscripts/data_process/out/
+
+myscripts/data_process/emboss_map.png
+
+myscripts/data_process/emboss_out.csv
