@@ -14,19 +14,22 @@ class TrainDataConfiguration:
         self.scale_fix = True # no scale shape objects
 
         self.abs_plot = False
-        self.res = 20
+        self.res = 30
 
         ############## FILE PATHS ##############
         if (self.mode is "visual"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\visual_template.xml"
             self.spp = 1024
+            self.plane = [False, False, False, True, False, False]
         elif(self.mode is "sample"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\sample_template.xml"
             self.spp = 1024
+            self.plane = [False, False, False, True, False, False]
         elif(self.mode is "test" or self.mode is "abs"):
             self.init_d = "0, 0, 1"
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\test_template.xml"
             self.spp = 1024
+            self.plane = [True]
             if(self.mode is "abs"):
                 self.abs_plot = True
 
@@ -41,12 +44,11 @@ class TrainDataConfiguration:
         self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\height_map"
         self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_63"
 
-        self.plane = [False, False, False, True, False, False]
 
         ############## ITERATION NUMBERS ##############
         self.itr_per_shape = 1
         if self.abs_plot:
-            self.itr_per_shape = (self.res**2) * 2
+            self.itr_per_shape = (self.res**2) * 6
 
         self.num_per_subdir = 10000
         if(self.scale_fix):
