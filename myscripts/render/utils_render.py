@@ -1,8 +1,11 @@
 """ utility functions for renderign"""
 
 import sys
+import os
 sys.path.append("myscripts/gen_train")
 
+import datetime
+import pandas as pd
 import numpy as np
 import mitsuba
 import enoki as ek
@@ -168,6 +171,19 @@ def imaging(blocks, film_size, aovs=False, invalid_sample=False):
         bmp.write(i + '.exr')
         bmp.convert(Bitmap.PixelFormat.RGB, Struct.Type.UInt8, srgb_gamma=True).write(i + '.jpg')
 
+
+def write_log(config, process_time):
+
+    data = [str(datetime.datetime.now()), config.film_height,
+            config.film_width, config.spp, config.max_depth, process_time]
+    label = ["date", "height", "width", "spp", "max_depth", "time"]
+    print(data)
+    data_log = pd.DataFrame([data], columns=label)
+
+    print(data_log)
+
+    data_log.to_csv("log_vae.csv", mode="a",
+                    header=(not os.path.exists("log_vae.csv")))
 
 
 

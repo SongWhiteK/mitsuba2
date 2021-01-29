@@ -4,6 +4,7 @@ import mitsuba
 import integrate
 import render_config as config
 import data_pipeline
+import utils_render
 from multiprocessing import freeze_support
 
 sys.path.append("myscripts/render/dict")
@@ -41,3 +42,6 @@ if __name__ == "__main__":
     process_time = time.time() - start
 
     print(f"Rendering end (took {process_time}s)")
+
+    utils_render.write_log(config, process_time)
+    

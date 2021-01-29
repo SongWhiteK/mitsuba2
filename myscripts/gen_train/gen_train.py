@@ -1,4 +1,6 @@
 import os
+import datetime
+import pandas as pd
 import numpy as np
 import random as rand
 import time
@@ -41,6 +43,12 @@ scene_handler.render(itr, config)
 
 process_time = time.time() - start
 print("Sampling end (took {} s)".format(process_time))
+
+if config.mode is "visual":
+    data  = pd.DataFrame([str(datetime.datetime.now()), process_time],
+                         columns=["date", "time"])
+
+    data.to_csv("log_pt.csv", mode="a", header=(not os.path.exists("log_pt.csv")))
 
 # print("Process with result data")
 # d_handler.generate_train_data()
