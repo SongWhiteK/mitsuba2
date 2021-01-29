@@ -15,7 +15,7 @@ target = [-5, -10, 40]
 up = [0, 0, 1]
 
 if config.zoom:
-    origin = [5, 5, 70]
+    origin = [10, 10, 75]
     target = [0, 0, 60]
 
 scene_dict = {
