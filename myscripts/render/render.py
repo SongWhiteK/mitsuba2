@@ -24,7 +24,7 @@ if __name__ == "__main__":
     bdata = data_pipeline.BSSRDF_Data()
     mesh = meshes_leather(1, 6)
 
-    mesh.register_params(bdata, ior=1.5, scale=1.0, sigma_t = 1.0, albedo = 0.9, g = 0.5)
+    mesh.register_params(bdata, ior=1.5, scale=config.scale, sigma_t = 1.0, albedo = 0.9, g = 0.5)
 
     mesh.register_all_mesh(bdata)
 

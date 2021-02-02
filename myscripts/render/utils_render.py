@@ -175,8 +175,10 @@ def imaging(blocks, film_size, aovs=False, invalid_sample=False):
 def write_log(config, process_time):
 
     data = [str(datetime.datetime.now()), config.film_height,
-            config.film_width, config.spp, config.max_depth, process_time]
-    label = ["date", "height", "width", "spp", "max_depth", "time"]
+            config.film_width, config.spp, config.max_depth,
+            config.scale, config.zoom, process_time]
+    label = ["date", "height", "width", "spp", "max_depth",
+             "medium scale", "zoom", "time"]
     print(data)
     data_log = pd.DataFrame([data], columns=label)
 

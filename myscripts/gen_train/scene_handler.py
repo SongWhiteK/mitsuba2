@@ -23,7 +23,7 @@ class SceneGenerator:
         self.seed = 10
         self.xml_path = config.XML_PATH
         self.out_dir = config.SAMPLE_DIR
-        self.scale_m = 1  # In mitsuba, world unit distance is [mm]
+        self.scale_m = config.scale  # In mitsuba, world unit distance is [mm]
         self.serialized = None
         if(self.out_dir is None):
             print("\033[31m" + "Please set out put directory" + "\033[0m")

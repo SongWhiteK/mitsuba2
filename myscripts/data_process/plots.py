@@ -133,7 +133,7 @@ def save_emboss(n_data, path_map, model, device, medium):
     df["y"] = pd.Series(recon_pos[:,1] * medium["sigma_n"])
     df["z"] = pd.Series(recon_pos[:,2] * medium["sigma_n"] + 20.7995)
 
-    df.to_csv("./myscripts/data_process/emboss_out.csv")
+    df.to_csv("./myscripts/data_process/out/emboss_out.csv")
 
 
 def com_cdf(p_cdf, pos_pt, pos_pt_angle, pos_vae, pos_vae_angle, sigma_n, save):
