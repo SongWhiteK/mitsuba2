@@ -75,7 +75,12 @@ class BSSRDF_Data:
             "mesh_id": mesh_id
             }
 
-        self.sigma_n.append(utils.get_sigman(self.bssrdf[mesh_id]))
+        medium = {}
+        medium["albedo"] = self.bssrdf[mesh_id]["albedo"]
+        medium["g"] = self.bssrdf[mesh_id]["g"]
+        medium["sigma_t"] = self.bssrdf[mesh_id]["sigma_t"] * self.bssrdf[mesh_id]["scale"]
+
+        self.sigma_n.append(utils.get_sigman(medium))
         
     def register_mesh(self, mesh_id, obj_id, mesh_type, height_max, mesh_map, mesh_range,
                       minmax, filename=None, translate=[0,0,0],
