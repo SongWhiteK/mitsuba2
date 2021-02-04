@@ -19,7 +19,7 @@ class TrainDataConfiguration:
         ############## FILE PATHS ##############
         if (self.mode is "visual"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\visual_template.xml"
-            self.spp = 1024
+            self.spp = 4096
             self.plane = [False, False, False, True, False, False]
         elif(self.mode is "sample"):
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\sample_template.xml"
@@ -77,6 +77,8 @@ class TrainDataConfiguration:
                     "abs_prob", "height_max", "model_id", "id"]
         self.coeff_range = 6
         self.im_size = 63
+
+        self.scale = 1
 
 
         if(self.DEBUG):

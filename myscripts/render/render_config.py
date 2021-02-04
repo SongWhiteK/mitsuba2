@@ -5,12 +5,12 @@ from os import truncate
 
 variant = "gpu_rgb"
 rr_depth = 5
-max_depth = 10
-spp = 4
+max_depth = 5
+spp = 256
 sample_per_pass = 8192
 
-film_width = 256
-film_height = 256
+film_width = 512
+film_height = 512
 
 seed = 4
 
@@ -18,8 +18,10 @@ model_name = "best_model"
 im_size = 63
 
 enable_bssrdf = True
-visualize_invalid_sample = False
+visualize_invalid_sample = True
 multi_process = False
 aovs = True
 
 zoom = True
+
+scale = 1

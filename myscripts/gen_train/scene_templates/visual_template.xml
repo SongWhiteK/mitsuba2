@@ -2,6 +2,7 @@
 <scene version="2.0.0">
 	<integrator id="integrator" type="volpath">
 		<integer name="max_depth" value="128"/>
+		<boolean name="hide_emitters" value="true"/>
 	</integrator>
 
 	<sensor id="Camera-camera" type="perspective">
@@ -81,7 +82,7 @@
 		<ref id="planemat"/>
     </shape>
 
-	<shape type="rectangle">
+	<!-- <shape type="rectangle">
 		<transform name="to_world">
 			<scale value="150"/>
 			<translate value="-150, 0, -150"/>
@@ -95,6 +96,6 @@
 			<translate value="0, -150, -150"/>
 			<rotate x="1" angle="-90"/>
 		</transform>
-	</shape>
+	</shape> -->
 
 </scene>

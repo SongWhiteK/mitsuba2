@@ -76,20 +76,20 @@ scene_dict = {
             "type": "ref",
             "id": "planemat"
         }
-    },
-
-    "wall1": {
-        "type": "rectangle",
-        "to_world": ScalarTransform4f.translate([-150, 0, 150])
-                    * ScalarTransform4f.rotate([0,1,0], angle=90)
-                    * ScalarTransform4f.scale(150)
-    },
-
-    "wall2": {
-        "type": "rectangle",
-        "to_world": ScalarTransform4f.translate([0, -150, 150])
-                    * ScalarTransform4f.rotate([1,0,0], angle=-90)
-                    * ScalarTransform4f.scale(150)
     }
+
+    # "wall1": {
+    #     "type": "rectangle",
+    #     "to_world": ScalarTransform4f.translate([-150, 0, 150])
+    #                 * ScalarTransform4f.rotate([0,1,0], angle=90)
+    #                 * ScalarTransform4f.scale(150)
+    # },
+
+    # "wall2": {
+    #     "type": "rectangle",
+    #     "to_world": ScalarTransform4f.translate([0, -150, 150])
+    #                 * ScalarTransform4f.rotate([1,0,0], angle=-90)
+    #                 * ScalarTransform4f.scale(150)
+    # }
     
 }
