@@ -44,7 +44,6 @@ def main():
     medium["sigma_n"] = sigma_n
     medium["eff_albedo"] = eff_albedo
     print(f"sigma n: {sigma_n}")
-    sys.exit()
 
 
     # In plane case
