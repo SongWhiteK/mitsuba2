@@ -140,3 +140,4 @@ myscripts/data_process/emboss_out.csv
 myscripts/data_process/scatter_outpos.py
 
 myscripts/vae/input_emboss.png
+myscripts/vae/ramp.png
