@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import datetime
 import time
@@ -83,7 +84,7 @@ def train(config, model, device, train_data, test_data):
     print(f"{datetime.datetime.now()} -- Training Start")
 
     # Input model name at this training
-    model_name = input("Input model neme at this training: ")
+    model_name = config.model_name
     out_dir = f"myscripts/vae/model/{model_name}"
 
     # Generate model output directory
@@ -98,7 +99,7 @@ def train(config, model, device, train_data, test_data):
     test_loader = DataLoader(test_data, **config.loader_args)
 
     init_lr = config.lr
-    decay_rate = 0.8
+    decay_rate = config.decay_rate
     optimizer = optim.Adam(model.parameters(), lr=init_lr)
 
     scheduler = ExponentialLR(optimizer, gamma=decay_rate)
@@ -106,7 +107,17 @@ def train(config, model, device, train_data, test_data):
     # Writer instanse for logging with TensorboardX
     writer = SummaryWriter(f"{config.LOG_DIR}\\{model_name}")
 
-    for epoch in range(1, config.epoch + 1):
+    epoch_start = 1
+    
+    # Load model data if necessary
+    if hasattr(config, "model_path"):
+        if os.path.exists(config.model_path):
+            model.load_state_dict(torch.load(config.model_path))
+            epoch_start += config.offset
+        else:
+            sys.exit("Specified model path is invalid")
+
+    for epoch in range(epoch_start , config.epoch + 1):
         print(f"epoch {epoch} start")
         train_epoch(epoch, config, model, device,
                     train_loader, optimizer, writer)

@@ -56,11 +56,17 @@ class VAEConfiguration:
 
         else:
             sys.exit("Specified data is invalid")
+            
+        self.model_name = "train_0206_full"
+        self.offset = 1
+        self.model_path = f"myscripts/vae/model/{self.model_name}/{self.model_name}_{self.offset:02}.pt"
 
-        self.seed = 1
-        self.epoch = 20
-        self.loader_args = {"batch_size": 512, "shuffle": True}
-        self.lr = 2*1e-3
+        self.seed = 3
+        self.epoch = 5
+        self.loader_args = {"batch_size": 32, "shuffle": True}
+        self.decay_rate = 0.8
+        self.lr = 2*1e-4 * (self.decay_rate ** self.offset)
+
 
         self.LOG_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\log"
         self.MODEL_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\vae\\model"
