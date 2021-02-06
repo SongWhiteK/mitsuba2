@@ -139,7 +139,7 @@ def train_epoch(epoch, config, model, device, train_loader, optimizer, writer):
         if(batch_idx % 750 == 0):
             day_time = datetime.datetime.now()
             n_data = batch_idx * config.loader_args["batch_size"]
-            print(f"{day_time} -- Log: data {n_data} / {2000000 * 0.8}")
+            print(f"{day_time} -- Log: data {n_data} / 9600000")
 
         # Logging with TensorboardX
         writer.add_scalar("train/total_loss", loss_total, (epoch-1) * len(train_loader) + batch_idx)
