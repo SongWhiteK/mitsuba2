@@ -9,7 +9,7 @@ class TrainDataConfiguration:
     def __init__(self):
         ############## EXECUTION MODES ##############
         self.DEBUG = False
-        self.mode = "abs" # visualizing medium appearance
+        self.mode = "sample" # visualizing medium appearance
         self.medium_fix = True # generating fixed medium parameters
         self.scale_fix = True # no scale shape objects
 

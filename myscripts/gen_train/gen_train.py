@@ -45,13 +45,13 @@ process_time = time.time() - start
 print("Sampling end (took {} s)".format(process_time))
 
 if config.mode is "visual":
-    data  = pd.DataFrame([str(datetime.datetime.now()), process_time],
+    data  = pd.DataFrame([[str(datetime.datetime.now()), process_time]],
                          columns=["date", "time"])
 
     data.to_csv("log_pt.csv", mode="a", header=(not os.path.exists("log_pt.csv")))
 
-# print("Process with result data")
-# d_handler.generate_train_data()
+print("Process with result data")
+d_handler.generate_train_data()
 
 
 
