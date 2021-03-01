@@ -1,3 +1,5 @@
+"""Generate training data, rendering image and so on"""
+
 import os
 import datetime
 import pandas as pd

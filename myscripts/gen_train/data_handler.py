@@ -168,8 +168,8 @@ def join_scale_factor(path, scale):
     Add scale factor of shape objects to the sampled data from given path
 
     Args:
-    path: Path of a file which contains sampled data
-    scale: Scale factor of shape objects
+        path: Path of a file which contains sampled data
+        scale: Scale factor of shape objects
     """
     data = pd.read_csv(path)
     data["scale_x"] = scale["scale_x"]
@@ -238,6 +238,11 @@ def gen_train_image(data, height_map, im_size, debug, pybind=None):
     return clip_scaled_map(map_scaled, [x_in, y_in], sigma_n, x_range, y_range, x_min, y_max, im_size)
 
 def clip_scaled_map(map_scaled, pos_in, sigma_n, x_range, y_range, x_min, y_max, im_size):
+    """
+        Clip height map for training data
+        This method should not be used and you should use mitsuba.heightmap.Heightmap.clip_scaled_map()
+    """
+    
     height_scaled, width_scaled = map_scaled.shape
 
     x_in = pos_in[0]

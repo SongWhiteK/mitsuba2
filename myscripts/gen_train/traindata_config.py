@@ -9,11 +9,29 @@ class TrainDataConfiguration:
     def __init__(self):
         ############## EXECUTION MODES ##############
         self.DEBUG = False
-        self.mode = "sample" # visualizing medium appearance
-        self.medium_fix = True # generating fixed medium parameters
-        self.scale_fix = True # no scale shape objects
 
-        self.abs_plot = False
+        # This configuration has 4 modes
+        # 1. visual
+        #   Render the image according to scene_templates/visual_template.xml.
+        #   This mode is used to check appearance of medium, shape and camera position.
+        # 2. sample
+        #   Generate training data.
+        # 3. test
+        #   This mode is similar to "sample" mode but this mode is simpler scene setting
+        #   such as plane geometory and fixed incident position.
+        #   This mode is used to get distribution of out going position and absorption probability
+        # 4. abs
+        #   This mode is similar to "test" mode but this mode samples with various incident angles
+        #   This mode is used to plot absorption probability for sphere coordinates
+        #   To plot absorption probability with data from this mode, use function map_abs() in myscripts/data_process/plots.py
+
+        # visualizing medium appearance
+        self.mode = "sample"
+        # generating fixed medium parameters
+        self.medium_fix = True
+        # no scale shape objects
+        self.scale_fix = True
+
         self.res = 30
 
         ############## FILE PATHS ##############
@@ -30,44 +48,42 @@ class TrainDataConfiguration:
             self.XML_PATH = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\test_template.xml"
             self.spp = 1024
             self.plane = [True]
-            if(self.mode is "abs"):
-                self.abs_plot = True
 
             
         else:
             sys.exit("Specify the execution mode")
 
+        # Serialized file directory path
         self.SERIALIZED_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\gen_train\\scene_templates\\serialized"
 
+        # Sample file directory path
         self.SAMPLE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\sample_files"
+        # Final training data file directory path
         self.TRAIN_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_paths_63"
+        # Uncliped height map directory path
         self.MAP_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\height_map"
+        # Height map directory path for training data
         self.IMAGE_DIR = "C:\\Users\\mineg\\mitsuba2\\myscripts\\train_data\\train_images_63"
 
 
         ############## ITERATION NUMBERS ##############
+        # The number of samples for one object, i.e, object file
+        # in scene_templates/serialized/***.serialized
         self.itr_per_shape = 1
-        if self.abs_plot:
+        if self.mode == "abs":
             self.itr_per_shape = (self.res**2) * 6
 
+        # The number of images of training data in subdirectory
         self.num_per_subdir = 10000
+
+        # The number of samples for one object, i.e., an object is rescaled
+        # after sampling of this number of times, if scale_fix is false
         if(self.scale_fix):
             self.scene_batch_size = 1
         else:
             self.scene_batch_size = 1
 
         ############## RANDOM NUMBER SEED ##############
-        ######## testデータ作るときは値を変えろ!!!!#######
-        # 00: 12
-        # 再 01(~666425): 28
-        # ~01 30 
-        # 02~03: 37
-        # 再　04(~1455140): 38
-        # 再　05(~513900): 48
-        # 05(513900~1600000): 42
-        # 04(1455140~1600000): 50
-        # test(00~03): 96
-        # test(04, 05): 98
         self.seed = 98
 
 

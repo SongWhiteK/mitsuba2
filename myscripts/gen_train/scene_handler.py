@@ -18,6 +18,8 @@ from mitsuba.python.util import traverse
 from data_handler import join_scale_factor, join_model_id
 
 class SceneGenerator:
+    """Scene object generator"""
+    
     def __init__(self, config):
         self.spp = config.spp
         self.seed = 10
