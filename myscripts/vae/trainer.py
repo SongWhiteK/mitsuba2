@@ -235,6 +235,16 @@ def test(epoch, config, model, device, test_loader, writer):
 
 
 def image_generate(im_path, im_size):
+    """
+        Load training image with path from dataset
+
+        Args:
+            im_path: Image path list from dataset
+            im_size: image size of training image
+
+        Return:
+            im_tensor: Image tensor
+    """
     batch_size = len(im_path)
 
     im = np.zeros([batch_size, 1, im_size, im_size])
