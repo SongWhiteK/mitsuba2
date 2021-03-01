@@ -25,7 +25,10 @@ from mitsuba.core import ScalarTransform4f, ScalarVector3f
 
 
 class BSSRDF_Data:
-    """  Class for handling BSSRDF data """
+    """
+    Class for handling BSSRDF data
+    Use this class by meshes class in dict/mesh_dict.py
+    """
 
     def __init__(self):
         self.bssrdf = {}
@@ -87,6 +90,18 @@ class BSSRDF_Data:
                       rotate={"axis": "x", "angle": 0.0}, scale=[1,1,1]):
         """
         Register mesh data
+
+        Args:
+            mesh_id: Mesh ID number to identify each mesh of object which has BSSRDF
+            obj_id: Object ID number to identify object which has BSSRDF
+            mesh_type: Type of meshs, e.g., rectangle and serialized
+            height_max: Max height value of emboss in each mesh
+            mesh_map: Height map of each mesh
+            mesh_range: List [x range, y range]
+            minmax: List [min x value, max y value]
+            filename: object file path of mesh. This argument is used if the mesh_type
+                      is "serialized", "obj" or "ply"
+            translate, rotate, scale: translation, rotattion and scaling of object
         """
         self.mesh[mesh_id] = {
             "type": mesh_type,
@@ -210,6 +225,8 @@ class BSSRDF_Data:
         
 
     def get_medium_dict(self, mesh_id):
+        """Get medium data as dictionary from mesh ID"""
+
         medium = {}
         medium["sigma_t"] = self.bssrdf[mesh_id]["sigma_t"]
         medium["albedo"] = self.bssrdf[mesh_id]["albedo"]
@@ -219,6 +236,8 @@ class BSSRDF_Data:
 
 
     def get_height_map(self, in_pos, mesh_id):
+        """Get height map"""
+        
         time1 = time()
         print("get map start")
         idx_objects = range(len(mesh_id))

@@ -35,6 +35,7 @@ def render(scene, spp, sample_per_pass, bdata):
         spp: Sample per pixel
         sample_per_pass: a number of sample per pixel in one vectored
                          calculation with GPU
+        bdata: BSSRDF Data object. Refer data_pipeline.py
     """
 
 
@@ -125,10 +126,18 @@ def render_sample(scene, sampler, rays, bdata, heightmap_pybind, bssrdf=None):
         scene: Target scene object
         sampler: Sampler object for random number
         rays: Given rays for sampling
+        bdata: BSSRDF Data object
+        heightmap_pybind: Object for getting height map around incident position.
+                          Refer src/librender/python/heightmap.cpp
 
     Returns:
         result: Sampling RTE result
+        valid_rays: Mask data whether rays are valid or not
+        scatter: Scatter components of Sampling RTE result
+        non_scatter: Non scatter components of Sampling RTE result
+        invalid_sample: Sampling RTE result with invalid sampled data by VAEBSSRDF
     """
+    
     eta = Float(1.0)
     emission_weight = Float(1.0)
     throughput = Spectrum(1.0)

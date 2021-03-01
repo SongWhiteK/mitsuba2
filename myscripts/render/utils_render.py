@@ -27,6 +27,8 @@ def index_spectrum(spec, idx):
 
 
 def resample_wo(sampler, active):
+    """ Sample outgoing direction and pdf with cosine weighted sampling"""
+
     d_out_local = warp.square_to_cosine_hemisphere(sampler.next_2d(active))
     d_out_pdf = warp.square_to_cosine_hemisphere_pdf(d_out_local)
 
@@ -34,6 +36,7 @@ def resample_wo(sampler, active):
 
 
 def check_zero_scatter(sampler, si, bs, channel, active):
+    """Check a ray whether go through medium without scattering or not"""
 
     sigma_t = index_spectrum(bs.sigma_t, channel)
 
@@ -47,7 +50,7 @@ def reduced_albedo_to_effective_albedo(reduced_albedo):
 
 
 def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False, invalid_sample=False):
-
+    """Generate image blocks for aovs"""
 
     blocks = {}
 
@@ -96,6 +99,7 @@ def gen_blocks(crop_size, filter, channel_count=5, border=False, aovs=False, inv
 
 
 def postprocess_render(results, weights, blocks, pos, aovs=False, invalid_sample=False):
+    """postprocessing for sampling result"""
     
     result = results[0]
     valid_rays = results[1]
@@ -154,6 +158,7 @@ def postprocess_render(results, weights, blocks, pos, aovs=False, invalid_sample
 
 
 def imaging(blocks, film_size, aovs=False, invalid_sample=False):
+    """Imaging result with aovs"""
 
     label = ['result']
     if aovs:
