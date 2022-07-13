@@ -19,7 +19,7 @@ template <typename Float, typename Spectrum>
 class VolumetricPathSampler : public PathSampler<Float, Spectrum> {
 
 public:
-    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_random_sample, m_init_d)
+    MTS_IMPORT_BASE(PathSampler, m_max_depth, m_rr_depth, m_random_sample, m_init_d, m_init_p,m_constant_sample)
     MTS_IMPORT_TYPES(Scene, Sampler, Emitter, EmitterPtr, BSDF, BSDFPtr,
                      Medium, MediumPtr, PhaseFunctionContext, Shape)
 
@@ -37,7 +37,6 @@ public:
         }
         return m;
     }
-
     // Sample position and direction on a object in the input scene
     // Generate a ray which through the sampled position and direction
 
@@ -52,7 +51,7 @@ public:
         // Get shapes from the scene and its bounding box
         ref<Shape> target = scene->shapes()[0];
         bbox              = target->bbox();
-
+        
         if (m_random_sample) {
             // Set range for position sampling
             Vector2f sample_min = Vector2f(bbox.min[0], bbox.min[1]);
@@ -65,10 +64,12 @@ public:
             SurfaceInteraction3f si_sample;
             Ray3f ray_sample_xy = zero<Ray3f>();
 
+            
+            
             // sample position and generate a ray for get intersection
             while (true) {
                 Vector2f pos_sample = sample_min + sample_range * sampler->next_2d();
-
+                
                 Vector3f o = Vector3f(pos_sample[0], pos_sample[1], bbox.max[2] + 1);
                 ray_sample_xy.o = o;
                 ray_sample_xy.d = Vector3f(0, 0, -1);
@@ -108,7 +109,29 @@ public:
 
             // record the target medium
             medium = si_sample.target_medium(ray_sample_xy.d);
-        } else {
+        }else if(m_constant_sample){
+            while(true){
+                Vector3f d = Vector3f(m_init_d) + 0.00001 * Vector3f(sampler->next_1d(), sampler->next_1d(), sampler->next_1d());
+                if(any_or<true>(d[2] <= 0.0)){
+                    d[2] = 0.0001;
+                }
+                d = normalize(d);
+                ray.o = Vector3f(m_init_p[0],m_init_p[1], bbox.max[2]) + d;
+                ray.d    = -d; 
+                ray.mint = math::RayEpsilon<Float>;
+                ray.maxt = math::Infinity<Float>;
+                ray.update();
+
+                SurfaceInteraction3f si = scene->ray_intersect(ray);
+                medium = si.target_medium(ray.d);
+                if(any_or<true>(dot(si.n, si.to_world(si.wi)) < 0)){
+                    Log(Info, "This sampled position and direction are invalid");
+                }else{
+                    break;
+                }
+            }
+
+        }else{
             while(true){
                 Vector3f d = Vector3f(m_init_d) + 0.00001 * Vector3f(sampler->next_1d(), sampler->next_1d(), sampler->next_1d());
                 if(any_or<true>(d[2] <= 0.0)){

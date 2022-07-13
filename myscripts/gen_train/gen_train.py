@@ -46,7 +46,7 @@ scene_handler.render(itr, config)
 process_time = time.time() - start
 print("Sampling end (took {} s)".format(process_time))
 
-if config.mode is "visual":
+if config.mode == "visual":
     data  = pd.DataFrame([[str(datetime.datetime.now()), process_time]],
                          columns=["date", "time"])
 

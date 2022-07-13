@@ -76,6 +76,7 @@ class DataHandler:
             data["id"] = data.index + id_data + offset
             df_model_id = pd.DataFrame(np.ones([len(data), 1]) * i, columns=["model_id"])
             data["model_id"] = df_model_id["model_id"]
+            print(i , self.plane)
             if(self.plane[i]):
                 df_scale_z = pd.DataFrame(np.zeros([len(data), 1]), columns=["scale_z"])
                 data["scale_z"] = df_scale_z["scale_z"]
@@ -94,6 +95,7 @@ class DataHandler:
         
             # Process with each training data
             for row in data.itertuples():
+                
                 if(row.id % self.num_per_subdir == 0):
                     file_path = f"{self.train_image_dir_path}\\map_{i:03}\\images{row.id}_{row.id + self.num_per_subdir-1}"
                     os.makedirs(file_path)
@@ -161,7 +163,8 @@ class DataHandler:
 
             
 
-
+def delete_file(filepath):
+    os.remove(filepath)
 
 def join_scale_factor(path, scale):
     """

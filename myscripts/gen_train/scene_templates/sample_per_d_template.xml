@@ -3,7 +3,9 @@
 	<integrator id="integrator" type="volsample">
 		<integer name="max_depth" value="128"/>
 		<string name="output_path" value="$out_path"/>
-		<boolean name="random_sample" value="false"/>
+		<boolean name="constant_sample" value="$constant_sample"/>
+		<boolean name="random_sample" value="$random_sample"/>
+		<vector name="init_p" value="$init_p"/>
 		<vector name="init_d" value="$init_d"/>
 	</integrator>
 

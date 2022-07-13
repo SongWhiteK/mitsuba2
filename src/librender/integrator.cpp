@@ -345,7 +345,11 @@ MTS_VARIANT PathSampler<Float, Spectrum>::PathSampler(const Properties &props)
 
     m_random_sample = props.bool_("random_sample", true);
 
+    m_constant_sample = props.bool_("constant_sample", false);
+
     m_init_d = props.vector3f("init_d", ScalarVector3f(0, 0, 1));
+
+    m_init_p = props.vector3f("init_p", ScalarVector3f(0, 0, 1));
 
     m_size_train_data_batch = props.int_("data_batch", 1);
 

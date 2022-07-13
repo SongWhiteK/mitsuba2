@@ -293,12 +293,16 @@ protected:
     bool m_spp_roop;
     bool m_thread_roop;
     bool m_random_sample;
+    bool m_constant_sample;
 
     size_t m_size_train_data_batch;
 
     int m_coeff_sigman;
 
     ScalarVector3f m_init_d;
+
+    ScalarVector3f m_init_p;
+
 
     Float get_sigma_n(const Medium *medium);
 
