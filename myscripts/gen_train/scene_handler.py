@@ -11,6 +11,7 @@ import pandas as pd
 import utils
 import mitsuba
 import enoki as ek
+import time
 
 mitsuba.set_variant("scalar_rgb")
 
@@ -244,8 +245,9 @@ def render_spd(itr, config, roop_num):
         scene_gen.set_out_path(model_id)
     
         scale_rec = np.ones([itr, 3])
-        
+        time_seed = int(time.time())
 
+        np.random.seed(seed=time_seed)
         rand_x = 50 * np.random.rand() + -25
         rand_y = 50 * np.random.rand() + -25
         rand_int = np.random.randint(0,1800,4)
