@@ -159,6 +159,7 @@ def render(itr, config):
         serialized_list = glob.glob(f"{config.SERIALIZED_DIR}\\*.serialized")
         if(config.DEBUG):
             print(serialized_list)
+        
 
         if(itr % config.scene_batch_size != 0):
             sys.exit("Please set ite_per_shape to be a multiple of scene_batch_size")
@@ -238,8 +239,19 @@ def render_spd(itr, config, roop_num):
     if(itr % config.scene_batch_size != 0):
         sys.exit("Please set ite_per_shape to be a multiple of scene_batch_size")
 
+    time_seed = int(time.time())
+    if(time_seed % 2 == 0):
+        serialized_list.reverse()
+        reverse = True
+    else:
+        reverse = False
+
     # Render with given params generator and scene generator
     for model_id, serialized in enumerate(serialized_list):
+        if (reverse):
+            model_id = 5 - model_id
+        print(model_id,serialized)
+
         # Set serialized model path and output csv file path to scene generator
         scene_gen.set_serialized_path(serialized)
         scene_gen.set_out_path(model_id)
@@ -248,8 +260,8 @@ def render_spd(itr, config, roop_num):
         time_seed = int(time.time())
 
         np.random.seed(seed=time_seed)
-        rand_x = 50 * np.random.rand() + -25
-        rand_y = 50 * np.random.rand() + -25
+        rand_x = 30 * np.random.rand() + -15
+        rand_y = 30 * np.random.rand() + -15
         rand_int = np.random.randint(0,1800,4)
         
         for i in range(itr // config.scene_batch_size):

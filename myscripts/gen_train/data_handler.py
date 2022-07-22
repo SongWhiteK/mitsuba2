@@ -3,9 +3,11 @@ Processing trainingdata
 """
 import os
 from os import makedirs
+import re
 import shutil
 import glob
 import datetime
+from statistics import mode
 import time
 import numpy as np
 import pandas as pd
@@ -13,6 +15,7 @@ import cv2
 import utils
 import matplotlib.pyplot as plt
 from traindata_config import TrainDataConfiguration
+import tqdm
 
 from mitsuba.heightmap import HeightMap
 
@@ -54,7 +57,8 @@ class DataHandler:
         if(os.path.exists(self.train_image_dir_path)):
             print(f"Delete sample files in {self.train_image_dir_path}? [y/n]")
             while(True):
-                key_input = input()
+                #key_input = input()
+                key_input = "n"
                 if(key_input == "y"):
                     shutil.rmtree(self.train_image_dir_path)
                     time.sleep(3)
@@ -301,7 +305,86 @@ def clip_scaled_map(map_scaled, pos_in, sigma_n, x_range, y_range, x_min, y_max,
 
     return canvas
 
+def spd_datahander(sample_filepath):
+    print("Starting traindata generate")
+    sample_file_list = os.listdir(sample_filepath)
+    colmuns = ["sigma_t", "eta", "g", "albedo", "r", "r_std", "p_in_x", "p_in_y", "model_id", "path"]
+    output = pd.DataFrame(columns=colmuns)
+    cnt = [0,0]
+    for file in tqdm.tqdm(sample_file_list):
+        path_now = sample_filepath + "\\" + file
+        sample_file = os.listdir(path_now)
+
+        for sample_csv in sample_file:
+            model_id = check_model_id(sample_csv)
+            csv_path = path_now + "\\" + sample_csv
+            csv_input = pd.read_csv(filepath_or_buffer=csv_path, encoding="ms932", sep=",")
+            if (drop_out_edge_data(csv_input) and check_number_of_data(csv_input)):
+                r, r_std = get_r_and_r_std(csv_input)
+                sigma_t = csv_input["sigma_t"][1]
+                eta = csv_input["eta"][1]
+                g = csv_input["g"][1]
+                albedo = csv_input["albedo"][1]
+                p_in_x = csv_input["p_in_x"][1]
+                p_in_y = csv_input["p_in_y"][1]
+                r = round(r,6)
+                r_std = round(r_std,6)
+                list = [[sigma_t, eta, g, albedo, r, r_std, p_in_x, p_in_y, model_id, file]]
+                list = pd.DataFrame(data=list,columns=colmuns)
+                output = pd.concat([output,list], ignore_index= True)
+            elif(not drop_out_edge_data(csv_input)):
+                cnt[0] += 1
+            elif(not check_number_of_data(csv_input)):
+                cnt[1] += 1
+    print(f"edge_data:{cnt[0]} Invalid number data:{cnt[1]}")
+
+    output.to_string(index=False)
+    output.to_csv(sample_filepath + "\\" + "train_sample.csv")
+
+
+def get_r_and_r_std(df):
+    p_in_x = df["p_in_x"]
+    p_in_y = df["p_in_y"]
+    p_out_x = df["p_out_x"]
+    p_out_y = df["p_out_y"]
+    r = ((p_out_x - p_in_x)**2 + (p_out_y - p_in_y)**2)**0.5
+    r_mean = r.mean()
+    r_std = r.std()
+
+    return r_mean,r_std
+
+
+def check_model_id(sample_csv):
+    for i in [1,2,3,4,5]:
+        if (str(i) in sample_csv):
+            return i
+    return 0
+
+
+def drop_out_edge_data(df):
+    p_out_x = df["p_out_x"]
+    p_out_y = df["p_out_y"]
+    if (25 in p_out_x.values or -25 in p_out_x.values):
+        return False
+    elif (25 in p_out_y.values or -25 in p_out_y.values):
+        return False
+    return True
+    
+def check_number_of_data(df):
+    df_len = len(df)
+    if(df_len == 100):
+        return True
+    else:
+        return False
+
+
+
+    
+
 if __name__ == "__main__":
     config = TrainDataConfiguration()
     d_handler = DataHandler(config)
-    d_handler.generate_train_data()
+    if(config.mode != "sample_per_d"):
+        d_handler.generate_train_data()
+    else:
+        spd_datahander(config.SAMPLE_MAIN_DIR)
