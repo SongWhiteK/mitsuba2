@@ -9,6 +9,7 @@ import glob
 import datetime
 from statistics import mode
 import time
+import pickle
 import numpy as np
 import pandas as pd
 import cv2
@@ -168,7 +169,8 @@ class DataHandler:
             
 
 def delete_file(filepath):
-    os.remove(filepath)
+    if(os.path.exists(filepath)):
+        os.remove(filepath)
 
 def join_scale_factor(path, scale):
     """
@@ -310,16 +312,21 @@ def spd_datahander(sample_filepath):
     sample_file_list = os.listdir(sample_filepath)
     colmuns = ["sigma_t", "eta", "g", "albedo", "r", "r_std", "p_in_x", "p_in_y", "model_id", "path"]
     output = pd.DataFrame(columns=colmuns)
-    cnt = [0,0]
+    cnt = [0,0,0,0] #count [correct,edge,fixed edge,invalid]
+    edge_list=[]
+    invalid_list=[]
     for file in tqdm.tqdm(sample_file_list):
         path_now = sample_filepath + "\\" + file
         sample_file = os.listdir(path_now)
+
 
         for sample_csv in sample_file:
             model_id = check_model_id(sample_csv)
             csv_path = path_now + "\\" + sample_csv
             csv_input = pd.read_csv(filepath_or_buffer=csv_path, encoding="ms932", sep=",")
-            if (drop_out_edge_data(csv_input) and check_number_of_data(csv_input)):
+
+            if (check_edge_data(csv_input) and check_number_of_data(csv_input)):
+                cnt[0] += 1
                 r, r_std = get_r_and_r_std(csv_input)
                 sigma_t = csv_input["sigma_t"][1]
                 eta = csv_input["eta"][1]
@@ -332,14 +339,46 @@ def spd_datahander(sample_filepath):
                 list = [[sigma_t, eta, g, albedo, r, r_std, p_in_x, p_in_y, model_id, file]]
                 list = pd.DataFrame(data=list,columns=colmuns)
                 output = pd.concat([output,list], ignore_index= True)
-            elif(not drop_out_edge_data(csv_input)):
-                cnt[0] += 1
-            elif(not check_number_of_data(csv_input)):
+            elif(not check_edge_data(csv_input)):
                 cnt[1] += 1
-    print(f"edge_data:{cnt[0]} Invalid number data:{cnt[1]}")
+                edge_list.append(csv_path)
+                csv_input, edge_mask = edge_processing(csv_input)
+                if (edge_mask):
+                    cnt[2] += 1
+                    r, r_std = get_r_and_r_std(csv_input)
+                    sigma_t = csv_input["sigma_t"][1]
+                    eta = csv_input["eta"][1]
+                    g = csv_input["g"][1]
+                    albedo = csv_input["albedo"][1]
+                    p_in_x = csv_input["p_in_x"][1]
+                    p_in_y = csv_input["p_in_y"][1]
+                    r = round(r,6)
+                    r_std = round(r_std,6)
+                    list = [[sigma_t, eta, g, albedo, r, r_std, p_in_x, p_in_y, model_id, file]]
+                    list = pd.DataFrame(data=list,columns=colmuns)
+                    output = pd.concat([output,list], ignore_index= True)
+
+            elif(not check_number_of_data(csv_input)):
+                cnt[3] += 1
+                invalid_list.append(csv_path)
+
+    print(f"Training data:{cnt[0]+cnt[2]}\nCorrect data:{cnt[0]} Edge data:{cnt[1]} Fixed edge data:{cnt[2]} Invalid number data:{cnt[3]}")
 
     output.to_string(index=False)
-    output.to_csv(sample_filepath + "\\" + "train_sample.csv")
+    delete_file("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "train_sample.csv")
+    output.to_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "train_sample.csv")
+    print("-------Process finished-------")
+    while(True):
+        key = input("Show csv path e:edge i:invalid number z:end \n>>")
+        if key == "z":
+            break
+        elif key == "e":
+            for i in range(len(edge_list)):
+                print(edge_list[i])
+        elif key == "i":
+            for i in range(len(invalid_list)):
+                print(invalid_list[i])
+
 
 
 def get_r_and_r_std(df):
@@ -361,7 +400,10 @@ def check_model_id(sample_csv):
     return 0
 
 
-def drop_out_edge_data(df):
+def check_edge_data(df):
+    # If df has not edge data, return True.
+    #
+
     p_out_x = df["p_out_x"]
     p_out_y = df["p_out_y"]
     if (25 in p_out_x.values or -25 in p_out_x.values):
@@ -369,6 +411,17 @@ def drop_out_edge_data(df):
     elif (25 in p_out_y.values or -25 in p_out_y.values):
         return False
     return True
+
+def edge_processing(df):
+    df = df[df.p_out_x != 25]
+    df = df[df.p_out_y != 25]
+    df_len = len(df)
+    df = df.reset_index(drop=True)
+    if(df_len >= 75):
+        return df ,True
+    else:
+        return 0 ,False
+
     
 def check_number_of_data(df):
     df_len = len(df)
@@ -376,6 +429,7 @@ def check_number_of_data(df):
         return True
     else:
         return False
+
 
 
 
