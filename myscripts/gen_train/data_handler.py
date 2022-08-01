@@ -119,6 +119,46 @@ class DataHandler:
         print(df_all)
         self.refine_data(df_all)
 
+    def generate_spd_train_data(self):
+        """
+        Generating height map w.r.t incident point and medium parameters for spd mode.
+
+        """
+        height_map = None
+        id_data = 0
+        height_map_list = glob.glob(f"{self.map_dir_path}\\height_map*.png")
+        df_all = pd.DataFrame()
+
+        # Instantiate HeitMap class
+        heightmap_pybind = HeightMap(self.im_size, interpolation=HeightMap.Interpolation.NEAREST)
+        
+        # get id number and map number
+        data = pd.read_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\train_sample.csv")
+
+        # join train data into one file
+        df_all = df_all.append(data)
+
+        file_path = f"{self.train_image_dir_path}"
+        # Process with each training data
+        for row in data.itertuples():
+
+            height_map = cv2.imread(height_map_list[row.model_id], cv2.IMREAD_GRAYSCALE)
+
+            # sigman = 15
+            image = gen_train_image(row, height_map, self.im_size, self.debug, pybind=heightmap_pybind,spd_mode=True)
+            
+            # Save height map image with id
+            cv2.imwrite(f"{file_path}\\train_image{row.Index:08}.png", image)
+            id_data += 1
+
+            if(row.Index % 10000 == 0):
+                print(f"{datetime.datetime.now()} -- Log: Processed {row.index}")
+
+        # refine and output sampled path data
+        time.sleep(2)
+        print(df_all)
+
+
 
     def refine_data(self, df):
         """
@@ -201,7 +241,7 @@ def join_model_id(path, model_id):
     data.to_csv(path, index=False)
 
 
-def gen_train_image(data, height_map, im_size, debug, pybind=None):
+def gen_train_image(data, height_map, im_size, debug, pybind=None,spd_mode=False):
     """
     Generate training image data from path sample data and entire height map.
     Generated image is centered by incident location.
@@ -239,8 +279,15 @@ def gen_train_image(data, height_map, im_size, debug, pybind=None):
     # Scale height map with scale factors as sampling
     map_scaled = cv2.resize(height_map, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_AREA)
 
-    sigma_n = utils.get_sigman(medium)
+    if(not spd_mode):
+        sigma_n = utils.get_sigman(medium)
 
+    else:
+        medium_for_uniform_range = {}
+        medium_for_uniform_range["sigma_t"] = 1
+        medium_for_uniform_range["albedo"] = 0.9
+        medium_for_uniform_range["g"] = 1
+        sigma_n = utils.get_sigman(medium_for_uniform_range)
     if(pybind != None):
         return pybind.clip_scaled_map(map_scaled, x_in, y_in, sigma_n, x_range, y_range, x_min, y_max)
 
@@ -260,6 +307,7 @@ def clip_scaled_map(map_scaled, pos_in, sigma_n, x_range, y_range, x_min, y_max,
     # Length of a pixel edge
     px_len = x_range / width_scaled
     # The number of pixels in 6 sigma_n
+
     r_px_range = np.ceil(6 * sigma_n / px_len).astype(np.uint32)
 
     u_c = int((y_max - y_in) * height_scaled / y_range)
@@ -307,12 +355,18 @@ def clip_scaled_map(map_scaled, pos_in, sigma_n, x_range, y_range, x_min, y_max,
 
     return canvas
 
-def spd_datahander(sample_filepath):
-    print("Starting traindata generate")
+def spd_datahandler(sample_filepath):
+    """
+    Data handler of sampling in spd mode.
+    The spd mode simulates multiple light incidence from the same direction at the same location.
+    """
+
+    print("Train data generating")
     sample_file_list = os.listdir(sample_filepath)
-    colmuns = ["sigma_t", "eta", "g", "albedo", "r", "r_std", "p_in_x", "p_in_y", "model_id", "path"]
+    colmuns = ["sigma_t", "eta", "g", "albedo", "r", "r_std", "p_in_x", "p_in_y", "p_in_z", "p_out_x", "p_out_y", "p_out_z", "d_in_x", "d_in_y", "d_in_z", "scale_x", "scale_y", "scale_z", "model_id", "id"]
     output = pd.DataFrame(columns=colmuns)
     cnt = [0,0,0,0] #count [correct,edge,fixed edge,invalid]
+    model_cnt = [0,0,0,0,0,0]
     edge_list=[]
     invalid_list=[]
     for file in tqdm.tqdm(sample_file_list):
@@ -322,11 +376,11 @@ def spd_datahander(sample_filepath):
 
         for sample_csv in sample_file:
             model_id = check_model_id(sample_csv)
+            model_cnt[model_id] += 1
             csv_path = path_now + "\\" + sample_csv
             csv_input = pd.read_csv(filepath_or_buffer=csv_path, encoding="ms932", sep=",")
 
             if (check_edge_data(csv_input) and check_number_of_data(csv_input)):
-                cnt[0] += 1
                 r, r_std = get_r_and_r_std(csv_input)
                 sigma_t = csv_input["sigma_t"][1]
                 eta = csv_input["eta"][1]
@@ -334,17 +388,27 @@ def spd_datahander(sample_filepath):
                 albedo = csv_input["albedo"][1]
                 p_in_x = csv_input["p_in_x"][1]
                 p_in_y = csv_input["p_in_y"][1]
-                r = round(r,6)
-                r_std = round(r_std,6)
-                list = [[sigma_t, eta, g, albedo, r, r_std, p_in_x, p_in_y, model_id, file]]
+                p_in_z = csv_input["p_in_z"][1]
+                p_out_x = csv_input["p_in_x"][1]
+                p_out_y = csv_input["p_in_y"][1]
+                p_out_z = csv_input["p_in_z"][1]
+                d_in_x = csv_input["d_in_x"][1]
+                d_in_y = csv_input["d_in_y"][1]
+                d_in_z = csv_input["d_in_z"][1]
+                scale_x = csv_input["scale_x"][1]
+                scale_y = csv_input["scale_y"][1]
+                scale_z = csv_input["scale_z"][1]
+                id = cnt[0] + cnt[2]
+                r, r_std = round(r,6), round(r_std,6)
+                list = [[sigma_t, eta, g, albedo, r, r_std, p_in_x, p_in_y, p_in_z, p_out_x, p_out_y, p_out_z, d_in_x, d_in_y, d_in_z, scale_x, scale_y, scale_z, model_id, id]]
                 list = pd.DataFrame(data=list,columns=colmuns)
                 output = pd.concat([output,list], ignore_index= True)
+                cnt[0] += 1
             elif(not check_edge_data(csv_input)):
                 cnt[1] += 1
                 edge_list.append(csv_path)
                 csv_input, edge_mask = edge_processing(csv_input)
                 if (edge_mask):
-                    cnt[2] += 1
                     r, r_std = get_r_and_r_std(csv_input)
                     sigma_t = csv_input["sigma_t"][1]
                     eta = csv_input["eta"][1]
@@ -352,22 +416,36 @@ def spd_datahander(sample_filepath):
                     albedo = csv_input["albedo"][1]
                     p_in_x = csv_input["p_in_x"][1]
                     p_in_y = csv_input["p_in_y"][1]
-                    r = round(r,6)
-                    r_std = round(r_std,6)
-                    list = [[sigma_t, eta, g, albedo, r, r_std, p_in_x, p_in_y, model_id, file]]
+                    p_in_z = csv_input["p_in_z"][1]
+                    p_out_x = csv_input["p_in_x"][1]
+                    p_out_y = csv_input["p_in_y"][1]
+                    p_out_z = csv_input["p_in_z"][1]
+                    d_in_x = csv_input["d_in_x"][1]
+                    d_in_y = csv_input["d_in_y"][1]
+                    d_in_z = csv_input["d_in_z"][1]
+                    scale_x = csv_input["scale_x"][1]
+                    scale_y = csv_input["scale_y"][1]
+                    scale_z = csv_input["scale_z"][1]
+                    id = cnt[0] + cnt[2]
+                    r, r_std = round(r,6), round(r_std,6)
+                    list = [[sigma_t, eta, g, albedo, r, r_std, p_in_x, p_in_y, p_in_z, p_out_x, p_out_y, p_out_z, d_in_x, d_in_y, d_in_z, scale_x, scale_y, scale_z, model_id, id]]
                     list = pd.DataFrame(data=list,columns=colmuns)
                     output = pd.concat([output,list], ignore_index= True)
+                    cnt[2] += 1
 
             elif(not check_number_of_data(csv_input)):
                 cnt[3] += 1
                 invalid_list.append(csv_path)
 
     print(f"Training data:{cnt[0]+cnt[2]}\nCorrect data:{cnt[0]} Edge data:{cnt[1]} Fixed edge data:{cnt[2]} Invalid number data:{cnt[3]}")
+    print("Number of each model",end=" ")
+    for modelnum in range(6):
+        print(f"{modelnum}:{model_cnt[modelnum]}",end=" ")
 
     output.to_string(index=False)
     delete_file("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "train_sample.csv")
     output.to_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "train_sample.csv")
-    print("-------Process finished-------")
+    print("\n-------Process finished-------")
     while(True):
         key = input("Show csv path e:edge i:invalid number z:end \n>>")
         if key == "z":
@@ -382,6 +460,8 @@ def spd_datahander(sample_filepath):
 
 
 def get_r_and_r_std(df):
+    # calculation R and R_std
+
     p_in_x = df["p_in_x"]
     p_in_y = df["p_in_y"]
     p_out_x = df["p_out_x"]
@@ -393,16 +473,27 @@ def get_r_and_r_std(df):
     return r_mean,r_std
 
 
-def check_model_id(sample_csv):
+def check_model_id(sample_csv_path):
+    """
+    Identify model id from file name
+
+    Args:
+        sample_csv : csv_path(e.g. ~\\sample00.csv)
+    return:
+        model_id : model id of serialized model
+    """
+
     for i in [1,2,3,4,5]:
-        if (str(i) in sample_csv):
+        if (str(i) in sample_csv_path):
             return i
     return 0
 
 
 def check_edge_data(df):
-    # If df has not edge data, return True.
-    #
+    """
+    If df has not edge data, return True.
+    Integrate with edge_processing if I have time.
+    """
 
     p_out_x = df["p_out_x"]
     p_out_y = df["p_out_y"]
@@ -413,26 +504,38 @@ def check_edge_data(df):
     return True
 
 def edge_processing(df):
+    """
+    Function to process data frames with edge data.
+    If there are more than criterion(75) other than edge data, return the removed edge data df.
+
+    Args:
+        df : sample csv file(pd.DataFrame)
+
+    Return:
+        df : the removed edge data df
+        bool : If there are more than criterion(75) other than edge data, return True.Else return False.
+    """
+
     df = df[df.p_out_x != 25]
     df = df[df.p_out_y != 25]
     df_len = len(df)
     df = df.reset_index(drop=True)
-    if(df_len >= 75):
+    if(df_len >= 90):
         return df ,True
     else:
         return 0 ,False
 
     
 def check_number_of_data(df):
+    """
+    Check if the number of data in df is correct.
+    This is largely meant to confirm that the sampling is working.(e.g. If other spd's are merged with each other and become a lot of data)
+    """
     df_len = len(df)
     if(df_len == 100):
         return True
     else:
         return False
-
-
-
-
     
 
 if __name__ == "__main__":
@@ -441,4 +544,18 @@ if __name__ == "__main__":
     if(config.mode != "sample_per_d"):
         d_handler.generate_train_data()
     else:
-        spd_datahander(config.SAMPLE_MAIN_DIR)
+        while(True):
+            key = input("1:csv file generate 2:image generate 3:both\n>>")
+            if(key == "1"):    
+                spd_datahandler(config.SAMPLE_MAIN_DIR)
+                break
+            elif(key == "2"):
+                d_handler.generate_spd_train_data()
+                break
+            elif(key == "3"):
+                spd_datahandler(config.SAMPLE_MAIN_DIR)
+                time.sleep(3)
+                d_handler.generate_spd_train_data()
+                break
+            else:
+                print("Please input valid letter")

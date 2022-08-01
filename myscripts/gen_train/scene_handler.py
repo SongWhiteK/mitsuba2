@@ -119,7 +119,7 @@ class SceneGenerator:
 
         elif (config.mode is "sample_per_d"):
             init_d = "0, 0, 1"
-            # init_d and init_p is not used in random_sample
+            # This may be deleted.
             scene = load_file(self.xml_path,
                               out_path=self.out_path, coeff_range=config.coeff_range, spp=self.spp, seed=self.seed,
                               scale_m=self.scale_m, sigma_t=self.sigmat, albedo=self.albedo,
@@ -331,9 +331,7 @@ def render_spd(itr, config, roop_num):
         df_scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
         join_scale_factor(scene_gen.out_path, df_scale_rec)
             
-
-### Changed test mode to work on all shapes
-
+        
 #        if config.mode is "abs" or  config.mode is "test":
 #           break
 

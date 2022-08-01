@@ -51,7 +51,7 @@ class VAE(nn.Module):
         ##### Encoder #####
         # Input: feature vector and outgoing position (147 vector)
         # Output: 4x1 normal distribution vector
-        self.enc1 = nn.Linear(147, config.n_dec1)
+        self.enc1 = nn.Linear(147, config.n_6dec1)
         self.enc2 = nn.Linear(config.n_dec1, config.n_dec1)
         self.enc3 = nn.Linear(config.n_dec1, config.n_dec2)
         self.enc41 = nn.Linear(config.n_dec2, config.n_latent)
