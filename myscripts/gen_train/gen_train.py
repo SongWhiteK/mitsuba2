@@ -30,6 +30,7 @@ d_handler = DataHandler(config)
 
 if(config.mode == "sample_per_d" and os.path.exists(config.SAMPLE_DIR)):
     exit()
+    
 # Delete Existing smaple file with conforming
 d_handler.delete_sample_files()
 

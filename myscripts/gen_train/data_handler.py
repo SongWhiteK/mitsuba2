@@ -139,6 +139,7 @@ class DataHandler:
         df_all = df_all.append(data)
 
         file_path = f"{self.train_image_dir_path}"
+
         # Process with each training data
         for row in data.itertuples():
 
@@ -151,8 +152,8 @@ class DataHandler:
             cv2.imwrite(f"{file_path}\\train_image{row.Index:08}.png", image)
             id_data += 1
 
-            if(row.Index % 10000 == 0):
-                print(f"{datetime.datetime.now()} -- Log: Processed {row.index}")
+            if(row.Index % 100 == 0):
+                print(f"{datetime.datetime.now()} -- Log: Processed {row.Index}")
 
         # refine and output sampled path data
         time.sleep(2)
@@ -444,7 +445,7 @@ def spd_datahandler(sample_filepath):
 
     output.to_string(index=False)
     delete_file("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "train_sample.csv")
-    output.to_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "train_sample.csv")
+    output.to_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "train_sample.csv", index = False)
     print("\n-------Process finished-------")
     while(True):
         key = input("Show csv path e:edge i:invalid number z:end \n>>")
