@@ -119,7 +119,7 @@ class DataHandler:
         print(df_all)
         self.refine_data(df_all)
 
-    def generate_spd_train_data(self):
+    def generate_spd_train_data(self, image_scale=0.25):
         """
         Generating height map w.r.t incident point and medium parameters for spd mode.
 
@@ -146,7 +146,7 @@ class DataHandler:
             height_map = cv2.imread(height_map_list[row.model_id], cv2.IMREAD_GRAYSCALE)
 
             # sigman = 15
-            image = gen_train_image(row, height_map, self.im_size, self.debug, pybind=heightmap_pybind,spd_mode=True)
+            image = gen_train_image(row, height_map, self.im_size, self.debug, pybind=heightmap_pybind,spd_mode=True,image_scale=image_scale)
             
             # Save height map image with id
             cv2.imwrite(f"{file_path}\\train_image{row.Index:08}.png", image)
@@ -154,11 +154,6 @@ class DataHandler:
 
             if(row.Index % 100 == 0):
                 print(f"{datetime.datetime.now()} -- Log: Processed {row.Index}")
-
-        # refine and output sampled path data
-        time.sleep(2)
-        print(df_all)
-
 
 
     def refine_data(self, df):
@@ -211,7 +206,7 @@ class DataHandler:
 
 def delete_file(filepath):
     if(os.path.exists(filepath)):
-        os.remove(filepath)
+        shutil.rmtree(filepath)
 
 def join_scale_factor(path, scale):
     """
@@ -242,7 +237,7 @@ def join_model_id(path, model_id):
     data.to_csv(path, index=False)
 
 
-def gen_train_image(data, height_map, im_size, debug, pybind=None,spd_mode=False):
+def gen_train_image(data, height_map, im_size, debug, pybind=None,spd_mode=False, image_scale=0.25):
     """
     Generate training image data from path sample data and entire height map.
     Generated image is centered by incident location.
@@ -288,7 +283,7 @@ def gen_train_image(data, height_map, im_size, debug, pybind=None,spd_mode=False
         medium_for_uniform_range["sigma_t"] = 1
         medium_for_uniform_range["albedo"] = 0.9
         medium_for_uniform_range["g"] = 1
-        sigma_n = utils.get_sigman(medium_for_uniform_range)
+        sigma_n = image_scale*utils.get_sigman(medium_for_uniform_range)
     if(pybind != None):
         return pybind.clip_scaled_map(map_scaled, x_in, y_in, sigma_n, x_range, y_range, x_min, y_max)
 

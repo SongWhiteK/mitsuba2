@@ -15,6 +15,7 @@ import time
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
+        self.hidden_layer = 64
         self.conv_layers = nn.Sequential(
             #input : 128*128 image
             #output : 128*1 vector
@@ -41,13 +42,13 @@ class Net(nn.Module):
 
         self.dence = nn.Sequential(
 
-            nn.Linear(144, 64),
+            nn.Linear(144, self.hidden_layer),
             nn.ReLU(),
             nn.Dropout(p=0.25),
-            nn.Linear(64, 64),
+            nn.Linear(self.hidden_layer, self.hidden_layer),
             nn.ReLU(),
             nn.Dropout(p=0.25),
-            nn.Linear(64 , 2),
+            nn.Linear(self.hidden_layer , 2),
         )
 
     def check_cnn_size(self, size_check):

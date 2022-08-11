@@ -27,7 +27,7 @@ def eval(net, test_dataset_loader, device):
         props, r_and_rstd, im = props.to(device), r_and_rstd.to(device), im.to(device)
 
         outputs = net(im, props)
-
+        print(outputs-r_and_rstd)
     return outputs, r_and_rstd
 
 
@@ -36,10 +36,16 @@ def eval(net, test_dataset_loader, device):
 if __name__ == "__main__":
     device = torch.device("cuda")
     net = Net().to(device)
-
-    model_path = "D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\model_0.002_Adam.pth"
+    net.eval()
+    start = time.time()
+    model_path = "D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save_0806(full)\\model_0.002_Adam.pth"
     net.load_state_dict(torch.load(model_path))
 
-    test_dataset = CNNDatasets_test()
+    test_dataset = CNNDatasets_train()
     test_loader = DataLoader(test_dataset, batch_size=1,shuffle=False)
-    outputs, r_and_std =  eval(net, test_loader, device)
+    start = time.time()
+    outputs, r_and_rstd =  eval(net, test_loader, device)
+    print(outputs, r_and_rstd)
+
+    elapsed_time = time.time() - start
+    print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")

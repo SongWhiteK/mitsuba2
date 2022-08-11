@@ -1,6 +1,5 @@
 import os
 import random
-from tkinter import HIDDEN
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
@@ -13,29 +12,11 @@ import torch.optim as optim
 import pandas as pd
 import time
 import optuna
-from net import Net
 
-class Net_optuna(nn.Module):
-    def __init__(self, hidden_dim, p_drop):
-        super(Net_optuna, self).__init__()
-        self.p_drop = p_drop
-        self.hidden_dim = hidden_dim
-
-        self.conv_layers = nn.Sequential(
-            #input : 128*128 image
-            #output : 128*1 vector
-            nn.Conv2d(1,32,3),
-            nn.MaxPool2d(3),
-            nn.ReLU(),
-            nn.Conv2d(32,64,3),
-            nn.MaxPool2d(3),
-            nn.ReLU(),
-            nn.Conv2d(64,128,3),
-            nn.MaxPool2d(3),
-            nn.ReLU(),
-            nn.Conv2d(128,128,3),
-            nn.ReLU(),
-        )
+class Net_test(nn.Module):
+    def __init__(self,hidden_dim):
+        super(Net_test, self).__init__()
+        self.hidden_layer = hidden_dim
         self.feature = nn.Sequential(
             nn.Linear(6,16),
             nn.ReLU(),
@@ -44,42 +25,43 @@ class Net_optuna(nn.Module):
             nn.Linear(16,16),
             nn.ReLU(),
         )
+
         self.dence = nn.Sequential(
 
-            nn.Linear(144, self.hidden_dim),
+            nn.Linear(16, self.hidden_layer),
             nn.ReLU(),
-            nn.Dropout(p=self.p_drop),
-            nn.Linear(self.hidden_dim, self.hidden_dim),
+            nn.Dropout(p=0.25),
+            nn.Linear(self.hidden_layer, self.hidden_layer),
             nn.ReLU(),
-            nn.Dropout(p=self.p_drop),
-            nn.Linear(self.hidden_dim , 2),
+            nn.Dropout(p=0.25),
+            nn.Linear(self.hidden_layer , 2),
         )
+
     def check_cnn_size(self, size_check):
         out = self.conv_layers(size_check)
             
         return out
 
-    def feature_conversion(self, im, props):
+    def feature_conversion(self, props):
         """Conversion from height map and properties to feature vector"""
-        im_feature = self.conv_layers(im)
-        im_feature = im_feature.view(-1,128)
 
         props_feature = self.feature(props)
 
-        feature = torch.cat([props_feature, im_feature], dim=1)
-
-        return feature
+        return props_feature
 
 
-    def forward(self, im, props):
-        feature = self.feature_conversion(im, props)
+    def forward(self, props):
+        feature = self.feature_conversion(props)
         r = self.dence(feature)
 
         return r
 
+
+
 def train(lr=0.0001, opt="Adam", hidden_dim=64):
     device = torch.device("cuda")
-    net = Net_optuna(hidden_dim).to(device)
+
+    net = Net_test(hidden_dim).to(device)
     if(opt == "Adam"):
         optimizer = optim.Adam(net.parameters(), lr=lr)
     else:
@@ -110,14 +92,13 @@ def train(lr=0.0001, opt="Adam", hidden_dim=64):
         for i, (im_path, sample) in enumerate(train_loader):
             props = sample["props"]
             r_and_rstd = sample["r_and_rstd"]
-            im = image_generate(im_path, 128)
 
-            props, r_and_rstd, im = props.to(device), r_and_rstd.to(device), im.to(device)
+            props, r_and_rstd= props.to(device), r_and_rstd.to(device)
             # zero the parameter gradients
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(im, props)
+            outputs = net(props)
             loss = criterion(outputs, r_and_rstd)
 
             loss.backward()
@@ -174,11 +155,10 @@ def val(net, val_dataset_loader, device):
 
         props = sample["props"]
         r_and_rstd = sample["r_and_rstd"]
-        im = image_generate(im_path, 128)
 
-        props, r_and_rstd, im = props.to(device), r_and_rstd.to(device), im.to(device)
+        props, r_and_rstd = props.to(device), r_and_rstd.to(device)
 
-        outputs = net(im, props)
+        outputs = net(props)
         loss = criterion(outputs, r_and_rstd)
      
         running_loss += loss.item()
@@ -194,16 +174,16 @@ def test_NN(net, test_dataset_loader, device):
         
         props = sample["props"]
         r_and_rstd = sample["r_and_rstd"]
-        im = image_generate(im_path, 128)
 
-        props, r_and_rstd, im = props.to(device), r_and_rstd.to(device), im.to(device)
+        props, r_and_rstd= props.to(device), r_and_rstd.to(device)
 
-        outputs = net(im, props)
+        outputs = net(props)
         loss = criterion(outputs, r_and_rstd)
      
         running_loss += loss.item()
 
     return running_loss
+
 
 def objective(trial):
     # TODO:epoch automation
@@ -214,10 +194,9 @@ def objective(trial):
     learning_rate = trial.suggest_discrete_uniform("learning_rate", 1e-5, 1e-2, q=1e-5)
     optimizer = trial.suggest_categorical("optimizer", ["Adam"])
     hidden_dim = trial.suggest_int("hidden_dim", 8, 200, 8)
-    p_drop = trial.suggest_discrete_uniform("p_drop", 1e-2, 0.5, q=1e-2)
 
     print(learning_rate,optimizer,hidden_dim)
-    net = Net_optuna(hidden_dim=hidden_dim,p_drop=p_drop).to(device)
+    net = Net_test(hidden_dim=hidden_dim).to(device)
     criterion = nn.MSELoss()
     optimizer = getattr(optim, optimizer)(net.parameters(), lr=learning_rate)
 
@@ -232,14 +211,13 @@ def objective(trial):
         for i, (im_path, sample) in enumerate(train_loader):
             props = sample["props"]
             r_and_rstd = sample["r_and_rstd"]
-            im = image_generate(im_path, 128)
 
-            props, r_and_rstd, im = props.to(device), r_and_rstd.to(device), im.to(device)
+            props, r_and_rstd = props.to(device), r_and_rstd.to(device)
             # zero the parameter gradients
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(im, props)
+            outputs = net(props)
             loss = criterion(outputs, r_and_rstd)
 
             loss.backward()
@@ -252,12 +230,11 @@ def objective(trial):
         for i, (im_path, sample) in enumerate(test_loader):
             props = sample["props"]
             r_and_rstd = sample["r_and_rstd"]
-            im = image_generate(im_path, 128)
 
-            props, r_and_rstd, im = props.to(device), r_and_rstd.to(device), im.to(device)
+            props, r_and_rstd= props.to(device), r_and_rstd.to(device)
 
             # forward + backward + optimize
-            outputs = net(im, props)
+            outputs = net(props)
             validation_loss += criterion(outputs, r_and_rstd)
 
 
@@ -268,16 +245,10 @@ def study_params(n_trials):
     study.optimize(objective, n_trials=n_trials)
     print(f"=====best param=====\n{study.best_params}")
 
-
 if __name__ == "__main__":
 
     start = time.time()
-    # train(lr=0.00031,hidden_dim=72)
-
-    study_params(n_trials=200)
-
+    train(lr=0.00031,hidden_dim=72)
+    # study_params(100)
     elapsed_time = time.time() - start
     print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
-
-    #{'learning_rate': 0.00031000000000000005, 'optimizer': 'Adam', 'hidden_dim': 72}
-    #'learning_rate': 0.0006600000000000001, 'optimizer': 'Adam', 'hidden_dim': 200, 'p_drop': 0.17}. Best is trial 26 with value: 3.196924924850464.
