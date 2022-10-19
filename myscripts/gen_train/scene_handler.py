@@ -62,7 +62,7 @@ class SceneGenerator:
         if(sample_num==-1):
             self.out_path = f"{self.out_dir}\\sample{model_id:02}.csv"
         else:
-            self.out_path = f"{self.out_dir}\\sample{model_id:02}_{sample_num:02}.csv"
+            self.out_path = f"{self.out_dir}\\sample{model_id:02}_{sample_num:05}.csv"
 
     def set_transform_matrix(self, mat):
         self.mat = utils.scale_mat_2_str(mat)
@@ -216,18 +216,20 @@ def render(itr, config):
             df_scale_rec = pd.DataFrame(scale_rec, columns=["scale_x", "scale_y", "scale_z"])
             join_scale_factor(scene_gen.out_path, df_scale_rec)
     else:
-        for roop_num in range(config.roop_num):
-            render_spd(itr, config, roop_num)
+        render_spd(itr, config, 1 ,True)
     
 
-def render_spd(itr, config, roop_num):
+def render_spd(itr, config, roop_num=0,test_mode=False):
     spp = config.spp
 
     # Generate scene and parameter generator
     param_gen = utils.ParamGenerator()
     scene_gen = SceneGenerator(config)
     cnt = 0
-
+    time_seed = int(time.time())
+    if(test_mode):
+        np.random.seed(seed=time_seed)
+        albedo_rand = np.random.rand()
     # Ready for recording scale factor
     scale_rec = np.ones([itr, 3])
 
@@ -239,8 +241,8 @@ def render_spd(itr, config, roop_num):
     if(itr % config.scene_batch_size != 0):
         sys.exit("Please set ite_per_shape to be a multiple of scene_batch_size")
 
-    time_seed = int(time.time())
-    if(time_seed % 2 == 0):
+    
+    if((time_seed % 2 == 0) and test_mode==False):
         serialized_list.reverse()
         reverse = True
     else:
@@ -248,6 +250,9 @@ def render_spd(itr, config, roop_num):
 
     # Render with given params generator and scene generator
     for model_id, serialized in enumerate(serialized_list):
+
+        if((test_mode)and(model_id!=3)):
+            continue
         if (reverse):
             model_id = 5 - model_id
         print(model_id,serialized)
@@ -275,6 +280,8 @@ def render_spd(itr, config, roop_num):
             csv_input = pd.read_csv(filepath_or_buffer=config.SAMPLE_CSV_DIR, encoding="ms932", sep=",")
 
             scene_gen.set_out_path(model_id,roop_num)
+            if(test_mode):
+                scene_gen.set_out_path(model_id,albedo_rand)
 
             d_in_x = csv_input["d_in_x"]
             d_in_y = csv_input["d_in_y"]
@@ -286,17 +293,21 @@ def render_spd(itr, config, roop_num):
             same_medium["eta"] = csv_input["eta"][rand_int[0]]
             same_medium["g"] = csv_input["g"][rand_int[1]]
             same_medium["albedo"] = csv_input["albedo"][rand_int[2]]
+
+
+                
             same_medium["sigma_t"] = 1
             direction = [d_in_x[rand_int[3]],d_in_y[rand_int[3]],d_in_z[rand_int[3]]]
             position = [rand_x, rand_y, 0]
             print(direction,position)
+            if(test_mode):
+                same_medium["albedo"] = round(albedo_rand,4)
+                direction = [0,0,1]
+                position = [0,0,0]
             scene = scene_gen.get_same_direction_scene(direction,position)
             scene_gen.set_medium(same_medium)
             update_medium(scene, same_medium)
             
-            if i == (itr // config.scene_batch_size)-1:
-                scene_gen.set_out_path(model_id)
-                scene_gen.set_out_path(model_id,roop_num)
 
             # Render the scene with scene_batch_size iteration
             for j in range(config.scene_batch_size):

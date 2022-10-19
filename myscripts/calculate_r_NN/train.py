@@ -1,3 +1,6 @@
+"""General NN Training Scripts"""
+
+
 import os
 import random
 from tkinter import HIDDEN
@@ -14,6 +17,7 @@ import pandas as pd
 import time
 import optuna
 from net import Net
+import copy
 
 class Net_optuna(nn.Module):
     def __init__(self, hidden_dim, p_drop):
@@ -79,7 +83,7 @@ class Net_optuna(nn.Module):
 
 def train(lr=0.0001, opt="Adam", hidden_dim=64):
     device = torch.device("cuda")
-    net = Net_optuna(hidden_dim).to(device)
+    net = Net().to(device)
     if(opt == "Adam"):
         optimizer = optim.Adam(net.parameters(), lr=lr)
     else:
@@ -97,7 +101,7 @@ def train(lr=0.0001, opt="Adam", hidden_dim=64):
 
     #train_dataset, val_dataset = torch.utils.data.random_split(train_loader, [train_size, val_size])
 
-    net.train()
+    best_loss = 10000
     epochs = 1000
     colmuns = ["loss"]
     loss_record_forward = pd.DataFrame(columns=colmuns)
@@ -106,6 +110,7 @@ def train(lr=0.0001, opt="Adam", hidden_dim=64):
 
     for epoch in range(epochs):
         print(f"start epoch {epoch+1}")
+        net.train()
         running_loss = 0.0
         for i, (im_path, sample) in enumerate(train_loader):
             props = sample["props"]
@@ -130,7 +135,7 @@ def train(lr=0.0001, opt="Adam", hidden_dim=64):
                 print('[{:d}, {:5d}] loss: {:.3f}'
                         .format(epoch + 1, i + 1, running_loss))
                 
-                if((i+1) % 110 == 0):
+                if((i+1) % 280 == 0):
                     loss_temp = [[running_loss]]
                     loss_temp = pd.DataFrame(data=loss_temp,columns=colmuns)
                     loss_record_forward = pd.concat([loss_record_forward,loss_temp], ignore_index= True)
@@ -147,22 +152,27 @@ def train(lr=0.0001, opt="Adam", hidden_dim=64):
         loss_temp = pd.DataFrame(data=loss_temp,columns=colmuns)
         loss_record_test = pd.concat([loss_record_test,loss_temp], ignore_index= True)
         print(loss_test)
-        
+        if best_loss > loss_test:
+            best_model = copy.deepcopy(net)
+            best_loss = loss_test
+            print("updated best model")
+        else:
+            print(f"best model:{best_loss}")
 
             
     loss_record_forward.to_string(index=False)
-    loss_record_forward.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\loss_record_f_{lr}_{opt}.csv")
+    loss_record_forward.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\loss_record_f_0901_{lr}_{opt}.csv")
 
     loss_record_test.to_string(index=False)
-    loss_record_test.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\loss_record_test_{lr}_{opt}.csv")
+    loss_record_test.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\loss_record_test_0901_{lr}_{opt}.csv")
 
 
     #loss_record_val.to_string(index=False)
     #loss_record_val.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\gen_train\\NN_loss_save\\loss_record_v_{lr}_{opt}.csv")
 
 
-    model_path = f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\model_{lr}_{opt}.pth"
-    torch.save(net.state_dict(), model_path)
+    model_path = f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\best_model_0901.pth"
+    torch.save(best_model.state_dict(), model_path)
     print('Finished Training')
 
 def val(net, val_dataset_loader, device):
@@ -268,13 +278,107 @@ def study_params(n_trials):
     study.optimize(objective, n_trials=n_trials)
     print(f"=====best param=====\n{study.best_params}")
 
+def retrain(lr=0.0001, opt="Adam", hidden_dim=64):
+    device = torch.device("cuda")
+    net = Net().to(device)
+    net.load_state_dict(torch.load("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\best_model_0814.pth"))
+
+    if(opt == "Adam"):
+        optimizer = optim.Adam(net.parameters(), lr=lr)
+    else:
+        optimizer = optim.SGD(net.parameters(), lr=lr)
+
+    criterion = nn.MSELoss()
+    train_dataset = CNNDatasets_train()
+    test_dataset = CNNDatasets_test()
+    train_loader = DataLoader(train_dataset, batch_size=16,shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=16,shuffle=False)
+
+    #n_samples = len(train_loader) 
+    #train_size = int(len(train_loader) * 0.8) 
+    #val_size = n_samples - train_size 
+
+    #train_dataset, val_dataset = torch.utils.data.random_split(train_loader, [train_size, val_size])
+
+    best_loss = 10000
+    epochs = 1000
+    colmuns = ["loss"]
+    loss_record_forward = pd.DataFrame(columns=colmuns)
+    loss_record_test = pd.DataFrame(columns=colmuns)
+    #loss_record_val = pd.DataFrame(columns=colmuns)
+
+    for epoch in range(epochs):
+        print(f"start epoch {epoch+1}")
+        net.train()
+        running_loss = 0.0
+        for i, (im_path, sample) in enumerate(train_loader):
+            props = sample["props"]
+            r_and_rstd = sample["r_and_rstd"]
+            im = image_generate(im_path, 128)
+
+            props, r_and_rstd, im = props.to(device), r_and_rstd.to(device), im.to(device)
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # forward + backward + optimize
+            outputs = net(im, props)
+            loss = criterion(outputs, r_and_rstd)
+
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+
+            if (i+1) % 10 == 0:
+                print('[{:d}, {:5d}] loss: {:.3f}'
+                        .format(epoch + 1, i + 1, running_loss))
+                
+                if((i+1) % 110 == 0):
+                    loss_temp = [[running_loss]]
+                    loss_temp = pd.DataFrame(data=loss_temp,columns=colmuns)
+                    loss_record_forward = pd.concat([loss_record_forward,loss_temp], ignore_index= True)
+
+                    #loss_val = val(net, val_dataset)
+                    #loss_temp = [[loss_val]]
+                    #loss_temp = pd.DataFrame(data=loss_temp,columns=colmuns)
+                    #loss_record_val = pd.concat([loss_record_val,loss_temp], ignore_index= True)
+
+                running_loss = 0.0
+
+        loss_test = test_NN(net, test_loader, device)
+        loss_temp = [[loss_test]]
+        loss_temp = pd.DataFrame(data=loss_temp,columns=colmuns)
+        loss_record_test = pd.concat([loss_record_test,loss_temp], ignore_index= True)
+        print(loss_test)
+        if best_loss > loss_test:
+            best_model = copy.deepcopy(net)
+            best_loss = loss_test
+            print("updated best model")
+
+            
+    loss_record_forward.to_string(index=False)
+    loss_record_forward.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\loss_record_f_{lr}_{opt}.csv")
+
+    loss_record_test.to_string(index=False)
+    loss_record_test.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\loss_record_test_{lr}_{opt}.csv")
+
+
+    #loss_record_val.to_string(index=False)
+    #loss_record_val.to_csv(f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\gen_train\\NN_loss_save\\loss_record_v_{lr}_{opt}.csv")
+
+
+    model_path = f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\NN_loss_save\\best_model_0815.pth"
+    torch.save(best_model.state_dict(), model_path)
+    print('Finished Training')
+
 
 if __name__ == "__main__":
 
     start = time.time()
-    # train(lr=0.00031,hidden_dim=72)
+    train(lr=0.00031,hidden_dim=64)
 
-    study_params(n_trials=200)
+    # study_params(n_trials=200)
 
     elapsed_time = time.time() - start
     print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")

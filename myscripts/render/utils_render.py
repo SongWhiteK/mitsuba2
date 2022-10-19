@@ -11,7 +11,7 @@ import mitsuba
 import enoki as ek
 import torch
 
-mitsuba.set_variant("gpu_rgb")
+mitsuba.set_variant("scalar_rgb")
 
 from mitsuba.core import Float, warp, Color3f, srgb_to_xyz
 from mitsuba.core import Bitmap, Struct

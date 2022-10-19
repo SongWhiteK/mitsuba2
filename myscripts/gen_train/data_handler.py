@@ -119,7 +119,7 @@ class DataHandler:
         print(df_all)
         self.refine_data(df_all)
 
-    def generate_spd_train_data(self, image_scale=0.25):
+    def generate_spd_train_data(self, image_scale=0.1):
         """
         Generating height map w.r.t incident point and medium parameters for spd mode.
 
@@ -190,7 +190,8 @@ class DataHandler:
         if(os.path.exists(self.sample_path)):
             print(f"Delete sample files in {self.sample_path}? [y/n]")
             while(True):
-                key_input = input()
+                #key_input = input()
+                key_input = "n"
                 if(key_input == "y"):
                     shutil.rmtree(self.sample_path)
                     time.sleep(0.5)
@@ -546,7 +547,7 @@ if __name__ == "__main__":
                 spd_datahandler(config.SAMPLE_MAIN_DIR)
                 break
             elif(key == "2"):
-                d_handler.generate_spd_train_data()
+                d_handler.generate_spd_train_data(image_scale=0.1)
                 break
             elif(key == "3"):
                 spd_datahandler(config.SAMPLE_MAIN_DIR)

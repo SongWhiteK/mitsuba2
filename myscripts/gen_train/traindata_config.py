@@ -68,7 +68,7 @@ class TrainDataConfiguration:
         if(self.mode != "sample_per_d"):
             self.SAMPLE_DIR = "D:\\kenkyu\\mine\\train_data\\sample_files"
         else:
-            self.SAMPLE_DIR = f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\roop_sample\\sample_files_{dt_now.month}_{dt_now.day}_{dt_now.hour}_{dt_now.minute}"
+            self.SAMPLE_DIR = f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\roop_sample\\sample_files_test\\sample_files_{dt_now.day}_{dt_now.hour}_{dt_now.minute}_{dt_now.second}"
             self.SAMPLE_MAIN_DIR = "D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\roop_sample"
             self.SAMPLE_CSV_DIR = "D:\\kenkyu\\mine\\test_spt\\train_path.csv"
         # Final training data file directory path
@@ -81,7 +81,7 @@ class TrainDataConfiguration:
         ############## ITERATION NUMBERS ##############
         # The number of samples for one object, i.e, object file
         # in scene_templates/serialized/***.serialized
-        self.itr_per_shape = 100
+        self.itr_per_shape = 1000
         if self.mode == "abs":
             self.itr_per_shape = (self.res**2) * 6
 

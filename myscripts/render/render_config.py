@@ -3,7 +3,7 @@
 from os import truncate
 
 
-variant = "gpu_rgb"
+variant = "scalar_rgb"
 rr_depth = 5
 max_depth = 5
 spp = 256
