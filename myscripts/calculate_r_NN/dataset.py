@@ -91,6 +91,37 @@ class CNNDatasets_test(Dataset):
     def __len__(self):
         return len(self.data)
 
+class estimate_dataset(Dataset):
+    def __init__(self, transform=None):
+        self.data = pd.read_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\data_for_estimate.csv")
+        self.im_dir = "D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\height_save_estimate"
+
+        self.transform = transform
+
+    def __getitem__(self, index):
+
+        # Get csv data
+        data = self.data.iloc[index]
+
+        idx_props = ["g", "eta", "albedo",
+                     "d_in_x", "d_in_y", "d_in_z"]
+        props = pd.Series(data=data, index=idx_props).values
+        props = props.astype(np.float32)
+        props = torch.tensor(props)
+
+        sample_id = int(data["id"])
+
+        # Get processed height map from index (~= id)
+        im_path = f"D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\height_save_estimate\\train_image{sample_id:08}.png"
+
+        sample = {}
+        sample["props"] = props
+
+        return im_path, sample
+
+    def __len__(self):
+        return len(self.data)
+
 
 
 def image_generate(im_path, im_size):

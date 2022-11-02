@@ -76,7 +76,7 @@ class TrainDataConfiguration:
         # Uncliped height map directory path
         self.MAP_DIR = "D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\height_map"
         # Height map directory path for training data
-        self.IMAGE_DIR = "D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\height_save"
+        self.IMAGE_DIR = "D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\height_save_estimate"
 
         ############## ITERATION NUMBERS ##############
         # The number of samples for one object, i.e, object file

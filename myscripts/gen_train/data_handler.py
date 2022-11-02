@@ -133,7 +133,7 @@ class DataHandler:
         heightmap_pybind = HeightMap(self.im_size, interpolation=HeightMap.Interpolation.NEAREST)
         
         # get id number and map number
-        data = pd.read_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\train_sample.csv")
+        data = pd.read_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data\\data_for_estimate.csv")
 
         # join train data into one file
         df_all = df_all.append(data)
@@ -533,6 +533,39 @@ def check_number_of_data(df):
         return True
     else:
         return False
+
+
+def datasetgen_for_estimate_R():
+    colmuns = ["sigma_t", "eta", "g", "albedo", "p_in_x", "p_in_y", "p_in_z", "d_in_x", "d_in_y", "d_in_z", "scale_x", "scale_y", "scale_z", "model_id", "id"]
+    output = pd.DataFrame(columns=colmuns)
+    sigma_t = 1
+    eta = 1.5
+    g = 0.5
+    albedo = 0.9
+    d_in_x = 0
+    d_in_y = 0
+    d_in_z = 1
+    scale_x = 1
+    scale_y = 1
+    scale_z = 1
+    model_id = 1
+    p_in_z = 20
+
+    for i in range(400):
+        print(f"Now:{i}")
+        p_in_x = (i-200)*0.1
+        for j in range(400):
+            p_in_y = (j-200)*0.1
+            id = i+j
+            templist = [[sigma_t, eta, g, albedo,  p_in_x, p_in_y, p_in_z, d_in_x, d_in_y, d_in_z, scale_x, scale_y, scale_z, model_id, id]]
+            templist = pd.DataFrame(data=templist,columns=colmuns)
+            output = pd.concat([output,templist], ignore_index= True)      
+    output.to_string(index=False)
+    delete_file("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "data_for_estimate.csv")
+    output.to_csv("D:\\kenkyu\\mine\\mitsuba2\\myscripts\\train_data" + "\\" + "data_for_estimate.csv", index = False)
+            
+            
+
     
 
 if __name__ == "__main__":
@@ -542,17 +575,12 @@ if __name__ == "__main__":
         d_handler.generate_train_data()
     else:
         while(True):
-            key = input("1:csv file generate 2:image generate 3:both\n>>")
+            key = input("1:csv file generate 2:image generate\n>>")
             if(key == "1"):    
                 spd_datahandler(config.SAMPLE_MAIN_DIR)
                 break
             elif(key == "2"):
                 d_handler.generate_spd_train_data(image_scale=0.1)
-                break
-            elif(key == "3"):
-                spd_datahandler(config.SAMPLE_MAIN_DIR)
-                time.sleep(3)
-                d_handler.generate_spd_train_data()
                 break
             else:
                 print("Please input valid letter")
